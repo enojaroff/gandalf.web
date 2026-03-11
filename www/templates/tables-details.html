@@ -1,0 +1,34 @@
+
+<div class="navbar-second navbar navbar-primary has-navbar">
+  <div class="container-fluid">
+    <ul class="nav navbar-nav" ng-if="table.variants.length == 1">
+      <li role="presentation" ui-sref-active="active" ui-sref=".edit"><a>Edit</a></li>
+      <li role="presentation" ui-sref-active="active" ui-sref=".analytics"><a>Analytics</a></li>
+      <li role="presentation" ui-sref-active="active" ui-sref=".debugger" ng-if="project.hasUserAccess('decisions', 'make')"><a>Debugger</a></li>
+      <li role="presentation" ui-sref-active="active" ui-sref=".revisions"><a>Revisions</a></li>
+      <li role="presentation" ui-sref-active="active" ui-sref=".history" ng-if="project.hasUserAccess('decisions', 'view')"><a>History</a></li>
+      <li role="presentation" ng-click="createNewVariant()" ng-if="table.variants.length == 1 &amp;&amp; project.hasUserAccess('tables', 'update')"><a>Start Split Testing</a></li>
+    </ul>
+    <div ng-if="table.variants.length &gt; 1">
+      <ul class="nav navbar-nav">
+        <li role="presentation" ui-sref-active="active" ui-sref=".info"><a>Info</a></li>
+        <li role="presentation" ui-sref-active="active" ui-sref=".revisions"><a>Revisions</a></li>
+        <li role="presentation" ui-sref-active="active" ui-sref=".history" ng-if="project.hasUserAccess('decisions', 'view')"><a>History</a></li>
+      </ul>
+      <ul class="nav navbar-nav nav-secondary">
+        <li class="dropdown" role="presentation" ng-if="table.variants.length &gt; 1" uib-dropdown="uib-dropdown"><a class="dropdown-toggle" role="button" uib-dropdown-toggle="uib-dropdown-toggle">
+            <div class="text-overflow">{{variant.title || 'Untitled variant'}}</div><b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li ng-repeat="item in table.variants" ng-class="{'active': variant.id == item.id}"><a ng-click="selectVariant(item)"><span class="table-title-overflow">{{item.title || 'Untitled variant'}}</span></a></li>
+            <li class="divider" ng-if="project.hasUserAccess('tables', 'update')" role="separator"></li>
+            <li ng-if="project.hasUserAccess('tables', 'update')"><a ng-click="createNewVariant()">+ Create new variant</a></li>
+          </ul>
+        </li>
+        <li role="presentation" ui-sref-active="active" ui-sref=".edit"><a>Edit</a></li>
+        <li role="presentation" ui-sref-active="active" ui-sref=".analytics"><a>Analytics</a></li>
+        <li role="presentation" ui-sref-active="active" ui-sref=".debugger" ng-if="project.hasUserAccess('decisions', 'make')"><a>Debugger</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<ui-view></ui-view>

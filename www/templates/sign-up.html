@@ -1,0 +1,34 @@
+
+<div class="sign-up">
+  <h4 class="sign-up__header">Sign Up</h4>
+  <div class="sign-up__content">
+    <div ng-if="byInvite"><p>You received invitation to Gandalf. Sign up and get instant access to a shared projects!</p>
+
+    </div>
+    <div class="alert alert-danger" ng-if="error">User already exists</div>
+    <form ng-submit="submit(form)" name="form" novalidate="novalidate">
+      <div class="form-group">
+        <input class="form-control form-control-underline" name="username" type="text" ng-model="model.username" pattern="^[a-zA-Z0-9-_.]+$" minlength="2" maxlength="32" required="required" autocomplete="off" placeholder="User name"/>
+        <div class="form-control-error" ng-messages="form.username.$error" ng-if="form.username.$dirty || form.$submitted">
+          <div ng-message="pattern">{{'validation.errors.invalid_username'|translate}}</div>
+          <div ng-message="minlength">{{'validation.errors.username_minlength'|translate}}</div>
+        </div>
+      </div>
+      <div class="form-group text-right"><span class="form-control-underline-subtitle" ng-switch="complexity.score" ng-if="form.password.$dirty"><span ng-switch-when="0">Too short</span><span ng-switch-when="1">Week</span><span ng-switch-when="2">Fair</span><span ng-switch-when="3">Good</span><span ng-switch-when="4">Strong</span></span>
+        <input class="form-control form-control-underline" name="password" type="password" ng-model="model.password" ng-model-options="{allowInvalid: true}" minlength="6" maxlength="32" pattern=".*(?=.*[A-Z]+)(?=.*[a-z]+)(?=.*[\d]+).*" required="required" autocomplete="off" placeholder="Password"/>
+        <div class="form-control-underline-complexity" complexity="complexity" complexity-password="model.password"></div>
+        <div class="form-control-error" ng-messages="form.password.$error" ng-if="form.password.$dirty || form.$submitted">
+          <div ng-message="pattern">{{'validation.errors.invalid_password'|translate}}</div>
+          <div ng-message="minlength">{{'validation.errors.password_minlength'|translate}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <input class="form-control form-control-underline" name="email" type="email" ng-model="model.email" required="required" placeholder="E-mail address"/>
+      </div>
+      <div class="btn-actions text-center">
+        <button class="btn btn-submit" type="submit">Create account</button>
+      </div>
+      <div class="btn-actions text-center">Already have an account? &nbsp<a ui-sref="sign-in">Sign In</a></div>
+    </form>
+  </div>
+</div>

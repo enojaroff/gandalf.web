@@ -1,0 +1,43 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Add collaborator</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Username</label>
+        <div class="col-sm-10">
+          <input class="form-control" type="text" ng-model="userSearch" typeahead-min-length="1" uib-typeahead="user as user.username for user in getUsers($viewValue)" required="required"/>
+        </div>
+      </div>
+      <div class="form-group" ng-if="shouldInvite(userSearch)">
+        <div class="col-sm-10 col-sm-push-2">
+          <div class="alert alert-info">Invitation letter will be sent to the user email</div>
+        </div>
+      </div>
+      <hr/>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Role</label>
+        <div class="col-sm-10">
+          <input class="form-control" ng-model="user.role" disabled="disabled" required="required"/>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Scopes</label>
+        <div class="col-sm-10 form-control-block">
+          <user-scope-list model="user.scope" required="isRequired()" project="project"></user-scope-list>
+          <!---->
+          <!--.checkbox(ng-repeat="scope in scopes"): label-->
+          <!--  input(type="checkbox", checklist-model="user.scope", checklist-value="scope",-->
+          <!--    ng-required="!(user.scope && user.scope.length > 0)")-->
+          <!--  | {{scope | map: $root.APP.scopes}}-->
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </div>
+</form>

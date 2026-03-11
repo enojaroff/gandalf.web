@@ -1,0 +1,6 @@
+div(ng-if="!isEditing && matchingType != matchingTypes.scoring_count").form-control-static {{rule.than}}
+div(ng-if="isEditing")
+  span(ng-if="matchingType == matchingTypes.first")
+    decision-input(type="decisionType", decisions="decisions", model="rule.than", placeholder="Decision")
+  span(ng-if="matchingType != matchingTypes.first && matchingType != matchingTypes.scoring_count")
+    decision-input(type="decisionType", decisions="decisions", model="rule.than", placeholder="Score")

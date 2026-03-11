@@ -1,0 +1,62 @@
+{
+  "name": "gandalf.web",
+  "version": "1.0.1",
+  "repository": "https://github.com/Nebo15/gandalf.web.git",
+  "scripts": {
+    "build": "gulp build --production",
+    "postinstall": "node scripts/patch-clone-stats.js",
+    "start": "node server",
+    "test": "gulp test",
+    "test:travis": "gulp test:travis",
+    "karma": "karma start karma.conf.js",
+    "karma-single-run": "karma start karma.conf.js  --single-run",
+    "docker:reset": "npm run docker:down && npm run docker:up",
+    "docker:up": "docker-compose -f ./docker/dc.selenium.yml up -d",
+    "docker:down": "docker-compose -f ./docker/dc.selenium.yml down"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.29.3",
+    "faker": "^3.1.0",
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^6.1.0",
+    "gulp-clean": "^0.4.0",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-if": "^3.0.0",
+    "gulp-l10n": "Nebo15/gulp-l10n",
+    "gulp-ng-annotate": "^2.1.0",
+    "gulp-ng-constant": "^1.2.0",
+    "gulp-nodemon": "^2.5.0",
+    "gulp-notify": "^4.0.0",
+    "gulp-plumber": "^1.2.1",
+    "gulp-prefix": "^0.0.14",
+    "gulp-protractor": "^2.4.0",
+    "gulp-pug": "^5.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-replace": "^1.1.4",
+    "gulp-sass": "^5.1.0",
+    "gulp-uglify": "^3.0.2",
+    "gulp-useref": "^5.0.0",
+    "jasmine-core": "^2.99.1",
+    "jstransformer-marked": "^1.0.1",
+    "karma-bower": "^1.0.1",
+    "lodash": "^4.17.21",
+    "protractor": "^3.3.0",
+    "protractor-console": "^2.0.0",
+    "sass": "^1.80.0",
+    "selenium-server-standalone-jar": "^3.141.59",
+    "shelljs": "^0.8.5",
+    "vinyl": "^3.0.0",
+    "yargs": "^3.32.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3",
+    "lodash": "^4.17.21"
+  },
+  "config": {
+    "chromedriver_skip_download": "true"
+  }
+}

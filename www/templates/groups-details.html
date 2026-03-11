@@ -1,0 +1,36 @@
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="text-heading">
+        <div class="text-heading-label">Name</div>{{group.title}}
+      </div>
+      <div class="text-heading" ng-if="group.description">
+        <div class="text-heading-label">Description</div>{{group.description}}
+      </div>
+      <div class="btn-actions">
+        <div class="btn-group btn-group-sm"><a class="btn btn-primary" group-edit="group">Edit</a></div>
+      </div>
+      <hr/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 col-md-push-6"><p><b>Lorem ipsum dolor sit amet, consectetur adipisicing elit,</b></p>
+<p>sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi.</p>
+    </div>
+    <div class="col-md-6 col-md-pull-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">Tables</div>
+        <div class="panel-body">
+          <p class="list-group list-group-panel"><a class="list-group-item list-group-item--chevron" ng-repeat="table in group.tables" ui-sref="tables-details.edit({id: table.id})">{{table.title}}</a><a class="list-group-item" group-table-add="group"><b class="text-primary">+ create variant</b></a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <button class="btn btn-danger" group-delete="group">Delete Group</button>
+    </div>
+  </div>
+  <p><br/></p>
+</div>

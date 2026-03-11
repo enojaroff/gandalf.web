@@ -1,0 +1,92 @@
+
+<div class="table-group" ng-form="tableForm">
+  <div class="table-responsive">
+    <table class="table table-hover table-decision" dragcolumns="table.fields" dragcolumns-callback="onReorderFields">
+      <thead table-fixed-row="table-fixed-row">
+        <tr>
+          <th class="table-decision-column-index" ng-if="!readonly">#</th>
+          <th class="table-decision-column-title">Title
+            <div class="small text-light">Description</div>
+          </th>
+          <th class="table-decision-column-condition" dragcolumns-item="condition" dragcolumns-item-key="condition.id" ng-repeat="condition in table.fields" ng-click="editField(condition)" ng-class="{'is-deleted': condition.isDeleted, 'readonly': readonly}">
+            <div class="text-overflow">{{condition.title}}</div>
+            <div class="small text-light">
+              <div class="text-overflow">{{condition.key}}</div><span ng-if="condition.preset">&#32;{{condition.preset.condition | condition}} {{condition.preset.value | string}}</span>
+            </div>
+          </th>
+          <th class="table-decision-column-add" add-new-field="add-new-field" table="table" ng-if="!readonly">
+            <div uib-tooltip="Add Field">
+              <div uib-popover="Should have at least 1 column" popover-placement="right" popover-is-open="tableForm.tableFields.$error.required &amp;&amp; mainForm.$submitted" popover-trigger="custom" popover-append-to-body="false">+</div>
+            </div>
+          </th>
+          <th class="table-decision-column-decision"><span ng-if="table.matchingType == $root.APP.matchingTypes.first">Decision
+              <div class="small">type: {{table.decisionType}}</div></span><span ng-if="table.matchingType != $root.APP.matchingTypes.first">Scoring</span></th>
+          <th class="table-decision-column-action" ng-if="!readonly">Action</th>
+        </tr>
+      </thead>
+      <tbody ui-sortable="sortableOptions" ng-model="variant.rules">
+        <tr ng-repeat="rule in variant.rules" ng-class="{'is-deleted': rule.isDeleted, 'warning': isWarningRule(rule)}" skip-form="rule.isDeleted" uib-tooltip="⬆︎ This rule have all «is set» conditions, so it will be executed regardless request parameters." tooltip-append-to-body="true" tooltip-enable="isWarningRule(rule)" ng-form="ruleForm">
+          <td class="table-decision-column-index table-decision-handler" ng-if="!readonly"><i class="glyphicon glyphicon-menu-hamburger"></i></td>
+          <td class="table-decision-column-title" decision-rule-title-description="decision-rule-title-description" model="rule" is-editing="rule.isEditingTitle" readonly="readonly"></td>
+          <td class="table-decision-column-condition" ng-repeat="condition in rule.conditions" ng-class="{'is-deleted': table.fields[$index].isDeleted}">
+            <field-static class="table-decision-condition-field" ng-if="!condition.isEditing" ng-class="{'readonly': readonly}" condition="condition.condition" value="condition.value" ng-click="editCondition(condition)"></field-static>
+            <div class="decision-condition" ng-if="condition.isEditing">
+              <button class="btn btn-xs btn-link decision-condition-cancel" ng-click="cancelCondition(condition)" type="button" uib-tooltip="Cancel"><i class="glyphicon glyphicon-remove"></i></button>
+              <field class="decision-condition-field" type="table.fields[$index].preset ? $root.APP.types.bool : table.fields[$index].type" condition="condition.condition" value="condition.value" ng-form="field"></field>
+              <div class="decision-condition-btn btn-group btn-group-sm"><a class="btn btn-primary" ng-click="saveCondition(field, condition)">Save</a></div>
+              <div class="decision-condition-align"></div>
+            </div>
+          </td>
+          <td class="table-decision-column-add" ng-if="!readonly"></td>
+          <td class="table-decision-column-decision" ng-if="!readonly" decision-rule-decision="decision-rule-decision" rule="rule" decisions="decisions" decision-type="table.decisionType" matching-type="table.matchingType" is-editing="rule.isEditingDecision"></td>
+          <td class="table-decision-column-decision" ng-if="readonly">{{rule.than}}</td>
+          <td class="table-decision-column-action" ng-if="!readonly">
+            <div class="btn-group" ng-if="rule.isDeleted"><a class="btn btn-default" ng-click="revertRule(rule)" uib-tooltip="Revert rule"><i class="glyphicon glyphicon-repeat"></i></a></div>
+            <div class="btn-group" ng-if="!rule.isDeleted">
+              <!--button.btn.btn-success-text(ng-click="saveRule(rule, ruleForm)", uib-tooltip="Save rule", stop-propagation="click", ng-if="rule.isEditing"): i.glyphicon.glyphicon-ok-->
+              <!--a.btn.btn-default-text(ng-click="editRule(rule)", ng-if="!rule.isEditing"): i.glyphicon.glyphicon-pencil--><a class="btn" ng-click="copyRule(rule)" stop-propagation="click" uib-tooltip="Copy rule"><i class="glyphicon glyphicon-duplicate"></i></a><a class="btn btn-danger-text" ng-click="deleteRule(rule)" uib-tooltip="Remove rule"><i class="glyphicon glyphicon-remove"></i></a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <table class="table table-add-row" ng-if="!readonly">
+    <tr>
+      <td ng-click="addNewRule()">
+        <p><span class="plus">+</span>Add row</p>
+        <div class="form-error" ng-messages="tableForm.tableRules.$error" role="alert" ng-if="mainForm.$submitted"><span ng-message="required">You should have at least 1 row</span></div>
+      </td>
+    </tr>
+  </table>
+  <div class="table-responsive">
+    <table class="table table-default-decision" ng-class="{'readonly': readonly}">
+      <th><span ng-if="table.matchingType == $root.APP.matchingTypes.first">Default Decision</span><span ng-if="table.matchingType != $root.APP.matchingTypes.first">Default Score</span></th>
+      <td>
+        <div class="decision-placeholder" ng-if="readonly">Title</div>
+        <input class="form-control" type="text" ng-readonly="readonly" ng-model="variant.defaultTitle" name="title" placeholder="Title" ng-minlength="2" ng-maxlength="128"/>
+        <div class="form-control-error" ng-messages="tableForm.title.$error">
+          <div ng-message="minlength, maxlength">{{'validation.errors.row_title_charsets'|translate}}</div>
+        </div>
+      </td>
+      <td>
+        <div class="decision-placeholder" ng-if="readonly">Description</div>
+        <input class="form-control" type="text" ng-readonly="readonly" ng-model="variant.defaultDescription" name="description" placeholder="Description" ng-minlength="2" ng-maxlength="128"/>
+        <div class="form-control-error" ng-messages="tableForm.description.$error">
+          <div ng-message="minlength, maxlength">{{'validation.errors.row_description_charsets'|translate}}</div>
+        </div>
+      </td>
+      <td>
+        <div class="decision-placeholder" ng-if="readonly">{{table.matchingType == $root.APP.matchingTypes.first ? 'Default Decision' : 'Default Score'}}</div><span ng-if="table.matchingType == $root.APP.matchingTypes.first">
+          <decision-input type="table.decisionType" readonly="readonly" decisions="decisions" model="variant.defaultDecision" placeholder="Default Decision"></decision-input></span><span ng-if="table.matchingType != $root.APP.matchingTypes.first && table.matchingType != $root.APP.matchingTypes.scoring_count">
+          <decision-input type="table.decisionType" readonly="readonly" decisions="decisions" model="variant.defaultDecision" placeholder="Default Score"></decision-input></span>
+      </td>
+    </table>
+  </div>
+  <div class="hidden">
+    <!-- table model validations-->
+    <input hidden="hidden" name="tableRules" ng-required="variant.numberOfRules() == 0" ng-model="hiddenRules.rules"/>
+    <input hidden="hidden" name="tableFields" ng-required="table.numberOfFields() == 0" ng-model="hiddenRules.fields"/>
+  </div>
+</div>
+<div ng-transclude="ng-transclude"></div>

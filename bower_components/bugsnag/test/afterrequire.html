@@ -1,0 +1,16 @@
+<html>
+<head>
+  <script>var BUGSNAG_TESTING = true;</script>
+  <script src="amd/require.js"></script>
+  <script data-apikey="066f5ad3590596f9aa8d601ea89af845" src="../src/bugsnag.js"></script>
+
+  <script>
+    Bugsnag.testRequest = function (url, params) {
+      window.parent.testResult(params);
+    };
+  </script>
+
+  <script>
+    throw new Error("afterrequire error")
+  </script>
+</head>

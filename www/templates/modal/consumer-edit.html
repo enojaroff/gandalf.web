@@ -1,0 +1,48 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Edit API Key</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Client ID</label>
+        <div class="col-sm-9">
+          <div class="form-control-static">{{model.clientId}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Client Secret</label>
+        <div class="col-sm-9">
+          <div class="form-control-static">{{model.clientSecret}}</div>
+        </div>
+      </div>
+      <hr/>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-3 control-label">Description</label>
+        <div class="col-sm-9">
+          <input class="form-control" ng-model="model.description" required="required" ng-readonly="readonly"/>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-3 control-label">Scopes</label>
+        <div class="col-sm-9">
+          <div class="checkbox" ng-repeat="scope in scopes">
+            <label>
+              <input type="checkbox" checklist-model="model.scope" checklist-value="scope" ng-required="!(model.scope &amp;&amp; model.scope.length &gt; 0)" ng-disabled="readonly"/>{{('scopes.users.' + scope + '.details') | translate}}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="pull-left">
+      <button class="btn btn-danger" type="button" ng-click="remove()" ng-if="!readonly">Remove</button>
+    </div>
+    <div class="pull-right">
+      <button class="btn btn-warning" type="button" ng-click="cancel()">{{readonly ? 'Close' : 'Cancel'}}</button>
+      <button class="btn btn-primary" type="submit" ng-if="!readonly">Save</button>
+    </div>
+  </div>
+</form>

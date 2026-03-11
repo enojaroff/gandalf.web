@@ -1,0 +1,33 @@
+
+<div class="info-panel has-navbar">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Decision Tables</div>
+    <div class="info-panel-body"><p>This is a list of all tables available in current project. If you have no tables, start by creating a first one.</p>
+<p>Single table describes request data model (columns) and set of business rules (rows) that rely on it. You can learn more about them in our <a href="http://docs.gndf.io/">documentation</a>.</p>
+
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div ng-if="project.hasUserAccess('tables', 'create')"><a class="btn btn-primary btn-icon" ui-sref="tables-create"><i class="glyphicon glyphicon-plus btn-glyphicon"></i>Create table</a></div><br/>
+  <table class="table table-hover tables-list">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="table in tables" ui-sref="tables-details({id: table.id})">
+        <td width="30%">
+          <div class="text-overflow">{{table.title}}</div>
+        </td>
+        <td>{{table.description}}</td>
+      </tr>
+      <tr ng-if="tables.length === 0">
+        <td class="text-center" colspan="2"><i>You don't have any tables.&nbsp;<a ui-sref="tables-create" ng-if="project.hasUserAccess('tables', 'create')">Create your first table!</a></i></td>
+      </tr>
+    </tbody>
+  </table>
+  <uib-pagination ng-if="filters.total" total-items="filters.total" ng-model="filters.page" items-per-page="filters.size" max-size="5"></uib-pagination>
+</div>

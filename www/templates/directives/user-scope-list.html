@@ -1,0 +1,51 @@
+
+<div>
+  <div class="form-control-heading-small">Project</div>
+  <div class="checkbox-group">
+    <div class="checkbox-inline" ng-repeat="scope in ['project_update','project_delete']">
+      <label has-access="{{scope}}" project="project">
+        <input type="checkbox" checklist-model="model" checklist-value="scope" ng-required="isRequired"/>{{('scopes.users.' + scope + '.small') | translate}}
+      </label>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="form-control-heading-small">Decision Tables</div>
+  <div class="checkbox-group">
+    <div class="checkbox-inline" ng-repeat="scope in ['tables_create','tables_view','tables_update','tables_delete']">
+      <label has-access="{{scope}}" project="project">
+        <input type="checkbox" checklist-model="model" checklist-value="scope" ng-required="isRequired"/>{{('scopes.users.' + scope + '.small') | translate}}
+      </label>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="form-control-heading-small">Decision History</div>
+  <div class="checkbox-group">
+    <div class="checkbox-inline" ng-repeat="scope in ['decisions_view','decisions_make']">
+      <label has-access="{{scope}}" project="project">
+        <input type="checkbox" checklist-model="model" checklist-value="scope" ng-required="isRequired"/>{{('scopes.users.' + scope + '.small') | translate}}
+      </label>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="form-control-heading-small">API Consumer Credentials</div>
+  <div class="checkbox-group">
+    <div class="checkbox-inline" ng-repeat="scope in ['consumers_manage','consumers_get']">
+      <label has-access="{{scope}}" project="project">
+        <input type="checkbox" checklist-model="model" checklist-value="scope" ng-required="isRequired"/>{{('scopes.users.' + scope + '.small') | translate}}
+      </label>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="form-control-heading-small">Project Collaborators</div>
+  <div class="checkbox-group">
+    <div class="checkbox-inline" ng-repeat="scope in ['users_manage']">
+      <label has-access="{{scope}}" project="project">
+        <input type="checkbox" checklist-model="model" checklist-value="scope" ng-required="isRequired"/>{{('scopes.users.' + scope + '.small') | translate}}
+      </label>
+    </div>
+  </div>
+</div>

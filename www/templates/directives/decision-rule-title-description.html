@@ -1,0 +1,18 @@
+
+<div ng-if="isEditing &amp;&amp; !readonly" ng-form="titleFields">
+  <div class="decision-title-form">
+    <div class="decision-title-form-fields">
+      <input class="form-control" type="text" name="title" ng-model="rule.title" placeholder="Title" ng-minlength="2" ng-maxlength="128"/>
+      <div class="form-control-error" ng-messages="titleFields.title.$error">
+        <div ng-message="minlength, maxlength">{{'validation.errors.row_title_charsets'|translate}}</div>
+      </div>
+      <input class="form-control" type="text" name="description" ng-model="rule.description" placeholder="Description" ng-minlength="2" ng-maxlength="128"/>
+      <div class="form-control-error" ng-messages="titleFields.description.$error">
+        <div ng-message="minlength, maxlength">{{'validation.errors.row_description_charsets'|translate}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div ng-if="!isEditing || readonly"><b ng-if="rule.title" uib-tooltip="{{rule.title}}">{{(rule.title || '') | maxLength: 64}}</b>
+  <div class="small" ng-if="rule.description" uib-tooltip="{{rule.description}}">{{rule.description | maxLength: 180}}</div>
+</div>

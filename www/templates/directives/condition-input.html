@@ -1,0 +1,9 @@
+
+<div class="condition-input" ng-switch="type">
+  <doubled-input ng-switch-when="$between" value="$parent.value" disabled="disabled" required="required"></doubled-input>
+  <doubled-input ng-switch-when="$between_excl" value="$parent.value" disabled="disabled" required="required"></doubled-input>
+  <doubled-input ng-switch-when="$between_lexcl" value="$parent.value" disabled="disabled" required="required"></doubled-input>
+  <doubled-input ng-switch-when="$between_rexcl" value="$parent.value" disabled="disabled" required="required"></doubled-input><span ng-switch-when="$any"></span>
+  <input class="form-control" ng-switch-default="ng-switch-default" ng-if="!$parent.number" ng-model="$parent.$parent.value" ng-disabled="disabled" ng-required="required"/>
+  <input class="form-control" ng-switch-default="ng-switch-default" type="text" pattern="[\d\,true]+" ng-if="$parent.number" ng-model="$parent.$parent.value" ng-disabled="disabled" ng-required="required"/>
+</div>

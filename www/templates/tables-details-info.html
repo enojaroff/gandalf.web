@@ -1,0 +1,103 @@
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="text-heading">
+        <div class="text-heading-label">Table name</div>{{table.title || 'Untitled table'}}
+      </div>
+      <div class="text-heading" ng-if="table.description">
+        <div class="text-heading-label">Description</div>{{table.description}}
+      </div>
+      <div class="btn-actions" ng-if="project.hasUserAccess('tables', 'update')">
+        <div class="btn-group btn-group-sm"><a class="btn btn-primary" ng-click="changeTableName()">Edit</a></div>
+      </div>
+      <hr/>
+    </div>
+  </div>
+  <div class="block">
+    <h4 class="block-heading">Split testing</h4><a class="btn btn-primary" ui-sref="tables-details.variant-new" ng-if="table.variants.length == 1">Start split testing</a>
+    <div class="row" ng-if="table.variants.length &gt; 1">
+      <div class="col-md-6 col-md-push-6"><p>Each table can have infinite number of variants, all of them share same fields (and request structure), but their rules can be totally different. It allows to apply scientific method in managing your design rules: you have a hyphotesis, you create a variant for it, test and make analytical decision on whatever if was true and should influence main decision flow.</p>
+<p>Requests to the table can have different types of traffic allocation between variants:</p>
+<ul>
+<li><code>First</code> - request will always hit the first version of table. This will turn off split testing.</li>
+<li><code>Percent</code> - allows you to manually set how much requests (in percentage) will receive each table variant.</li>
+<li><code>Random</code> - randomly distribute requests between all variants.</li>
+</ul>
+
+      </div>
+      <form class="col-md-6 col-md-pull-6" name="form" ng-submit="saveTrafficAllocation(form)">
+        <div class="alert alert-danger ng-cloak" ng-if="error">
+          <h4>Error</h4>
+          <p>Check you data and <b>try again</b>.</p>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading"><b>Table variants</b></div>
+          <div class="panel-body">
+            <div class="list-group list-group-panel">
+              <div class="list-group-item" ng-repeat="variant in table.variants">
+                <div class="row">
+                  <div class="col-sm-6"><a class="text-overflow max-width list-group-item-heading" ui-sref="tables-details.edit({variantId: variant.id})" title="Edit table variant">{{variant.title || 'Untitled variant'}}</a><br/><span class="text-overflow max-width"><i class="list-group-item-text">{{variant.description}}</i></span></div>
+                  <div class="col-sm-1">
+                    <div class="variant-marker variant-color-{{$index % 4}}"></div>
+                  </div>
+                  <div class="col-sm-3 pull-right">
+                    <input class="form-control percent-input" type="number" ng-if="!$index" ng-value="allTraffic" readonly="readonly" placeholder="Allocation percent"/>
+                    <input class="form-control percent-input" type="number" ng-if="$index" ng-model="variant.probability" max="{{maxTrafficPercent($index)}}" min="0" ng-disabled="table.variantsProbability !== 'percent' || !project.hasUserAccess('tables', 'update')" placeholder="Allocation percent"/>
+                    <div class="percent-symbol">%</div>
+                  </div>
+                </div>
+              </div>
+              <div class="list-group-item traffic-allocation-visual">
+                <div class="variant-visual-item variant-color-{{$index % 4}}" ng-if="table.variants.length &gt; 1" ng-repeat="variant in table.variants" style="width: {{$index === 0 ? allTraffic : variant.probability}}%"></div>
+              </div><a class="list-group-item" ng-click="createNewVariant()" ng-if="project.hasUserAccess('tables', 'update')"><b class="text-primary">+ create variant</b></a>
+            </div>
+          </div>
+        </div>
+        <h3 class="form-control-heading">Traffic allocation</h3>
+        <div class="row">
+          <div class="col-sm-8">
+            <div class="btn-group btn-group-matching" has-access="tables.update" project="project">
+              <label class="btn btn-primary-matching" uib-btn-radio="'first'" ng-model="table.variantsProbability">First</label>
+              <label class="btn btn-primary-matching" uib-btn-radio="'percent'" ng-model="table.variantsProbability">Percent</label>
+              <label class="btn btn-primary-matching" uib-btn-radio="'random'" ng-model="table.variantsProbability">Random</label>
+            </div>
+          </div>
+          <div class="col-sm-4 text-right">
+            <button class="btn btn-success btn-loading" ng-if="!saved" type="submit" ng-class="{'is-active': isSaving}">
+              <div class="btn-loader">
+                <div class="glyphicon glyphicon-refresh"></div>
+              </div>Save allocation
+            </button>
+            <button class="btn btn-default" disabled="disabled" ng-if="saved" type="submit"><i class="glyphicon glyphicon-check btn-glyphicon"></i>Allocation saved</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="block">
+    <h4 class="block-heading">Settings</h4>
+    <div class="row">
+      <div class="col-sm-4" has-access="tables.update" project="project">
+        <h3 class="form-control-heading">Table Type&#32;<a class="glyphicon glyphicon-question-sign" href="http://docs.gandalf4.apiary.io/#introduction/tables" target="__blank"></a></h3>
+        <select-matching-type ng-model="table.matchingType" callback="onChangeMatchingType"></select-matching-type>
+      </div>
+      <div class="col-sm-4" ng-if="table.matchingType != $root.APP.matchingTypes.first" has-access="tables.update" project="project">
+        <h3 class="form-control-heading">Scoring Type</h3>
+        <div class="btn-group btn-group-matching">
+          <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.all">Sum</label>
+          <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_min">Min</label>
+          <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_max">Max</label>
+          <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_count">Count</label>
+        </div>
+      </div>
+      <div class="col-sm-4" ng-if="table.matchingType == $root.APP.matchingTypes.first" has-access="tables.update" project="project">
+        <h3 class="form-control-heading">Decision type</h3>
+        <select-decision-type ng-model="table.decisionType" callback="onChangeDecisionType"></select-decision-type>
+      </div>
+    </div>
+  </div>
+  <div class="block">
+    <button class="btn btn-danger" ng-click="deleteTable(table)" ng-if="project.hasUserAccess('tables', 'delete')">Delete Table</button>
+  </div>
+</div>

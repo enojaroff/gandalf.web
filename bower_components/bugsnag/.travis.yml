@@ -1,0 +1,17 @@
+sudo: false
+language: node_js
+node_js:
+- '6'
+env:
+  matrix:
+  - CXX=g++-4.8
+  global:
+  - BROWSER_STACK_USERNAME: bugsnagplatforms1
+  - secure: vSVdgKgRrRenuXQ89QzvI68eYbaGGgvr3A+YoiCBB551dxT+HeRd+dvAB6YAjP7eL+aeUj5Ed0Uw+jzEnE/VA7x2kYczb5MLeZk+vfol5WB/t6p2YBMdKvgrTUhttedeAX8mxTWMWcVqpePaoV0gnax41HWqYtbtEsnuvXQEzS4=
+  - secure: YbhIRY6QlqylDd7/i8mL6xeWpHCwxKZyIizDiqJ2R50yANIACUJy7my7lG/riZfKGrQNiNzektHspdHAySQJE1a7UOtvw6oR39W88l9oeRwq6uwsb8bxq0soeNuRIxjtDpFa1KpdXYOdDkbTLHc30bk2+is+0yevIdRoYebAz98=
+addons:
+  browserstack:
+    username: bugsnagplatforms1
+    access_key:
+      secure: U/Lud43nEAK6Yhjte8TqV2LyjSnPhFrlRhJ1CRFKKYuryt0YoD1qNwq9Mo/YpEeFO2byFXoAvyDCY/Fehwn6DvG9B3szDehsXnLauxbtNt/OGnyIG0w+O6cukopsC4Yn6YtQJtnNi1qdAoRUO68h6qtrvc0xSV2TbAm9GcehaSM=
+script: npm test

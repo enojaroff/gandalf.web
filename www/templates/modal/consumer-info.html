@@ -1,0 +1,27 @@
+
+<div>
+  <div class="modal-header">
+    <h3 class="modal-title">API Key Info</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Client ID</label>
+        <div class="col-sm-9">
+          <div class="form-control-static">{{model.clientId}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Client Secret</label>
+        <div class="col-sm-9">
+          <div class="form-control-static">{{model.clientSecret}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="pull-right">
+      <button class="btn btn-warning" type="button" ng-click="cancel()">Close</button>
+    </div>
+  </div>
+</div>

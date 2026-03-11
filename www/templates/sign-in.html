@@ -1,0 +1,21 @@
+
+<div class="sign-in">
+  <h4 class="sign-in__header">Sign In</h4>
+  <div class="sign-in__content">
+    <div class="alert alert-danger" ng-if="translateErrorCode(errorCode)">{{translateErrorCode(errorCode)}}</div>
+    <div class="alert alert-danger" ng-if="error">Verify username and password and try again.</div>
+    <div class="alert alert-success" ng-if="message">{{message}}</div>
+    <form ng-submit="submit(form)" name="form" novalidate="novalidate">
+      <div class="form-group">
+        <input class="form-control form-control-underline" name="username" type="text" ng-model="model.username" required="required" placeholder="User name"/>
+      </div>
+      <div class="form-group text-right">
+        <input class="form-control form-control-underline" name="password" type="password" ng-model="model.password" required="required" placeholder="Password"/><a class="forgotten" ui-sref="reset-password">Forgotten password?</a>
+      </div>
+      <div class="btn-actions text-center">
+        <button class="btn btn-submit" type="submit">Sign in</button>
+      </div>
+      <div class="btn-actions text-center">Don't have an account? &nbsp<a ui-sref="sign-up">Sign Up</a></div>
+    </form>
+  </div>
+</div>

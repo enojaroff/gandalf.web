@@ -1,0 +1,93 @@
+
+<form class="has-navbar ng-cloak block" ng-if="table" novalidate="novalidate" ng-submit="submit(form)" name="form" validation-focus="validation-focus">
+  <div class="info-panel">
+    <div class="container-fluid">
+      <div class="info-panel-body">
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="form-group">
+              <input class="form-control form-control-underline" ng-model="table.title" name="title" placeholder="Table name" required="required" has-access="tables.update" project="project"/>
+              <div class="form-control-error" ng-messages="form.title.$error" ng-if="form.title.$dirty || form.$submitted">
+                <div ng-message="required">{{'validation.errors.table_name_empty'|translate}}</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <input class="form-control form-control-underline" ng-model="table.description" name="description" placeholder="Description" has-access="tables.update" project="project"/>
+              <div class="form-control-error" ng-messages="form.description.$error" ng-if="form.description.$dirty || form.$submitted">
+                <div ng-message="required">{{'validation.errors.table_description_empty'|translate}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-4" has-access="tables.update" project="project">
+            <h3 class="form-control-heading">Table Type&#32;<a class="glyphicon glyphicon-question-sign" href="http://docs.gandalf4.apiary.io/#introduction/tables" target="__blank"></a></h3>
+            <select-matching-type ng-model="table.matchingType" callback="onChangeMatchingType" strict="table.getVariantsRules().length &gt; 0"></select-matching-type>
+          </div>
+          <div class="col-sm-4" ng-if="table.matchingType != $root.APP.matchingTypes.first" has-access="tables.update" project="project">
+            <h3 class="form-control-heading">Scoring Type</h3>
+            <div class="btn-group btn-group-matching">
+              <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.all">Sum</label>
+              <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_min">Min</label>
+              <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_max">Max</label>
+              <label class="btn btn-primary-matching" ng-model="table.matchingType" ng-change="onChangeMatchingType(table.matchingType)" uib-btn-radio="$root.APP.matchingTypes.scoring_count">Count</label>
+            </div>
+          </div>
+          <div class="col-sm-4" ng-if="table.matchingType == $root.APP.matchingTypes.first" has-access="tables.update" project="project">
+            <h3 class="form-control-heading">Decision type</h3>
+            <select-decision-type ng-model="table.decisionType" callback="onChangeDecisionType" strict="table.getVariantsRules().length &gt; 0"></select-decision-type>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="alert alert-warning ng-cloak" ng-if="!saved">
+      <div class="alert-btn-right">
+        <button class="btn btn-success btn-loading" type="submit" ng-class="{'is-active': isSaving}">
+          <div class="btn-loader">
+            <div class="glyphicon glyphicon-refresh"></div>
+          </div>Save
+        </button>
+      </div>
+      <p>This table have unsaved data. You need to save changes manually.</p>
+    </div>
+    <div class="alert alert-danger ng-cloak" ng-if="error">
+      <h4>Error</h4>
+      <p>Check you data and <b>try again</b>.</p>
+    </div>
+    <decision-table model="table" variant="variant" form="form" readonly="!project.hasUserAccess('tables', 'update')">
+      <div class="row">
+        <div class="col-xs-4 col-xs-push-8 text-right" ng-if="project.hasUserAccess('tables', 'update')">
+          <button class="btn btn-success btn-loading" type="submit" ng-if="!saved" ng-class="{'is-active': isSaving}">
+            <div class="btn-loader">
+              <div class="glyphicon glyphicon-refresh"></div>
+            </div>Save
+          </button>
+          <button class="btn btn-default" type="submit" ng-if="saved" ng-disabled="saved">Saved</button>
+        </div>
+      </div>
+      <div ng-if="project.hasUserAccess('tables', 'delete')">
+        <button class="btn btn-danger" ng-click="deleteTable(table)">Delete Table</button>
+      </div>
+    </decision-table>
+  </div>
+</form>
+<div class="info-panel">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Decision Table</div>
+    <div class="info-panel-body"><p>Here you can edit your decision table. It consist of columns (that describes fields that is required to make a API request to this table) and rows (set of rules, that applied specified order).</p>
+<p>There are two main table types: <strong>Decision</strong> and <strong>Scoring</strong>.</p>
+<p><strong>Decision table</strong> applies rules one by one until one rule passes, then returns the value in the Decision column for that rule. If no rule passes, the value in the &quot;Default&quot; section is returned.</p>
+<p><strong>Scoring tables</strong> evaluate all rules and aggregate the Score column values. There are four scoring subtypes:</p>
+<ul>
+<li><strong>Sum</strong> (<code>scoring_sum</code>): returns the sum of all matched scores.</li>
+<li><strong>Min</strong> (<code>scoring_min</code>): returns the minimum score among all matched rules.</li>
+<li><strong>Max</strong> (<code>scoring_max</code>): returns the maximum score among all matched rules.</li>
+<li><strong>Count</strong> (<code>scoring_count</code>): returns the count of matched rules (no score value needed per rule).</li>
+</ul>
+<p>More info you can find in our <a href="http://docs.gndf.io/">documentation</a>.</p>
+
+    </div>
+  </div>
+</div>

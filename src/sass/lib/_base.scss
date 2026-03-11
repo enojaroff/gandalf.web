@@ -1,0 +1,18 @@
+// this one just agregates all the libs
+// Replacement for compass/css3 mixins (autoprefixer handles vendor prefixes)
+@mixin transition($args...) {
+  transition: $args;
+}
+@mixin transform($args) {
+  transform: $args;
+}
+@import "mixins";
+@import "animations";
+@import "media";
+@import "ceaser-easing/ceaser";
+@import "sprites";
+@import "images";
+//@import "reset";
+
+// gradients for ie, turn it off to disable svg base64
+//$experimental-support-for-svg: true;

@@ -1,0 +1,62 @@
+
+<div class="info-panel has-navbar">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Decision History</div><p>Decision shows all request parameters, decision engine response and decision table that was applied when request was made. It means that whenever you change your decision table, it won&#39;t affect history and you still will be able to understand decision flow for each moment of time.</p>
+<p>You can retry request on a latest table version by clicking &quot;Debug&quot; in request well.</p>
+
+  </div>
+</div>
+<div class="container-fluid">
+  <h4>History Details</h4>
+  <div class="history-detail">
+    <h5>Table:  {{table.table.title}}<br/>Variant: {{table.variant.title}}</h5>
+    <div class="btn-group btn-group-sm"><a class="btn btn-primary" ui-sref="tables-details.edit({id: table.table.id, variantId: table.variant.id})">Edit</a></div>
+    <h5>Request</h5>
+    <div class="preview">
+      <div class="preview__external"><a class="btn btn-clear" ui-sref="tables-details.debugger({id: table.table.id, decision: table})">
+          Debug&#32;<i class="glyphicon glyphicon-export"></i></a></div>
+      <div class="preview__response" hljs="hljs" hljs-source="(table.request | json: 2)"></div>
+    </div>
+    <h5>Decision Flow</h5>
+    <div class="history-detail__table ng-cloak" ng-if="table">
+      <div class="table-group">
+        <div class="table-responsive">
+          <table class="table table-decision">
+            <thead>
+              <tr>
+                <th class="table-decision-column-index">#</th>
+                <th class="table-decision-column-title">Title
+                  <div class="small text-light">description</div>
+                </th>
+                <th class="table-decision-column-condition" ng-repeat="condition in table.fields">{{condition.title}}</th>
+                <th class="table-decision-column-decision">Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="rule in table.rules">
+                <td>{{$index}}</td>
+                <td><b>{{rule.title}}</b>
+                  <div class="small">{{rule.description}}</div>
+                </td>
+                <td ng-repeat="condition in rule.conditions" ng-class="{'is-matched': condition.matched, 'is-unmatched': !condition.matched}">
+                  <field-static condition="condition.condition" value="condition.value"></field-static>
+                </td>
+                <td class="border-left decision-table__condition" ng-class="{'is-matched': rule.decision, 'is-unmatched': !rule.decision}">{{rule.than}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="{{table.fields.length + 2}}">Default Decision</th>
+                <td class="table-decision-column-decision">{{table.defaultDecision}}</td>
+              </tr>
+              <tr class="table-decision-final-decision-row">
+                <th colspan="{{table.fields.length + 2}}">Final Decision</th>
+                <td class="table-decision-column-decision">{{table.finalDecision}}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+
+<div class="info-panel has-navbar">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Tables Revisions</div>
+    <div class="info-panel-body"><p>All changes that is made to a table is saved in Revisions history. You can see who changed what, and rollback to any previous state of the table. </p>
+<p>Rollback will create a new Revision, so it can be canceled.</p>
+
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="list-group">
+    <div class="list-group-item clearfix" ng-repeat="changelog in changelogs"><span class="pull-right"><a class="btn btn-warning" ng-click="rollbackChangelog(changelog)" ng-if="project.hasUserAccess('tables', 'update')">Rollback</a></span><b class="list-group-item-heading">{{changelog.updatedAt | date: 'medium'}}</b><br/><span>by {{changelog.author}}</span></div>
+  </div>
+</div>

@@ -1,0 +1,51 @@
+
+<div class="create-project">
+  <h4 class="create-project__header">Create new project</h4>
+  <div class="create-project__content"><p>It&#39;s time to create your first project. Later you can share it with your collaborators and create credentians for API consumers.</p>
+
+  </div>
+  <form ng-submit="submit(form)" name="form" novalidate="novalidate">
+    <div class="form-group">
+      <input class="form-control form-control-underline" name="title" type="text" ng-model="model.title" required="required" placeholder="Project title"/>
+    </div>
+    <div class="form-group text-right">
+      <input class="form-control form-control-underline" name="description" type="text" ng-model="model.description" placeholder="Project description"/>
+    </div>
+    <div class="btn-actions text-center">
+      <button class="btn btn-submit" type="submit">Create</button>
+    </div>
+  </form>
+</div>
+<div class="row hide">
+  <div class="col-md-8 col-md-push-2">
+    <form novalidate="novalidate" ng-submit="submit(form)" name="form">
+      <ol class="steps">
+        <li class="steps-item">
+          <div class="steps-item-number">1.</div>Create user
+        </li>
+        <li class="steps-item active">
+          <div class="steps-item-number">2.</div>Create project
+        </li>
+      </ol>
+      <div class="form-block">
+        <h2>Create new project</h2>
+        <p>Lorem Ipsum Dolor Sit Amet Consectetur Adipisicing Elit Sed Do Eiusmod Tempor Incididunt Ut Labore Et Dolore M</p><br/>
+        <div class="form-group">
+          <input class="form-control form-control-underline form-control-underline" ng-model="model.title" placeholder="Project name" required="required"/>
+        </div>
+        <div class="form-group">
+          <input class="form-control form-control-underline form-control-underline" ng-model="model.description" placeholder="Describe a project" required="required"/>
+        </div>
+      </div>
+      <div class="form-block">
+        <h4 class="form-block-heading">Invite collaborators (optional)</h4>
+        <div class="form-group">
+          <input class="form-control" ng-model="table.users"/>
+        </div>
+      </div>
+      <div class="form-block">
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>

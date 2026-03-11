@@ -1,0 +1,2 @@
+
+<div class="form-control-static"><span ng-if="isBetween(condition)">{{formatBetween(condition, value)}}</span><span ng-if="condition === '$any'">-</span><span ng-if="!isBetween(condition) &amp;&amp; condition !== '$any'">{{condition | condition}}&#32;<span ng-if="hasValue(condition)">{{value | string}}</span></span></div>

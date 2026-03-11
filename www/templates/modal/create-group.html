@@ -1,0 +1,36 @@
+
+<form ng-submit="create(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Create Split Test</h3>
+  </div>
+  <div class="modal-body form-horizontal">
+    <div class="form-group" show-errors="show-errors">
+      <label class="col-sm-3 control-label">Title</label>
+      <div class="col-sm-9">
+        <input class="form-control" name="title" type="text" ng-model="model.title" required="required" placeholder="e.g. Improve conversion rate by decreasing min salary"/>
+      </div>
+    </div>
+    <div class="form-group" show-errors="show-errors">
+      <label class="col-sm-3 control-label">Description</label>
+      <div class="col-sm-9">
+        <input class="form-control" name="description" type="text" ng-model="model.description" required="required" placeholder="e.g. Decreasing from 1000 to 200 EUR"/>
+      </div>
+    </div>
+    <div class="form-group" show-errors="show-errors">
+      <label class="col-sm-3 control-label">Table</label>
+      <div class="col-sm-9">
+        <input class="form-control" type="text" ng-model="model.tables[0]" typeahead-min-length="0" typeahead-editable="false" uib-typeahead="table as table.title for table in getTables($viewValue) | filter:$viewValue " required="required"/>
+      </div>
+    </div>
+    <div class="form-group" show-errors="show-errors">
+      <label class="col-sm-3 control-label">Probability</label>
+      <div class="col-sm-9">
+        <input class="form-control" name="probability" type="text" ng-model="model.probability" disabled="disabled" required="required"/>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" type="submit" ng-disabled="form.$invalid">Create</button>
+    <button class="btn btn-default" type="button" ng-click="cancel()">Cancel</button>
+  </div>
+</form>

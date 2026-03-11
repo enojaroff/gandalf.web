@@ -1,0 +1,50 @@
+
+<div class="activate-message" ng-if="!user.active">Your account not activated. &#32;<a ng-click="resendMail()">Activate now</a></div>
+<nav class="navbar navbar-static-top navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-expanded="false"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a class="navbar-brand" href="#">
+        <div class="logo-img"></div></a>
+    </div>
+    <div class="collapse navbar-collapse" id="navbar-menu">
+      <ul class="nav navbar-nav">
+        <li class="dropdown" uib-dropdown="uib-dropdown" ng-if="projects.length"><a class="dropdown-toggle" role="button" uib-dropdown-toggle="uib-dropdown-toggle">
+            <div class="text-overflow">{{project.title}}</div>&#32;<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li ng-repeat="item in projects" ng-class="{'active': project.id == item.id}"><a ui-sref="tables-list" ng-click="selectProject(item)">
+                <div class="text-overflow">{{item.title}}</div></a></li>
+            <li class="divider" role="separator"></li>
+            <li><a project-add="project-add">+ add new project</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="navbar-form navbar-left" ng-if="!projects.length">
+        <button class="btn btn-primary" project-add="project-add">Create new project</button>
+      </div>
+      <ul class="nav navbar-nav nav-main">
+        <li ui-sref-active="active"><a ui-sref="tables">Tables</a></li>
+        <li ui-sref-active="active"><a ui-sref="history" ng-if="project.hasUserAccess('decisions', 'view')">History</a></li>
+        <li ui-sref-active="active"><a ui-sref="settings">Settings</a></li>
+        <!-- li(ui-sref-active="active"): a(ui-sref="groups-list") Groups-->
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown" uib-dropdown="uib-dropdown"><a class="dropdown-toggle" role="button" uib-dropdown-toggle="uib-dropdown-toggle"><span class="user-avatar"><img gravatar-src="user.email" gravatar-size="36"/><span>{{user.getName()}}</span></span>&#32;<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header"><b>{{user.username}}</b><br/><span>{{user.email}}</span></li>
+            <li class="divider" role="separator"></li>
+            <li><a profile-edit="user">Edit profile</a></li>
+            <li class="divider" role="separator"></li>
+            <li><a change-password="user">Change password</a></li>
+            <li class="divider" role="separator"></li>
+            <li><a ng-click="logout()">Sign Out</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="wrap">
+  <ui-view></ui-view>
+</div>
+<!--footer.footer: .container-fluid: p © <a href="http://nebo15.com/">Nebo #15</a>, 2016.-->
+<footer class="public__footer"><a href="http://nebo15.com/" target="_blank"><img src="/images/footer-logo.png" height="23"/></a></footer>

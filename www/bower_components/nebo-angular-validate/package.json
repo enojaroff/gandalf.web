@@ -1,0 +1,22 @@
+{
+  "name": "nebo-angular-validate",
+  "version": "1.0.4",
+  "description": "Angular JS validation module. It provides simple interface for custom validations setup.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nebo15/nebo-angular-validate.git"
+  },
+  "author": "Alexey Bondarenko <alexeybondarenko@me.com> (http://bondalex.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Nebo15/nebo-angular-validate/issues"
+  },
+  "homepage": "https://github.com/Nebo15/nebo-angular-validate#readme",
+  "dependencies": {
+    "angular": "^1.5.0"
+  }
+}

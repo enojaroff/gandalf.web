@@ -1,0 +1,5 @@
+
+<div class="form-control-static" ng-if="!isEditing && matchingType != matchingTypes.scoring_count">{{rule.than}}</div>
+<div ng-if="isEditing"><span ng-if="matchingType == matchingTypes.first">
+    <decision-input type="decisionType" decisions="decisions" model="rule.than" placeholder="Decision"></decision-input></span><span ng-if="matchingType != matchingTypes.first && matchingType != matchingTypes.scoring_count">
+    <decision-input type="decisionType" decisions="decisions" model="rule.than" placeholder="Score"></decision-input></span></div>

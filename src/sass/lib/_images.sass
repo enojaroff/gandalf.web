@@ -1,0 +1,13 @@
+// Image helper mixins (simplified, compass image-width/height removed)
+
+=image-size($path)
+  // stub: compass image-width/height not available in Dart Sass
+
+=pic($name)
+  background: url("../images/#{$name}") no-repeat 0 0
+
+=png($name)
+  background: url("../images/#{$name}.png") no-repeat 0 0
+
+=jpg($name)
+  background: url("../images/#{$name}.jpg") no-repeat 0 0

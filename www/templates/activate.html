@@ -1,0 +1,14 @@
+
+<div class="welcome" ng-if="user">
+  <h4 class="welcome__header">Your have activated your account!</h4>
+  <div class="welcome__content"><p>Hurray! Your profile is active, you can start making API calls to Gandalf and introspect your tables.</p>
+
+  </div>
+  <p class="btn-actions"><a class="btn btn-submit" ui-sref="tables">Continue</a></p>
+</div>
+<div class="welcome" ng-if="!user">
+  <h4 class="welcome__header">Can't activate this account.</h4>
+  <div class="welcome__content">
+    <div class="text-center">Maybe activation link is expired, try to re-send it.</div>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Edit collaborator</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Username</label>
+        <div class="col-sm-10">
+          <div class="form-control-static">{{user.username}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Email</label>
+        <div class="col-sm-10">
+          <div class="form-control-static">{{user.email}}</div>
+        </div>
+      </div>
+      <hr/>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Role</label>
+        <div class="col-sm-10">
+          <input class="form-control" ng-model="user.role" disabled="disabled" required="required"/>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Scopes</label>
+        <div class="col-sm-10 form-control-block">
+          <user-scope-list model="user.scope" required="isRequired()" project="project"></user-scope-list>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="pull-left">
+      <button class="btn btn-danger" type="button" ng-click="remove()" confirm="Are you sure? You will lost access to the project">Remove</button>
+    </div>
+    <div class="pull-right">
+      <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </div>
+</form>

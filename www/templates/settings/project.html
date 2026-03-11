@@ -1,0 +1,82 @@
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="block">
+        <div class="text-heading">
+          <div class="text-heading-label">Name</div>
+          <div class="text-overflow">{{project.title}}</div>
+        </div>
+        <div class="text-heading" ng-if="project.description">
+          <div class="text-heading-label">Description</div>{{project.description}}
+        </div>
+        <div class="text-heading">
+          <div class="text-heading-label">Application ID</div>{{project.id}}
+        </div>
+        <div class="row">
+          <div class="col-md-3">
+            <div class="text-heading">
+              <div class="text-heading-label">Returns Decision Flow</div>{{project.settings.show_meta | boolean: 'Yes' : 'No'}}
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-heading">
+              <div class="text-heading-label">Active account</div>{{user.active | boolean: 'Yes' : 'No'}}
+            </div>
+          </div>
+        </div>
+        <div class="btn-actions" ng-if="project.hasUserAccess('project', 'update')">
+          <div class="btn-group btn-group-sm"><a class="btn btn-primary" project-edit="project">Edit</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="block container-fluid">
+  <div class="row">
+    <div class="col-md-4 col-md-push-6"><p><b>Users that have access to this project.</b></p>
+<p>You can share access to the project with your collaborators, giving them specific access scope.</p>
+
+    </div>
+    <div class="col-md-6 col-md-pull-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">Collaborators</div>
+        <div class="panel-body">
+          <div class="list-group list-group-panel">
+            <div has-access="users.manage" project="project"><a class="list-group-item" ng-repeat="user in project.users" user-edit="project" user-edit-model="user">{{user.username}}<br/><span class="small subtitle">{{user.scope | translateArray: 'scopes.users.':'.details' | join: ', '}}</span></a></div><a class="list-group-item" user-add="project" ng-if="project.hasUserAccess('users', 'manage')"><b class="text-primary">+ add collaborator</b></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" ng-if="project.consumers">
+    <div class="col-md-4 col-md-push-6"><p><b>API Consumers Credetials.</b></p>
+<p>To request Gandalf from an API client you need to create them separate keys. They should be send as HTTP Basic Auth login and password on each request to Gandalf.</p>
+
+    </div>
+    <div class="col-md-6 col-md-pull-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">API Consumers Credentials</div>
+        <div class="panel-body">
+          <div class="list-group list-group-panel"><a class="list-group-item" ng-repeat="consumer in project.consumers" consumer-edit="project" consumer-edit-model="consumer">
+              <div class="text-overflow max-width">{{consumer.description}}</div></a><a class="list-group-item" consumer-add="project" ng-if="project.hasUserAccess('consumers', 'manage')"><b class="text-primary">+ create consumer</b></a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p><br/></p>
+  <div class="row">
+    <div class="col-md-3 pull-left">
+      <button class="btn btn-danger" project-delete="project" ng-if="project.hasUserAccess('project', 'delete')">Delete project</button>
+    </div>
+    <div class="col-md-3 text-right">
+      <button class="btn btn-success btn-loading" ng-if="!exportDownload" ng-click="export()" ng-class="{'is-active': isExportLoading}">
+        <div class="btn-loader">
+          <div class="glyphicon glyphicon-refresh"></div>
+        </div>Export your data
+      </button>
+      <button class="btn btn-default" disabled="disabled" ng-if="exportDownload"><i class="glyphicon glyphicon-check btn-glyphicon"></i>Export done</button>
+    </div>
+  </div>
+  <p><br/></p>
+</div>

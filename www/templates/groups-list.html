@@ -1,0 +1,8 @@
+
+<div class="container-fluid">
+  <!--.panel.panel-default: .panel-bodyinclude:marked ../content/guides/decision-tables-list.md
+  -->
+  <div><a class="btn btn-primary" ng-click="createGroup()"><i class="glyphicon glyphicon-plus btn-glyphicon"></i>Create Split Test</a></div><br/>
+  <p class="list-group"><a class="list-group-item" ng-repeat="group in groups" ui-sref="groups-details({id: group.id})"><b class="list-group-item-heading">{{group.title}}</b><span ng-if="group.description"><br/><span><i class="list-group-item-text">{{group.description}}</i></span></span></a></p>
+  <uib-pagination ng-if="filters.total" total-items="filters.total" ng-model="filters.page" items-per-page="filters.size" max-size="5"></uib-pagination>
+</div>

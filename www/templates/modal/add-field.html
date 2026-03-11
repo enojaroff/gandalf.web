@@ -1,0 +1,96 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Create new column</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Title</label>
+        <div class="col-sm-10">
+          <input class="form-control" name="title" type="text" ng-model="field.title" required="required" placeholder="e.g. Person age..."/>
+          <div class="form-control-error" ng-messages="form.title.$error" ng-if="form.title.$dirty || form.$submitted">
+            <div ng-message="required">{{'validation.errors.title_field_empty'|translate}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">API Field Key</label>
+        <div class="col-sm-10">
+          <input class="form-control" name="key" type="text" ng-model="field.key" required="required" pattern="[a-zA-Z\_\-]*" placeholder="person-age"/>
+          <div class="form-control-error" ng-messages="form.key.$error" ng-if="form.key.$dirty || form.$submitted">
+            <div ng-message="required">{{'validation.errors.key_field_empty'|translate}}</div>
+            <div ng-message="pattern">{{'validation.errors.key_field_pattern'|translate}}</div>
+          </div><span class="help-block">Latin key (for API). Use only alphabet characters, dash and underscore. <code>a-z,A-Z,_,-</code></span>
+        </div>
+      </div>
+      <div class="form-group" ng-if="sameKeyColumns.length">
+        <div class="col col-sm-10 col-sm-offset-2">
+          <div class="alert alert-warning">You have {{sameKeyColumns.length}} column(s) with same API Field Key</div>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Type</label>
+        <div class="col-sm-10">
+          <select class="form-control" name="type" ng-model="field.type" required="required">
+            <option value="{{$root.APP.types.number}}">Number</option>
+            <option value="{{$root.APP.types.string}}">String</option>
+            <option value="{{$root.APP.types.bool}}">Boolean</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" ng-if="hasDifferentType()">
+        <div class="col col-sm-10 col-sm-offset-2">
+          <div class="alert alert-warning">Columns with same API Field Key have type <b>{{sameKeyColumnsType}}</b>
+            <p>Setting another type will affect changing in all relative fields and reset values in rules.</p>
+            <p>Set type to <b>{{sameKeyColumnsType}}</b> to prevent this behaviour.</p>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="isTypeChanged()">
+        <div class="col-sm-10 col-sm-offset-2">
+          <div class="alert alert-danger">Type changing will reset values in all rules in this field</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-10 col-sm-offset-2">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="isEnablePreset"/>Enable preset
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="isEnablePreset">
+        <label class="col-sm-2 control-label">Preset</label>
+        <div class="col-sm-10">
+          <field type="field.type" condition="field.preset.condition" value="field.preset.value"></field>
+        </div>
+      </div>
+      <div class="form-group" ng-if="isPresetChanged()">
+        <div class="col-sm-10 col-sm-offset-2">
+          <div class="alert alert-danger">Preset changing will reset values in all rules in this field</div>
+        </div>
+      </div>
+      <!-- .form-group
+      label.col-sm-2.control-label Default Value
+      .col-sm-10
+        input.form-control(
+          type="text",
+          ng-model="field.defaultValue",
+        )
+      
+      -->
+    </div>
+  </div>
+  <div class="modal-footer">
+    <div ng-if="!field.isDeleted">
+      <div class="pull-left" ng-if="isEdit">
+        <button class="btn btn-danger" type="button" ng-click="delete()">Delete</button>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+      <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    </div>
+    <button class="btn btn-default" ng-if="field.isDeleted" type="button" ng-click="revert()">Revert</button>
+  </div>
+</form>

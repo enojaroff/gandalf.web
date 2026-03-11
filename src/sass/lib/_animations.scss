@@ -1,0 +1,50 @@
+// Modern vanilla animation mixins (replaces compass/css3 animations module)
+// Autoprefixer handles vendor prefixes
+@import "keyframes";
+
+@mixin animation($args...) {
+  animation: $args;
+}
+
+@mixin animation-name($name...) {
+  animation-name: $name;
+}
+
+@mixin animation-duration($duration...) {
+  animation-duration: $duration;
+}
+
+@mixin animation-timing-function($timing-function...) {
+  animation-timing-function: $timing-function;
+}
+
+@mixin animation-iteration-count($iteration-count...) {
+  animation-iteration-count: $iteration-count;
+}
+
+@mixin animation-direction($direction...) {
+  animation-direction: $direction;
+}
+
+@mixin animation-play-state($play-state...) {
+  animation-play-state: $play-state;
+}
+
+@mixin animation-delay($delay...) {
+  animation-delay: $delay;
+}
+
+@mixin animation-fill-mode($fill-mode) {
+  animation-fill-mode: $fill-mode;
+}
+
+@mixin animation-simple(
+  $name: none,
+  $duration: 0s,
+  $timing-function: ease,
+  $delay: 0s,
+  $iteration-count: 1,
+  $direction: normal
+) {
+  animation: $name $duration $timing-function $delay $iteration-count $direction;
+}

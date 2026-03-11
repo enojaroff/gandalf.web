@@ -1,0 +1,11 @@
+.table-fixed-row {
+  table-layout: fixed;
+  position: absolute;
+  top: 0;
+  background: white;
+  max-width: none; }
+
+.table-fixed-row-container {
+  position: relative; }
+
+/*# sourceMappingURL=angular-table-fixed-rows.css.map */

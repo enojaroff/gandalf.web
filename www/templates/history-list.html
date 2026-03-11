@@ -1,0 +1,50 @@
+
+<div class="info-panel has-navbar">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Decisions History</div>
+    <div class="info-panel-body"><p>Here you can find history of all decisions in this project. To filter them start typing a table name in form below.</p>
+
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-4">
+      <form>
+        <div class="form-group">
+          <input class="form-control" type="search" ng-if="isShowSearch" ng-model="filters.table.title" placeholder="Start typing table name.." typeahead-on-select="onSelectTable($item, $model, $label, $event)" uib-typeahead="table.title for table in searchHistories($viewValue)"/>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp</th>
+          <th>Decision name
+            <div class="small light">Decision description</div>
+          </th>
+          <th>Decision</th>
+          <th>Table info</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tr ng-repeat="table in tables">
+        <td><a ui-sref="history-details({id: table.id})">{{table.id | last: 6}}</a></td>
+        <td>{{table.createdAt | date: 'M/d/yy HH:mm:ss'}}</td>
+        <td>{{table.title}}
+          <div class="small light">{{table.description}}</div>
+        </td>
+        <td>{{table.finalDecision}}</td>
+        <td>Table name: &nbsp<b>{{table.table.title}}</b><br/>Table variant: &nbsp<b>{{table.variant.title}}</b></td>
+        <td><a ui-sref="history-details({id: table.id})">Show Details</a></td>
+      </tr>
+      <tr ng-if="!tables.length">
+        <td class="text-center" colspan="6"><i>No decisions</i></td>
+      </tr>
+    </table>
+  </div>
+  <uib-pagination ng-if="filters.total" total-items="filters.total" boundary-link-numbers="true" rotate="true" ng-model="filters.page" items-per-page="filters.size" max-size="5"></uib-pagination>
+</div>

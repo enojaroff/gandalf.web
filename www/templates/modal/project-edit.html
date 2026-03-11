@@ -1,0 +1,38 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Edit project info</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Name</label>
+        <div class="col-sm-9">
+          <input class="form-control" ng-model="project.title" required="required"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Description</label>
+        <div class="col-sm-9">
+          <input class="form-control" ng-model="project.description" placeholder="e.g. Tell a few words about the project"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Return Decision Flow</label>
+        <div class="col-sm-9">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="project.settings.show_meta"/>Decision results will contain decision flow for API consumers.
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="pull-right">
+      <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </div>
+</form>

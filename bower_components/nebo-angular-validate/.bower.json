@@ -1,0 +1,35 @@
+{
+  "name": "nebo-angular-validate",
+  "version": "1.0.4",
+  "main": "nebo-angular-validate.js",
+  "authors": [
+    "Alexey Bondarenko <alexeybondarenko@me.com>"
+  ],
+  "description": "Angular JS validate module. Use directive to configure custom validations",
+  "keywords": [
+    "angular",
+    "validate",
+    "form"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/Nebo15/nebo-angular-validate",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "^1.5.0"
+  },
+  "_release": "1.0.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.0.4",
+    "commit": "041152eba99f8b212f4400f5271fc0bd89b04af9"
+  },
+  "_source": "https://github.com/Nebo15/nebo-angular-validate.git",
+  "_target": "1.0.4",
+  "_originalSource": "nebo-angular-validate"
+}

@@ -1,0 +1,6 @@
+// Modern vanilla keyframes mixin (replaces compass/css3 keyframes module)
+// Autoprefixer handles @-webkit-keyframes if needed
+
+=keyframes($name)
+  @keyframes #{$name}
+    @content

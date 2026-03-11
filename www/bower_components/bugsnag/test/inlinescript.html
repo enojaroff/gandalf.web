@@ -1,0 +1,16 @@
+<html>
+<head>
+  <script>var BUGSNAG_TESTING = true;</script>
+  <script src="../src/bugsnag.js" data-apikey="066f5ad3590596f9aa8d601ea89af845"></script>
+  <script>
+    Bugsnag.testRequest = function (url, params) {
+      window.parent.testResult(params);
+    };
+  </script>
+
+  <script>
+    (function () {
+      atob();
+    })();
+  </script>
+</head>

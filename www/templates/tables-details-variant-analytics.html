@@ -1,0 +1,41 @@
+
+<div class="info-panel has-navbar">
+  <div class="container-fluid">
+    <div class="info-panel-heading">Decisions Analytics</div>
+    <div class="info-panel-body"><p>Here you can find history of all decisions in this project. To filter them start typing a table name in form below.</p>
+
+    </div>
+  </div>
+</div>
+<div class="container-fluid ng-cloak" ng-if="table">
+  <div class="table-responsive">
+    <table class="table table-decision">
+      <thead>
+        <tr>
+          <th class="table-decision-column-index">#</th>
+          <th class="table-decision-column-title">Title
+            <div class="small text-light">description</div>
+          </th>
+          <th class="table-decision-column-condition" ng-repeat="field in table.fields">
+            <div class="text-overflow">{{field.title}}</div>
+          </th>
+          <th class="table-decision-column-decision">Decision</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="rule in variant.rules">
+          <td class="table-decision-column-index">{{$index}}</td>
+          <td><b>{{rule.title}}</b>
+            <div class="small">{{rule.description}}</div>
+          </td>
+          <td class="decision-table__condition" ng-repeat="condition in rule.conditions" green-red-gradient="condition.probability">{{condition.condition | condition}} {{condition.value.toString()}}
+            <p>{{condition.probability * 100 | toFixed: 1}} %</p>
+          </td>
+          <td class="border-left decision-table__condition" green-red-gradient="rule.probability">{{rule.than}}
+            <p>{{rule.probability * 100 | toFixed: 1}} %</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+// Simplified sprite mixins (replaces compass sprite generation)
+// Uses direct image URLs instead of compass sprite-map
+
+// SVG background
+=svg($name, $width, $height)
+  background: url("../images/svg/#{$name}.svg") no-repeat 0 0
+  +background-size(#{$width}px, #{$height}px)
+  width: #{$width}px
+  height: #{$height}px
+  display: inline-block
+
+=svgi($name, $width, $height)
+  background: url("../images/svg/#{$name}.svg") no-repeat 0 0
+  +background-size(#{$width}px, #{$height}px)
+
+// Simple sprite shortcut (uses direct PNG URL)
+=s($sprite, $map: icons)
+  background: url("../images/icons/#{$sprite}.png") no-repeat 0 0
+
+=si($sprite, $map: icons)
+  background: url("../images/icons/#{$sprite}.png") no-repeat 0 0
+
+=sp($sprite, $map: icons)
+  background-position: 0 0

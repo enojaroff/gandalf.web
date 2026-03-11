@@ -1,0 +1,31 @@
+
+<form ng-submit="save(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Create new API key</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Description</label>
+        <div class="col-sm-10">
+          <input class="form-control" type="text" ng-model="model.description" required="required"/>
+        </div>
+      </div>
+      <hr/>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Scopes</label>
+        <div class="col-sm-10">
+          <div class="checkbox" ng-repeat="scope in scopes">
+            <label>
+              <input type="checkbox" checklist-model="model.scope" checklist-value="scope" ng-required="!(model.scope &amp;&amp; model.scope.length &gt; 0)"/>{{('scopes.users.' + scope + '.details') | translate}}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </div>
+</form>

@@ -1,0 +1,32 @@
+
+<form ng-submit="submit(form)" name="form" novalidate="novalidate">
+  <div class="modal-header">
+    <h3 class="modal-title">Add new project</h3>
+  </div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Title</label>
+        <div class="col-sm-10">
+          <input class="form-control" name="title" type="text" ng-model="model.title" required="required" placeholder="e.g. Credit scoring"/>
+          <div class="form-control-error" ng-messages="form.title.$error" ng-if="form.title.$dirty || form.$submitted">
+            <div ng-message="required">{{'validation.errors.new_project_title_empty'|translate}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" show-errors="show-errors">
+        <label class="col-sm-2 control-label">Description</label>
+        <div class="col-sm-10">
+          <input class="form-control" name="description" type="text" ng-model="model.description" placeholder="e.g. Tell a few words about the project"/>
+          <div class="form-control-error" ng-messages="form.description.$error" ng-if="form.description.$dirty || form.$submitted">
+            <div ng-message="required">{{'validation.errors.new_project_description_empty'|translate}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+  </div>
+</form>
