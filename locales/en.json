@@ -1,0 +1,117 @@
+{
+  "nav": {
+    "tables": "Tables",
+    "groups": "Groups",
+    "history": "History",
+    "settings": "Settings",
+    "signOut": "Sign Out"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Create Account",
+    "signOut": "Sign Out",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset Password",
+    "noAccount": "Don't have an account?",
+    "alreadyAccount": "Already have an account?",
+    "activating": "Activating your account…",
+    "activated": "Account activated!",
+    "activationFailed": "Activation failed"
+  },
+  "tables": {
+    "title": "Decision Tables",
+    "new": "New Table",
+    "create": "Create Table",
+    "edit": "Edit",
+    "info": "Info",
+    "revisions": "Revisions",
+    "analytics": "Analytics",
+    "debugger": "Debugger",
+    "noTables": "No tables yet.",
+    "matchingType": "Matching Type",
+    "decisionType": "Decision Type",
+    "fields": "Fields",
+    "variants": "Variants",
+    "rules": "Rules",
+    "addRule": "Add Rule",
+    "addField": "Add Field",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this table?"
+  },
+  "fields": {
+    "key": "Key",
+    "title": "Title",
+    "type": "Type",
+    "types": {
+      "string": "String (text)",
+      "numeric": "Numeric (number)",
+      "boolean": "Boolean (true/false)"
+    }
+  },
+  "conditions": {
+    "isSet": "is set",
+    "isNull": "is null",
+    "eq": "equals",
+    "ne": "not equals",
+    "gt": "greater than",
+    "gte": "greater or equal",
+    "lt": "less than",
+    "lte": "less or equal",
+    "contains": "contains",
+    "notContains": "doesn't contain",
+    "startsWith": "starts with",
+    "endsWith": "ends with",
+    "in": "in list",
+    "nin": "not in list",
+    "between": "between",
+    "notBetween": "not between"
+  },
+  "matchingTypes": {
+    "first": "First match",
+    "scoring_sum": "Scoring sum",
+    "scoring_max": "Scoring max",
+    "scoring_min": "Scoring min",
+    "scoring_count": "Scoring count"
+  },
+  "groups": {
+    "title": "Groups",
+    "new": "New Group",
+    "noGroups": "No groups yet."
+  },
+  "history": {
+    "title": "Decision History",
+    "noHistory": "No decisions recorded yet."
+  },
+  "settings": {
+    "title": "Project Settings",
+    "users": "Users",
+    "consumers": "API Consumers",
+    "invite": "Invite",
+    "addConsumer": "Add Consumer"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading…",
+    "yes": "Yes",
+    "no": "No",
+    "true": "True",
+    "false": "False",
+    "default": "Default",
+    "description": "Description",
+    "name": "Name"
+  },
+  "errors": {
+    "required": "This field is required.",
+    "invalidEmail": "Invalid email address.",
+    "minLength": "Minimum {min} characters.",
+    "generic": "An error occurred. Please try again."
+  }
+}

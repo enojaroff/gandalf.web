@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "tables": "Таблиці",
+    "groups": "Групи",
+    "history": "Історія",
+    "settings": "Налаштування",
+    "signOut": "Вийти"
+  },
+  "auth": {
+    "signIn": "Увійти",
+    "signUp": "Створити акаунт",
+    "signOut": "Вийти",
+    "username": "Логін",
+    "email": "Email",
+    "password": "Пароль",
+    "forgotPassword": "Забули пароль?",
+    "resetPassword": "Скинути пароль",
+    "noAccount": "Немає акаунта?",
+    "alreadyAccount": "Вже є акаунт?",
+    "activating": "Активація акаунта…",
+    "activated": "Акаунт активовано!",
+    "activationFailed": "Помилка активації"
+  },
+  "tables": {
+    "title": "Таблиці рішень",
+    "new": "Нова таблиця",
+    "create": "Створити таблицю",
+    "edit": "Редагувати",
+    "info": "Інфо",
+    "revisions": "Версії",
+    "analytics": "Аналітика",
+    "debugger": "Тестування",
+    "noTables": "Таблиць немає.",
+    "matchingType": "Тип відповідності",
+    "decisionType": "Тип рішення",
+    "fields": "Поля",
+    "variants": "Варіанти",
+    "rules": "Правила",
+    "addRule": "Додати правило",
+    "addField": "Додати поле",
+    "save": "Зберегти",
+    "delete": "Видалити",
+    "confirmDelete": "Ви впевнені, що хочете видалити цю таблицю?"
+  },
+  "common": {
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "create": "Створити",
+    "loading": "Завантаження…",
+    "yes": "Так",
+    "no": "Ні",
+    "true": "Так",
+    "false": "Ні",
+    "default": "За замовчуванням",
+    "description": "Опис",
+    "name": "Назва"
+  }
+}

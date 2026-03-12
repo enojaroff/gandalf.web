@@ -1,17 +1,27 @@
-FROM nebo15/alpine-node:6.9.5
+# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
 
-ENV DEBUG=false \
-    PORT=8080 \
-    NODE_ENV=production
+WORKDIR /app
 
-COPY package.json /tmp/package.json
-RUN set -xe; \
-    cd /tmp && \
-    npm install --production && \
-    mkdir -p /opt/app && \
-    cp -a /tmp/node_modules /opt/app/
+# Installer les dépendances
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-WORKDIR /opt/app
-COPY . /opt/app
+# Copier le code source et builder
+COPY . .
+RUN npm run build
 
-CMD ["pm2-docker", "pm2.process.yml"]
+# ─── Stage 2: Production ──────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+ENV NODE_ENV=production \
+    PORT=3000
+
+WORKDIR /app
+
+# Copier uniquement le build Nuxt standalone
+COPY --from=builder /app/.output /app/.output
+
+EXPOSE 3000
+
+CMD ["node", ".output/server/index.mjs"]

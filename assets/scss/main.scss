@@ -1,0 +1,51 @@
+// ─── Variables et overrides Nuxt UI ───────────────────────────────────────────
+// Les variables CSS de Nuxt UI sont configurées via tailwind.config.ts
+// Ici on ajoute uniquement les styles spécifiques à l'application
+
+// ─── Decision Table ───────────────────────────────────────────────────────────
+// Les styles de base sont dans le composant DecisionTable.vue (scoped)
+// Ci-dessous les styles globaux nécessaires pour le scroll horizontal
+
+.decision-table-wrapper {
+  // Permet le scroll horizontal sur mobile
+  -webkit-overflow-scrolling: touch;
+
+  // Griser les colonnes de champs pour les différencier des décisions
+  table tbody tr td:not(.dt-cell--decision):not(.dt-cell--num):not(.dt-cell--actions) {
+    background-color: var(--ui-bg);
+  }
+}
+
+// ─── Utilitaires ──────────────────────────────────────────────────────────────
+
+// Texte coupé avec ellipsis + tooltip natif
+.truncate-tooltip {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
+
+// Indicateur de complexité (gradient rouge → vert)
+.complexity-bar {
+  height: 4px;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+// ─── Auth pages ───────────────────────────────────────────────────────────────
+
+.auth-layout {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease;
+}
