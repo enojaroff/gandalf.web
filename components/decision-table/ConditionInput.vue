@@ -71,6 +71,9 @@ const hasNoValue = computed(() =>
 
 const isBetween = computed(() =>
   props.condition.condition === '$between'
+  || props.condition.condition === '$between_excl'
+  || props.condition.condition === '$between_lexcl'
+  || props.condition.condition === '$between_rexcl'
   || props.condition.condition === '$not_between',
 )
 
@@ -81,9 +84,14 @@ const betweenTo = ref('')
 watch(
   () => props.condition.value,
   (val) => {
-    if (isBetween.value && Array.isArray(val)) {
+    if (!isBetween.value) return
+    if (Array.isArray(val)) {
       betweenFrom.value = String(val[0] ?? '')
       betweenTo.value = String(val[1] ?? '')
+    } else if (typeof val === 'string' && val.includes(';')) {
+      const [a, b] = val.split(';')
+      betweenFrom.value = a ?? ''
+      betweenTo.value = b ?? ''
     }
   },
   { immediate: true },
@@ -91,10 +99,9 @@ watch(
 
 function updateBetween() {
   const numType = props.field.type === 'numeric'
-  props.condition.value = [
-    numType ? Number(betweenFrom.value) : betweenFrom.value,
-    numType ? Number(betweenTo.value) : betweenTo.value,
-  ]
+  const from = numType ? Number(betweenFrom.value) : betweenFrom.value
+  const to = numType ? Number(betweenTo.value) : betweenTo.value
+  props.condition.value = `${from};${to}`
   emit('change')
 }
 
@@ -120,7 +127,10 @@ const operatorOptions = computed(() => {
       { value: '$gte', label: '≥' },
       { value: '$lt', label: '<' },
       { value: '$lte', label: '≤' },
-      { value: '$between', label: 'between' },
+      { value: '$between', label: '[x - y]' },
+      { value: '$between_excl', label: ']x - y[' },
+      { value: '$between_lexcl', label: ']x - y]' },
+      { value: '$between_rexcl', label: '[x - y[' },
       { value: '$not_between', label: 'not between' },
     )
   }

@@ -62,5 +62,8 @@ export const CONDITION_TYPES = {
   STARTS_WITH: '$starts_with' as const,
   ENDS_WITH: '$ends_with' as const,
   BETWEEN: '$between' as const,
+  BETWEEN_EXCL: '$between_excl' as const,
+  BETWEEN_LEXCL: '$between_lexcl' as const,
+  BETWEEN_REXCL: '$between_rexcl' as const,
   NOT_BETWEEN: '$not_between' as const,
 }

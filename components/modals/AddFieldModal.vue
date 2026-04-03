@@ -1,5 +1,5 @@
 <template>
-  <UModal :open="true" @update:open="(v) => !v && emit('close')">
+  <UModal v-model:open="isOpen">
     <template #header>
       <h3 class="text-base font-semibold">Add Field</h3>
     </template>
@@ -31,7 +31,7 @@
 
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <UButton variant="outline" :disabled="loading" @click="emit('close')">Cancel</UButton>
+        <UButton variant="outline" :disabled="loading" @click="isOpen = false">Cancel</UButton>
         <UButton :loading="loading" @click="onAdd">Add Field</UButton>
       </div>
     </template>
@@ -47,9 +47,10 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  close: []
   add: [field: DecisionField]
 }>()
+
+const isOpen = defineModel<boolean>('open', { default: false })
 
 const form = reactive({
   key: '',
@@ -90,6 +91,7 @@ function onAdd() {
     preset: null,
   }
 
+  isOpen.value = false
   emit('add', newField)
 }
 </script>
