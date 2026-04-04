@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold mb-6">{{ $t('settings.title') }}</h1>
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else>
@@ -32,7 +32,7 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
-            <UButton size="sm" icon="i-heroicons-plus" variant="outline" @click="showInviteUser = true">
+            <UButton size="sm" icon="i-lucide-plus" variant="outline" @click="showInviteUser = true">
               {{ $t('settings.invite') }}
             </UButton>
           </div>
@@ -45,7 +45,7 @@
             </div>
           </template>
           <template #actions-cell="{ row }">
-            <UButton variant="ghost" icon="i-heroicons-trash" size="sm" color="error" @click="removeUser(row.original)" />
+            <UButton variant="ghost" icon="i-lucide-trash-2" size="sm" color="error" @click="removeUser(row.original)" />
           </template>
         </UTable>
       </UCard>
@@ -55,7 +55,7 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.consumers') }}</h3>
-            <UButton size="sm" icon="i-heroicons-plus" variant="outline" @click="showAddConsumer = true">
+            <UButton size="sm" icon="i-lucide-plus" variant="outline" @click="showAddConsumer = true">
               {{ $t('settings.add') }}
             </UButton>
           </div>
@@ -68,7 +68,7 @@
             </div>
           </template>
           <template #actions-cell="{ row }">
-            <UButton variant="ghost" icon="i-heroicons-trash" size="sm" color="error" @click="removeConsumer(row.original)" />
+            <UButton variant="ghost" icon="i-lucide-trash-2" size="sm" color="error" @click="removeConsumer(row.original)" />
           </template>
         </UTable>
       </UCard>

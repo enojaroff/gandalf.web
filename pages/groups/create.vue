@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
-      <UButton to="/groups" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
+      <UButton to="/groups" variant="ghost" icon="i-lucide-arrow-left" size="sm" />
       <h1 class="text-2xl font-bold">New Group</h1>
     </div>
 

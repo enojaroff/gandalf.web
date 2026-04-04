@@ -28,11 +28,11 @@
           <UDropdownMenu :items="localeMenuItems">
             <UButton variant="ghost" size="sm" class="gap-1">
               <span class="text-2xl leading-none">{{ localeFlag }}</span>
-              <UIcon name="i-heroicons-chevron-down" class="text-xs opacity-60" />
+              <UIcon name="i-lucide-chevron-down" class="text-xs opacity-60" />
             </UButton>
           </UDropdownMenu>
           <UDropdownMenu :items="userMenuItems">
-            <UButton variant="ghost" icon="i-heroicons-user-circle" size="sm">
+            <UButton variant="ghost" icon="i-lucide-circle-user" size="sm">
               {{ userStore.currentUser?.username || 'Account' }}
             </UButton>
           </UDropdownMenu>
@@ -126,14 +126,14 @@ const userMenuItems = computed(() => [
   [
     {
       label: t('auth.editProfile'),
-      icon: 'i-heroicons-user',
+      icon: 'i-lucide-user',
       onSelect: () => router.push('/settings/profile'),
     },
   ],
   [
     {
       label: t('nav.signOut'),
-      icon: 'i-heroicons-arrow-right-on-rectangle',
+      icon: 'i-lucide-log-out',
       onSelect: () => {
         authStore.logout()
         router.push('/auth/sign-in')

@@ -2,18 +2,18 @@
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">{{ $t('groups.title') }}</h1>
-      <UButton to="/groups/create" icon="i-heroicons-plus">{{ $t('groups.new') }}</UButton>
+      <UButton to="/groups/create" icon="i-lucide-plus">{{ $t('groups.new') }}</UButton>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <UCard v-else>
       <div v-if="groups.length === 0" class="text-center py-12">
-        <UIcon name="i-heroicons-folder-open" class="text-5xl text-muted mb-4" />
+        <UIcon name="i-lucide-folder-open" class="text-5xl text-muted mb-4" />
         <p class="text-muted">{{ $t('groups.noGroups') }}</p>
-        <UButton to="/groups/create" class="mt-4" icon="i-heroicons-plus">{{ $t('groups.createGroup') }}</UButton>
+        <UButton to="/groups/create" class="mt-4" icon="i-lucide-plus">{{ $t('groups.createGroup') }}</UButton>
       </div>
 
       <UTable v-else :data="groups" :columns="columns">
@@ -28,7 +28,7 @@
         <template #actions-cell="{ row }">
           <UButton
             variant="ghost"
-            icon="i-heroicons-trash"
+            icon="i-lucide-trash-2"
             size="sm"
             color="error"
             @click="confirmDelete(row.original)"

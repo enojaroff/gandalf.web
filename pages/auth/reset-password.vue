@@ -11,7 +11,7 @@
           v-model="form.email"
           type="email"
           :placeholder="$t('auth.emailPlaceholder')"
-          icon="i-heroicons-envelope"
+          icon="i-lucide-mail"
           :disabled="loading || !!success"
         />
       </UFormField>

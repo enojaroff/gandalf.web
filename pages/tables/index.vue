@@ -8,7 +8,7 @@
           {{ meta?.total ?? tables.length }} table{{ (meta?.total ?? tables.length) !== 1 ? 's' : '' }}
         </p>
       </div>
-      <UButton to="/tables/create" icon="i-heroicons-plus">
+      <UButton to="/tables/create" icon="i-lucide-plus">
         {{ $t('tables.new') }}
       </UButton>
     </div>
@@ -18,7 +18,7 @@
       <UInput
         v-model="search"
         :placeholder="$t('tables.searchPlaceholder')"
-        icon="i-heroicons-magnifying-glass"
+        icon="i-lucide-search"
         class="flex-1 max-w-sm"
         @input="debouncedSearch"
       />
@@ -27,13 +27,13 @@
     <!-- Tableau -->
     <UCard class="shadow-md">
       <div v-if="loading" class="flex justify-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+        <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
       </div>
 
       <div v-else-if="tables.length === 0" class="text-center py-12">
-        <UIcon name="i-heroicons-table-cells" class="text-5xl text-muted mb-4" />
+        <UIcon name="i-lucide-table" class="text-5xl text-muted mb-4" />
         <p class="text-muted">{{ $t('tables.noTables') }} {{ $t('tables.noTablesCreate') }}</p>
-        <UButton to="/tables/create" class="mt-4" icon="i-heroicons-plus">
+        <UButton to="/tables/create" class="mt-4" icon="i-lucide-plus">
           {{ $t('tables.create') }}
         </UButton>
       </div>
@@ -65,7 +65,7 @@
 
         <template #actions-cell="{ row }">
           <UDropdownMenu :items="tableActions(row.original)">
-            <UButton variant="ghost" icon="i-heroicons-ellipsis-horizontal" size="sm" />
+            <UButton variant="ghost" icon="i-lucide-ellipsis" size="sm" />
           </UDropdownMenu>
         </template>
       </UTable>
@@ -133,19 +133,19 @@ function tableActions(table: DecisionTable) {
     [
       {
         label: t('common.view'),
-        icon: 'i-heroicons-eye',
+        icon: 'i-lucide-eye',
         onSelect: () => router.push(`/tables/${table._id}/info`),
       },
       {
         label: t('common.edit'),
-        icon: 'i-heroicons-pencil',
+        icon: 'i-lucide-pencil',
         onSelect: () => router.push(`/tables/${table._id}`),
       },
     ],
     [
       {
         label: t('common.delete'),
-        icon: 'i-heroicons-trash',
+        icon: 'i-lucide-trash-2',
         color: 'error' as const,
         onSelect: () => confirmDelete(table),
       },

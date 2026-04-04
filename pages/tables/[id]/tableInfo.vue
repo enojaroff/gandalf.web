@@ -4,7 +4,7 @@
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else-if="table">
@@ -17,13 +17,13 @@
         <div class="flex gap-2">
           <UButton
             :to="`/tables/${table._id}/${table.variants[0]?._id}/edit`"
-            icon="i-heroicons-pencil"
+            icon="i-lucide-pencil"
             variant="outline"
           >
             {{ $t('common.edit') }}
           </UButton>
           <UButton
-            icon="i-heroicons-trash"
+            icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
             @click="confirmDelete"

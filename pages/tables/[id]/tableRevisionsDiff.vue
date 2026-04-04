@@ -4,7 +4,7 @@
     <h2 class="text-xl font-bold mb-6">Revision Diff</h2>
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <div v-else-if="diff">

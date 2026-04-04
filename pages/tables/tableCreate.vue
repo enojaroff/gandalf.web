@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-2xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
-      <UButton to="/tables" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
+      <UButton to="/tables" variant="ghost" icon="i-lucide-arrow-left" size="sm" />
       <h1 class="text-2xl font-bold">{{ $t('tables.newTitle') }}</h1>
     </div>
 

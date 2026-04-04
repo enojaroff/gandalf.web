@@ -183,14 +183,14 @@
             <div class="flex gap-1">
               <UButton
                 variant="ghost"
-                icon="i-heroicons-document-duplicate"
+                icon="i-lucide-copy"
                 size="xs"
                 :title="'Clone rule'"
                 @click="cloneRule(rule, ruleIdx)"
               />
               <UButton
                 variant="ghost"
-                :icon="rule.isDeleted ? 'i-heroicons-arrow-uturn-left' : 'i-heroicons-trash'"
+                :icon="rule.isDeleted ? 'i-lucide-undo-2' : 'i-lucide-trash-2'"
                 :color="rule.isDeleted ? 'warning' : 'error'"
                 size="xs"
                 @click="toggleDelete(rule)"

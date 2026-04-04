@@ -7,7 +7,7 @@
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <UCard v-else>
@@ -25,7 +25,7 @@
             <UButton
               size="xs"
               variant="outline"
-              icon="i-heroicons-arrow-path"
+              icon="i-lucide-refresh-cw"
               @click="rollback(row.original as { _id: string })"
             >
               Rollback

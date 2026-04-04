@@ -35,7 +35,7 @@
 
           <!-- Menu utilisateur -->
           <UDropdownMenu :items="userMenuItems">
-            <UButton variant="ghost" icon="i-heroicons-user-circle" size="sm">
+            <UButton variant="ghost" icon="i-lucide-circle-user" size="sm">
               {{ userStore.currentUser?.username || 'Account' }}
             </UButton>
           </UDropdownMenu>
@@ -110,14 +110,14 @@ const userMenuItems = computed(() => [
   [
     {
       label: 'Edit profile',
-      icon: 'i-heroicons-user',
+      icon: 'i-lucide-user',
       onSelect: () => router.push('/settings/profile'),
     },
   ],
   [
     {
       label: 'Sign out',
-      icon: 'i-heroicons-arrow-right-on-rectangle',
+      icon: 'i-lucide-log-out',
       onSelect: () => {
         authStore.logout()
         router.push('/auth/sign-in')

@@ -3,7 +3,7 @@
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else-if="table && variant">
@@ -80,13 +80,13 @@
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm text-muted">Variant: {{ variant.title }}</p>
         <div class="flex gap-2">
-          <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="addRule">
+          <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
             {{ $t('tables.addRule') }}
           </UButton>
-          <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="showAddFieldModal = true">
+          <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="showAddFieldModal = true">
             {{ $t('tables.addField') }}
           </UButton>
-          <UButton icon="i-heroicons-check" :loading="saving" @click="save">
+          <UButton icon="i-lucide-check" :loading="saving" @click="save">
             {{ $t('common.save') }}
           </UButton>
         </div>
@@ -102,7 +102,7 @@
 
       <UContainer class="flex items-center justify-between h-16">
         <span></span>
-        <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="addRule">
+        <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
           {{ $t('tables.addRule') }}
         </UButton>
         <span></span>
@@ -126,13 +126,13 @@
         <UButton
           color="error"
           variant="outline"
-          icon="i-heroicons-trash"
+          icon="i-lucide-trash-2"
           :loading="deleting"
           @click="confirmDelete"
         >
           {{ $t('tables.deleteTable') }}
         </UButton>
-        <UButton icon="i-heroicons-check" :loading="saving" @click="save">
+        <UButton icon="i-lucide-check" :loading="saving" @click="save">
           {{ $t('common.save') }}
         </UButton>
       </div>

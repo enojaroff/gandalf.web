@@ -3,7 +3,7 @@
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else-if="group">
@@ -13,10 +13,10 @@
           <p v-if="group.description" class="text-muted mt-1">{{ group.description }}</p>
         </div>
         <div class="flex gap-2">
-          <UButton variant="outline" icon="i-heroicons-plus" size="sm" @click="showAddTable = true">
+          <UButton variant="outline" icon="i-lucide-plus" size="sm" @click="showAddTable = true">
             Add Table
           </UButton>
-          <UButton variant="ghost" icon="i-heroicons-trash" color="error" @click="confirmDelete" />
+          <UButton variant="ghost" icon="i-lucide-trash-2" color="error" @click="confirmDelete" />
         </div>
       </div>
 

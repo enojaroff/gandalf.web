@@ -11,13 +11,13 @@
       <UInput
         v-model="search"
         :placeholder="$t('history.searchPlaceholder')"
-        icon="i-lucide-search"
+        icon="i-heroicons-magnifying-glass"
       />
     </div>
 
     <!-- Chargement -->
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else>
@@ -116,7 +116,7 @@ const allItems = ref<HistoryItem[]>([])
 const loading = ref(true)
 const search = ref('')
 const sorting = ref<{ id: string; desc: boolean }[]>([])
-const pagination = ref({ pageIndex: 0, pageSize: 20 })
+const pagination = ref({ pageIndex: 0, pageSize: 10 })
 
 const UButton = resolveComponent('UButton')
 

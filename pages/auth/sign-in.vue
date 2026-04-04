@@ -7,7 +7,7 @@
         <UInput
           v-model="form.username"
           :placeholder="$t('auth.usernamePlaceholder')"
-          icon="i-heroicons-user"
+          icon="i-lucide-user"
           autocomplete="username"
           :disabled="loading"
         />
@@ -18,7 +18,7 @@
           v-model="form.password"
           type="password"
           :placeholder="$t('auth.passwordPlaceholder')"
-          icon="i-heroicons-lock-closed"
+          icon="i-lucide-lock"
           autocomplete="current-password"
           :disabled="loading"
         />
