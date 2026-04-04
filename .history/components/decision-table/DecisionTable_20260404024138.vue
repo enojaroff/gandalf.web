@@ -124,16 +124,13 @@
               >
                 <template v-if="activeFields[condIdx]">
                   <template v-if="condition.condition === '$any'">
-                    <span class="condition-op">---</span>
+                    <span class="condition-any">---</span>
                   </template>
                   <template v-else-if="condition.condition === '$is_set'">
                     <span class="condition-op"><big>◉</big></span>
                   </template>
                   <template v-else-if="condition.condition === '$is_null'">
                     <span class="condition-op"><big>∅</big></span>
-                  </template>
-                  <template v-else-if="condition.condition === '$eq' && activeFields[condIdx]?.type === 'boolean'">
-                    <span class="condition-val">{{ condition.value ? 'True' : 'False' }}</span>
                   </template>
                   <template v-else>
                     <span class="condition-op">{{ conditionOpLabel(condition.condition) }}</span>
@@ -490,7 +487,6 @@ thead .dt-cell--actions {
 .condition-display {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.25rem;
   min-height: 1.75rem;
   padding: 0.375rem 0.5rem;

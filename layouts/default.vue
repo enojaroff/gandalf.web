@@ -63,7 +63,7 @@ import { LOCALE_STORAGE_KEY } from '~/utils/locale'
 import type { AppLocale } from '~/utils/locale'
 
 const { locale, locales, t, setLocale } = useI18n()
-const flags: Record<string, string> = { fr: '🇫🇷', en: '🇬🇧', uk: '🇺🇦' }
+const flags: Record<string, string> = { fr: '🇫🇷', en: '🇬🇧', uk: '🇺🇦', bg: '🇧🇬', it: '🇮🇹', es: '🇪🇸' }
 
 const localeFlag = computed(() => flags[locale.value] ?? locale.value)
 

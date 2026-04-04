@@ -11,7 +11,7 @@
       <UCard class="mb-4">
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
-            <UFormField :label="$t('tables.tableName')">
+            <UFormField label="Table Name">
               <UInput v-model="table.title" placeholder="Table name" class="inline-full" />
             </UFormField>
             <UFormField label="Description">
@@ -22,7 +22,7 @@
           <div class="flex flex-wrap gap-6 items-start">
             <!-- Table Type: Decision / Scoring -->
             <div>
-              <p class="text-xs font-semibold text-muted uppercase mb-2">{{ $t('tables.tableType') }}</p>
+              <p class="text-xs font-semibold text-muted uppercase mb-2">Table Type</p>
               <div class="flex gap-1">
                 <UButton
                   size="sm"
@@ -59,7 +59,7 @@
 
             <!-- Scoring Type (only for scoring) -->
             <div v-if="!isDecisionType">
-              <p class="text-xs font-semibold text-muted uppercase mb-2">{{ $t('tables.scoringType') }}</p>
+              <p class="text-xs font-semibold text-muted uppercase mb-2">Scoring Type</p>
               <div class="flex gap-1">
                 <UButton
                   v-for="st in scoringTypes"
@@ -81,13 +81,13 @@
         <p class="text-sm text-muted">Variant: {{ variant.title }}</p>
         <div class="flex gap-2">
           <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="addRule">
-            {{ $t('tables.addRule') }}
+            Add Rule
           </UButton>
           <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="showAddFieldModal = true">
-            {{ $t('tables.addField') }}
+            Add Field
           </UButton>
           <UButton icon="i-heroicons-check" :loading="saving" @click="save">
-            {{ $t('common.save') }}
+            Save
           </UButton>
         </div>
       </div>
@@ -103,7 +103,7 @@
       <UContainer class="flex items-center justify-between h-16">
         <span></span>
         <UButton icon="i-heroicons-plus" variant="outline" size="sm" @click="addRule">
-          {{ $t('tables.addRule') }}
+          Add Rule
         </UButton>
         <span></span>
       </UContainer>
@@ -130,10 +130,10 @@
           :loading="deleting"
           @click="confirmDelete"
         >
-          {{ $t('tables.deleteTable') }}
+          Delete Table
         </UButton>
         <UButton icon="i-heroicons-check" :loading="saving" @click="save">
-          {{ $t('common.save') }}
+          Save
         </UButton>
       </div>
     </template>

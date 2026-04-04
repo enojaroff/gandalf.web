@@ -81,7 +81,8 @@ const booleanOptions = [
   { value: '$any',    label: 'any' },
   { value: '$is_set', label: 'is set' },
   { value: '$is_null',label: 'is null' },
-  { value: 'true',    label: 'True' },
+//  { value: 'true',    label: 'True' },
+  { value: 'true',    label: '☒' },
   { value: 'false',   label: 'False' },
 ]
 

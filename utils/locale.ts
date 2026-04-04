@@ -1,4 +1,4 @@
-export const VALID_LOCALES = ['fr', 'en', 'uk'] as const
+export const VALID_LOCALES = ['fr', 'en', 'uk', 'bg', 'it', 'es'] as const
 export type AppLocale = typeof VALID_LOCALES[number]
 
 export const LOCALE_STORAGE_KEY = 'locale'

@@ -58,7 +58,6 @@
     "title": "Tables de décision",
     "new": "Nouvelle table",
     "newTitle": "Nouvelle table de décision",
-    "tableName": "Table Name",
     "create": "Créer une Table",
     "edit": "Editer",
     "info": "Info",
@@ -68,6 +67,10 @@
     "noTables": "No tables yet.",
     "noTablesCreate": "Créer votre première table de décision.",
     "searchPlaceholder": "Rechercher…",
+    "tableName": "Nom de la table",
+    "tableType": "Type de table",
+    "scoringType": "Type de scoring",
+    "configuration": "Configuration",
     "matchingType": "Correspondance",
     "decisionType": "Decision Type",
     "fields": "Champs",
@@ -78,6 +81,7 @@
     "save": "Enregistrer",
     "delete": "Supprimer",
     "confirmDelete": "Are you sure you want to delete this table?",
+    "deleteTable": "Supprimer la table",
     "matchingTypeDescriptions": {
       "first": "Returns the result of the first matching rule.",
       "scoring_sum": "Sums the scores of all matching rules.",
@@ -133,10 +137,18 @@
   },
   "history": {
     "title": "Historique des décisions",
-    "noHistory": "No decisions recorded yet.",
+    "subtitle": "Ici vous pouvez consulter l'historique de toutes les décisions de ce projet. Pour filtrer, commencez à saisir un nom de table.",
+    "noHistory": "Aucune décision",
     "id": "ID",
-    "table": "Table",
-    "date": "Date"
+    "date": "Horodatage",
+    "decisionName": "Nom de la décision",
+    "decisionDescription": "Description",
+    "decision": "Décision",
+    "tableInfo": "Infos table",
+    "tableName": "Table",
+    "tableVariant": "Variante",
+    "showDetails": "Voir détails",
+    "searchPlaceholder": "Commencez à saisir un nom de table…"
   },
   "settings": {
     "title": "Paramètres du projet",

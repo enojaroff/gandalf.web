@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ path: '/tables/:id/revisions', middleware: 'auth' })
 
 const route = useRoute()
 const gandalf = useGandalf()

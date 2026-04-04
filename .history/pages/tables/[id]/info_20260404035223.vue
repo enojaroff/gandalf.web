@@ -20,7 +20,7 @@
             icon="i-heroicons-pencil"
             variant="outline"
           >
-            Edit
+            {{ $t('common.edit') }}
           </UButton>
           <UButton
             icon="i-heroicons-trash"
@@ -47,26 +47,26 @@
       </div>
 
       <!-- Infos générales -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <UCard>
           <template #header>
-            <h3 class="font-semibold">Configuration</h3>
+            <h3 class="font-semibold">{{ $t('tables.configuration') }}</h3>
           </template>
           <dl class="space-y-2 text-sm">
             <div class="flex justify-between">
-              <dt class="text-muted">Matching type</dt>
+              <dt class="text-muted">{{ $t('tables.matchingType') }}</dt>
               <dd><UBadge variant="soft">{{ table.matching_type }}</UBadge></dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-muted">Decision type</dt>
+              <dt class="text-muted">{{ $t('tables.decisionType') }}</dt>
               <dd><UBadge variant="soft">{{ table.decision_type }}</UBadge></dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-muted">Fields</dt>
+              <dt class="text-muted">{{ $t('tables.fields') }}</dt>
               <dd>{{ table.fields.length }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-muted">Variants</dt>
+              <dt class="text-muted">{{ $t('tables.variants') }}</dt>
               <dd>{{ table.variants.length }}</dd>
             </div>
           </dl>
@@ -74,7 +74,7 @@
 
         <UCard>
           <template #header>
-            <h3 class="font-semibold">Variants</h3>
+            <h3 class="font-semibold">{{ $t('tables.variants') }}</h3>
           </template>
           <ul class="space-y-2">
             <li
@@ -100,7 +100,7 @@
       <!-- Champs -->
       <UCard>
         <template #header>
-          <h3 class="font-semibold">Fields</h3>
+          <h3 class="font-semibold">{{ $t('tables.fields') }}</h3>
         </template>
         <UTable :data="table.fields" :columns="fieldColumns">
           <template #type-cell="{ row }">
@@ -117,6 +117,7 @@ import type { DecisionTable } from '~/types/decision-table'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const gandalf = useGandalf()
@@ -136,24 +137,24 @@ onMounted(async () => {
 })
 
 const breadcrumbs = computed(() => [
-  { label: 'Tables', to: '/tables' },
+  { label: t('nav.tables'), to: '/tables' },
   { label: table.value?.title || tableId },
 ])
 
 const tabs = computed(() => [
-  { label: 'Info', to: `/tables/${tableId}/info` },
-  { label: 'Revisions', to: `/tables/${tableId}/revisions` },
+  { label: t('tables.info'), to: `/tables/${tableId}/info` },
+  { label: t('tables.revisions'), to: `/tables/${tableId}/revisions` },
   ...(table.value?.variants.map(v => ({
     label: v.title,
     to: `/tables/${tableId}/${v._id}/edit`,
   })) || []),
 ])
 
-const fieldColumns = [
-  { accessorKey: 'key', header: 'Key' },
-  { accessorKey: 'title', header: 'Title' },
-  { accessorKey: 'type', header: 'Type' },
-]
+const fieldColumns = computed(() => [
+  { accessorKey: 'key', header: t('fields.key') },
+  { accessorKey: 'title', header: t('fields.title') },
+  { accessorKey: 'type', header: t('fields.type') },
+])
 
 async function confirmDelete() {
   if (!table.value) return

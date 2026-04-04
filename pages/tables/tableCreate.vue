@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import type { MatchingType, DecisionType } from '~/types/decision-table'
 
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ path: '/tables/create', middleware: 'auth' })
 
 const { t } = useI18n()
 const gandalf = useGandalf()

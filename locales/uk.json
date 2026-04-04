@@ -68,6 +68,10 @@
     "noTables": "Таблиць немає.",
     "noTablesCreate": "Створіть свою першу таблицю рішень.",
     "searchPlaceholder": "Пошук таблиць…",
+    "tableName": "Назва таблиці",
+    "tableType": "Тип таблиці",
+    "scoringType": "Тип скорингу",
+    "configuration": "Конфігурація",
     "matchingType": "Тип відповідності",
     "decisionType": "Тип рішення",
     "fields": "Поля",
@@ -78,6 +82,7 @@
     "save": "Зберегти",
     "delete": "Видалити",
     "confirmDelete": "Ви впевнені, що хочете видалити цю таблицю?",
+    "deleteTable": "Видалити таблицю",
     "matchingTypeDescriptions": {
       "first": "Повертає результат першого збіжного правила.",
       "scoring_sum": "Підсумовує бали всіх збіжних правил.",
@@ -133,10 +138,18 @@
   },
   "history": {
     "title": "Історія рішень",
-    "noHistory": "Рішень ще немає.",
+    "subtitle": "Тут ви можете знайти історію всіх рішень у цьому проекті. Для фільтрації введіть назву таблиці.",
+    "noHistory": "Немає рішень",
     "id": "ID",
-    "table": "Таблиця",
-    "date": "Дата"
+    "date": "Дата і час",
+    "decisionName": "Назва рішення",
+    "decisionDescription": "Опис",
+    "decision": "Рішення",
+    "tableInfo": "Інфо таблиці",
+    "tableName": "Таблиця",
+    "tableVariant": "Варіант",
+    "showDetails": "Деталі",
+    "searchPlaceholder": "Почніть вводити назву таблиці…"
   },
   "settings": {
     "title": "Налаштування проекту",

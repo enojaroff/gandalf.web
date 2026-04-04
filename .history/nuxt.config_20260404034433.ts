@@ -21,7 +21,7 @@ export default defineNuxtConfig({
   // i18n
   i18n: {
     vueI18n: './i18n.config.ts',
-    // L'ordre dans le tableau correspond à l'ordre d'affichage dans le sélecteur
+    // L'ordre dans le tableau correspon à l'ordre d'affichage dans le sélecteur
     locales: [
       { code: 'fr', file: 'fr.json', name: 'Français' },
       { code: 'en', file: 'en.json', name: 'English' },
