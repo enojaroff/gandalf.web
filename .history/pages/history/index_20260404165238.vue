@@ -72,11 +72,9 @@
 
           <!-- Lien vers détail -->
           <template #actions-cell="{ row }">
-          <!--
             <NuxtLink :to="`/history/${row.original._id}`" class="text-primary hover:underline text-sm">
               {{ $t('history.showDetails') }}
             </NuxtLink>
-          -->
             <UButton :to="`/history/${row.original._id}`" icon="i-lucide-eye" size="sm" color="primary" variant="outline" />
           </template>
         </UTable>
