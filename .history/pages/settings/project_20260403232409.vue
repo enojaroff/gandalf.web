@@ -8,16 +8,16 @@
 
     <template v-else>
       <!-- Infos projet -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6">
         <template #header>
           <h3 class="font-semibold">{{ $t('settings.projectDetails') }}</h3>
         </template>
         <UForm :state="projectForm" @submit="saveProject">
           <UFormField :label="$t('settings.projectName')" name="title" class="mb-4">
-            <UInput v-model="projectForm.title" :disabled="savingProject" class="inline-full" />
+            <UInput v-model="projectForm.title" :disabled="savingProject" />
           </UFormField>
           <UFormField :label="$t('common.description')" name="description" class="mb-4">
-            <UTextarea v-model="projectForm.description" :rows="3" :disabled="savingProject" class="inline-full" />
+            <UTextarea v-model="projectForm.description" :rows="3" :disabled="savingProject" />
           </UFormField>
           <UAlert v-if="projectError" color="error" :description="projectError" class="mb-3" />
           <UAlert v-if="projectSuccess" color="success" :description="projectSuccess" class="mb-3" />
@@ -28,7 +28,7 @@
       </UCard>
 
       <!-- Utilisateurs -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
@@ -51,7 +51,7 @@
       </UCard>
 
       <!-- Consommateurs API -->
-      <UCard class="shadow-md">
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.consumers') }}</h3>

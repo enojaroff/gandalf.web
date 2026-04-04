@@ -28,7 +28,7 @@
       </UCard>
 
       <!-- Utilisateurs -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
@@ -51,7 +51,7 @@
       </UCard>
 
       <!-- Consommateurs API -->
-      <UCard class="shadow-md">
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.consumers') }}</h3>

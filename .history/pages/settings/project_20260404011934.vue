@@ -8,7 +8,7 @@
 
     <template v-else>
       <!-- Infos projet -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6 shadow-lg">
         <template #header>
           <h3 class="font-semibold">{{ $t('settings.projectDetails') }}</h3>
         </template>

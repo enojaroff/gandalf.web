@@ -1,21 +1,21 @@
 <template>
   <UModal v-model:open="isOpen">
     <template #header>
-      <h3 class="text-base font-semibold">Add Field</h3>
+      <h3 class="text-base font-semibold">{{ $t('tables.addField') }}</h3>
     </template>
 
     <template #body>
       <div class="space-y-4">
-        <UFormField label="Key" name="key" required>
+        <UFormField :label="$t('fields.key')" name="key" required>
           <UInput v-model="form.key" placeholder="e.g. age, income_type" :disabled="loading" />
-          <p class="text-xs text-muted mt-1">Used in API requests. Lowercase, no spaces.</p>
+          <p class="text-xs text-muted mt-1">{{ $t('fields.keyHint') }}</p>
         </UFormField>
 
-        <UFormField label="Title" name="title">
+        <UFormField :label="$t('fields.title')" name="title">
           <UInput v-model="form.title" placeholder="Human-readable label" :disabled="loading" />
         </UFormField>
 
-        <UFormField label="Type" name="type">
+        <UFormField :label="$t('fields.type')" name="type">
           <USelect
             v-model="form.type"
             :items="fieldTypes"
@@ -31,8 +31,8 @@
 
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <UButton variant="outline" :disabled="loading" @click="isOpen = false">Cancel</UButton>
-        <UButton :loading="loading" @click="onAdd">Add Field</UButton>
+        <UButton variant="outline" :disabled="loading" @click="isOpen = false">{{ $t('common.cancel') }}</UButton>
+        <UButton :loading="loading" @click="onAdd">{{ $t('tables.addField') }}</UButton>
       </div>
     </template>
   </UModal>
@@ -50,6 +50,7 @@ const emit = defineEmits<{
   add: [field: DecisionField]
 }>()
 
+const { t } = useI18n()
 const isOpen = defineModel<boolean>('open', { default: false })
 
 const form = reactive({
@@ -60,25 +61,25 @@ const form = reactive({
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-const fieldTypes = [
-  { value: 'string', label: 'String (text)' },
-  { value: 'numeric', label: 'Numeric (number)' },
-  { value: 'boolean', label: 'Boolean (true/false)' },
-]
+const fieldTypes = computed(() => [
+  { value: 'string', label: t('fields.types.string') },
+  { value: 'numeric', label: t('fields.types.numeric') },
+  { value: 'boolean', label: t('fields.types.boolean') },
+])
 
 function onAdd() {
   error.value = null
 
   if (!form.key.trim()) {
-    error.value = 'Field key is required.'
+    error.value = t('fields.keyRequired')
     return
   }
   if (!/^[a-zA-Z0-9_-]+$/.test(form.key)) {
-    error.value = 'Key must only contain letters, numbers, underscores, or hyphens.'
+    error.value = t('fields.keyInvalid')
     return
   }
   if (props.table.fields.some(f => f.key === form.key)) {
-    error.value = 'A field with this key already exists.'
+    error.value = t('fields.keyDuplicate')
     return
   }
 

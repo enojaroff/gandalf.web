@@ -6,7 +6,7 @@
         <NuxtLink to="/" class="auth-logo">
           <img :src="logoUrl" alt="Gandalf" class="h-12 w-auto mx-auto" />
         </NuxtLink>
-        <p class="text-sm text-muted mt-1">Decision Engine</p>
+        <p class="text-sm text-muted mt-1">{{ $t('auth.tagline') }}</p>
       </div>
 
       <!-- Card de contenu -->

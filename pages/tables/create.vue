@@ -2,12 +2,12 @@
   <div class="max-w-2xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
       <UButton to="/tables" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
-      <h1 class="text-2xl font-bold">New Decision Table</h1>
+      <h1 class="text-2xl font-bold">{{ $t('tables.newTitle') }}</h1>
     </div>
 
     <UCard>
       <UForm :state="form" @submit="onSubmit">
-        <UFormField label="Table Name" name="title" class="mb-4" required>
+        <UFormField :label="$t('tables.tableName')" name="title" class="mb-4" required>
           <UInput
             v-model="form.title"
             placeholder="e.g. Credit Scoring"
@@ -15,7 +15,7 @@
           />
         </UFormField>
 
-        <UFormField label="Description" name="description" class="mb-4">
+        <UFormField :label="$t('common.description')" name="description" class="mb-4">
           <UTextarea
             v-model="form.description"
             placeholder="What does this table decide?"
@@ -24,7 +24,7 @@
           />
         </UFormField>
 
-        <UFormField label="Matching Type" name="matching_type" class="mb-6">
+        <UFormField :label="$t('tables.matchingType')" name="matching_type" class="mb-6">
           <USelect
             v-model="form.matching_type"
             :items="matchingTypeOptions"
@@ -38,8 +38,8 @@
         <UAlert v-if="error" color="error" :description="error" class="mb-4" />
 
         <div class="flex gap-3 justify-end">
-          <UButton to="/tables" variant="outline" :disabled="loading">Cancel</UButton>
-          <UButton type="submit" :loading="loading">Create Table</UButton>
+          <UButton to="/tables" variant="outline" :disabled="loading">{{ $t('common.cancel') }}</UButton>
+          <UButton type="submit" :loading="loading">{{ $t('tables.create') }}</UButton>
         </div>
       </UForm>
     </UCard>
@@ -51,6 +51,7 @@ import type { MatchingType, DecisionType } from '~/types/decision-table'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 
 const form = reactive({
@@ -62,28 +63,22 @@ const form = reactive({
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-const matchingTypeOptions = [
-  { value: 'first', label: 'First match' },
-  { value: 'scoring_sum', label: 'Scoring sum' },
-  { value: 'scoring_max', label: 'Scoring max' },
-  { value: 'scoring_min', label: 'Scoring min' },
-  { value: 'scoring_count', label: 'Scoring count' },
-]
+const matchingTypeOptions = computed(() => [
+  { value: 'first', label: t('matchingTypes.first') },
+  { value: 'scoring_sum', label: t('matchingTypes.scoring_sum') },
+  { value: 'scoring_max', label: t('matchingTypes.scoring_max') },
+  { value: 'scoring_min', label: t('matchingTypes.scoring_min') },
+  { value: 'scoring_count', label: t('matchingTypes.scoring_count') },
+])
 
 const matchingTypeDescription = computed(() => {
-  const descriptions: Record<MatchingType, string> = {
-    first: 'Returns the result of the first matching rule.',
-    scoring_sum: 'Sums the scores of all matching rules.',
-    scoring_max: 'Returns the maximum score among matching rules.',
-    scoring_min: 'Returns the minimum score among matching rules.',
-    scoring_count: 'Counts the number of matching rules.',
-  }
-  return descriptions[form.matching_type] || ''
+  const key = `tables.matchingTypeDescriptions.${form.matching_type}`
+  return t(key)
 })
 
 async function onSubmit() {
   if (!form.title.trim()) {
-    error.value = 'Table name is required.'
+    error.value = t('errors.tableNameRequired')
     return
   }
 
@@ -123,7 +118,7 @@ async function onSubmit() {
   catch (err: unknown) {
     const fetchError = err as { status?: number; data?: unknown; message?: string }
     const data = fetchError?.data as { message?: string; error?: string } | undefined
-    error.value = data?.message || data?.error || 'Failed to create table.'
+    error.value = data?.message || data?.error || t('errors.failedToCreate')
   }
   finally {
     loading.value = false

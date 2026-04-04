@@ -1,16 +1,16 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-center mb-2">Reset Password</h1>
+    <h1 class="text-2xl font-bold text-center mb-2">{{ $t('auth.resetPassword') }}</h1>
     <p class="text-center text-muted text-sm mb-6">
-      Enter your email and we'll send you a reset link.
+      {{ $t('auth.resetPasswordSubtitle') }}
     </p>
 
     <UForm :schema="schema" :state="form" @submit="onSubmit">
-      <UFormField label="Email" name="email" class="mb-6">
+      <UFormField :label="$t('auth.email')" name="email" class="mb-6">
         <UInput
           v-model="form.email"
           type="email"
-          placeholder="Your email address"
+          :placeholder="$t('auth.emailPlaceholder')"
           icon="i-heroicons-envelope"
           :disabled="loading || !!success"
         />
@@ -20,13 +20,13 @@
       <UAlert v-if="success" color="success" :description="success" class="mb-4" />
 
       <UButton type="submit" block :loading="loading" :disabled="!!success">
-        Send Reset Link
+        {{ $t('auth.sendResetLink') }}
       </UButton>
     </UForm>
 
     <div class="mt-4 text-center text-sm">
       <NuxtLink to="/auth/sign-in" class="text-primary hover:underline">
-        Back to Sign In
+        {{ $t('auth.backToSignIn') }}
       </NuxtLink>
     </div>
   </div>
@@ -37,6 +37,7 @@ import * as v from 'valibot'
 
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
+const { t } = useI18n()
 const form = reactive({ email: '' })
 
 const schema = v.object({
@@ -54,10 +55,10 @@ async function onSubmit() {
   try {
     const gandalf = useGandalf()
     await gandalf.auth.resetPassword(form.email)
-    success.value = 'If this email exists, you will receive a reset link shortly.'
+    success.value = t('auth.resetPasswordSuccess')
   }
   catch {
-    error.value = 'Failed to send reset email. Please try again.'
+    error.value = t('auth.resetPasswordFailed')
   }
   finally {
     loading.value = false

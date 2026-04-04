@@ -8,7 +8,7 @@
 
     <template v-else>
       <!-- Infos projet -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6 shadow-xl">
         <template #header>
           <h3 class="font-semibold">{{ $t('settings.projectDetails') }}</h3>
         </template>
@@ -28,7 +28,7 @@
       </UCard>
 
       <!-- Utilisateurs -->
-      <UCard class="mb-6 shadow-md">
+      <UCard class="mb-6 shadow-xs">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
@@ -51,7 +51,7 @@
       </UCard>
 
       <!-- Consommateurs API -->
-      <UCard class="shadow-md">
+      <UCard class="shadow-xl">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.consumers') }}</h3>

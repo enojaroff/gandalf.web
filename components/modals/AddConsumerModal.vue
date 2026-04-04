@@ -1,15 +1,15 @@
 <template>
   <UModal :open="true" @close="emit('close')">
     <template #header>
-      <h3 class="text-base font-semibold">Add API Consumer</h3>
+      <h3 class="text-base font-semibold">{{ $t('settings.addConsumer') }}</h3>
     </template>
 
     <div class="space-y-4">
-      <UFormField label="Description" name="description" required>
+      <UFormField :label="$t('common.description')" name="description" required>
         <UInput v-model="form.description" placeholder="e.g. Mobile App, Internal Service" :disabled="loading" />
       </UFormField>
 
-      <UFormField label="Scopes">
+      <UFormField :label="$t('settings.scopes')">
         <div class="flex flex-col gap-2 mt-1">
           <label
             v-for="scope in PROJECT_CONSUMER_SCOPES"
@@ -27,8 +27,8 @@
 
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <UButton variant="outline" :disabled="loading" @click="emit('close')">Cancel</UButton>
-        <UButton :loading="loading" @click="onCreate">Create</UButton>
+        <UButton variant="outline" :disabled="loading" @click="emit('close')">{{ $t('common.cancel') }}</UButton>
+        <UButton :loading="loading" @click="onCreate">{{ $t('common.create') }}</UButton>
       </div>
     </template>
   </UModal>
@@ -39,13 +39,14 @@ import { PROJECT_CONSUMER_SCOPES } from '~/utils/scopes'
 
 const emit = defineEmits<{ close: []; saved: [] }>()
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 const form = reactive({ description: '', scope: [] as string[] })
 const loading = ref(false)
 const error = ref<string | null>(null)
 
 async function onCreate() {
-  if (!form.description) { error.value = 'Description is required.'; return }
+  if (!form.description) { error.value = t('errors.required'); return }
   loading.value = true; error.value = null
   try {
     await gandalf.projects.addConsumer({ description: form.description, scope: form.scope })
@@ -54,7 +55,7 @@ async function onCreate() {
   }
   catch (err: unknown) {
     const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || 'Failed to create consumer.'
+    error.value = e?.data?.message || t('settings.consumerFailed')
   }
   finally { loading.value = false }
 }

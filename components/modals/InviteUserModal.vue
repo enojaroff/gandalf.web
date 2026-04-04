@@ -1,15 +1,15 @@
 <template>
   <UModal :open="true" @close="emit('close')">
     <template #header>
-      <h3 class="text-base font-semibold">Invite User</h3>
+      <h3 class="text-base font-semibold">{{ $t('settings.inviteUser') }}</h3>
     </template>
 
     <div class="space-y-4">
-      <UFormField label="Email" name="email" required>
+      <UFormField :label="$t('auth.email')" name="email" required>
         <UInput v-model="form.email" type="email" placeholder="user@example.com" :disabled="loading" />
       </UFormField>
 
-      <UFormField label="Role" name="role">
+      <UFormField :label="$t('settings.role')" name="role">
         <USelect
           v-model="form.role"
           :items="[{ value: 'admin', label: 'Admin' }, { value: 'member', label: 'Member' }]"
@@ -19,7 +19,7 @@
         />
       </UFormField>
 
-      <UFormField label="Scopes">
+      <UFormField :label="$t('settings.scopes')">
         <div class="grid grid-cols-2 gap-2 mt-1">
           <label
             v-for="scope in PROJECT_USER_SCOPES"
@@ -38,8 +38,8 @@
 
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <UButton variant="outline" :disabled="loading" @click="emit('close')">Cancel</UButton>
-        <UButton :loading="loading" @click="onInvite">Send Invitation</UButton>
+        <UButton variant="outline" :disabled="loading" @click="emit('close')">{{ $t('common.cancel') }}</UButton>
+        <UButton :loading="loading" @click="onInvite">{{ $t('settings.sendInvitation') }}</UButton>
       </div>
     </template>
   </UModal>
@@ -50,6 +50,7 @@ import { PROJECT_USER_SCOPES } from '~/utils/scopes'
 
 const emit = defineEmits<{ close: []; saved: [] }>()
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 const form = reactive({ email: '', role: 'member', scope: [] as string[] })
 const loading = ref(false)
@@ -57,17 +58,17 @@ const error = ref<string | null>(null)
 const success = ref<string | null>(null)
 
 async function onInvite() {
-  if (!form.email) { error.value = 'Email is required.'; return }
+  if (!form.email) { error.value = t('errors.required'); return }
   loading.value = true; error.value = null
   try {
     await gandalf.projects.inviteUser({ email: form.email, role: form.role, scope: form.scope })
-    success.value = 'Invitation sent!'
+    success.value = t('settings.invitationSent')
     emit('saved')
     setTimeout(() => emit('close'), 1500)
   }
   catch (err: unknown) {
     const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || 'Failed to send invitation.'
+    error.value = e?.data?.message || t('settings.invitationFailed')
   }
   finally { loading.value = false }
 }

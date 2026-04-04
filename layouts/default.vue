@@ -22,12 +22,21 @@
           </nav>
         </div>
 
-        <!-- Menu utilisateur -->
-        <UDropdownMenu :items="userMenuItems">
-          <UButton variant="ghost" icon="i-heroicons-user-circle" size="sm">
-            {{ userStore.currentUser?.username || 'Account' }}
-          </UButton>
-        </UDropdownMenu>
+        <!-- Sélecteur de langue + Menu utilisateur -->
+        <div class="flex items-center gap-2">
+          <!-- Sélecteur de langue -->
+          <UDropdownMenu :items="localeMenuItems">
+            <UButton variant="ghost" size="sm" class="gap-1">
+              <span class="text-2xl leading-none">{{ localeFlag }}</span>
+              <UIcon name="i-heroicons-chevron-down" class="text-xs opacity-60" />
+            </UButton>
+          </UDropdownMenu>
+          <UDropdownMenu :items="userMenuItems">
+            <UButton variant="ghost" icon="i-heroicons-user-circle" size="sm">
+              {{ userStore.currentUser?.username || 'Account' }}
+            </UButton>
+          </UDropdownMenu>
+        </div>
       </UContainer>
     </header>
 
@@ -50,7 +59,25 @@
 
 <script setup lang="ts">
 import logoUrl from '~/assets/images/logo.svg'
+import { LOCALE_STORAGE_KEY } from '~/utils/locale'
+import type { AppLocale } from '~/utils/locale'
 
+const { locale, locales, t, setLocale } = useI18n()
+const flags: Record<string, string> = { fr: '🇫🇷', en: '🇬🇧', uk: '🇺🇦' }
+
+const localeFlag = computed(() => flags[locale.value] ?? locale.value)
+
+function switchLocale(code: AppLocale) {
+  setLocale(code)
+  localStorage.setItem(LOCALE_STORAGE_KEY, code)
+}
+
+const localeMenuItems = computed(() =>
+  (locales.value as Array<{ code: string; name: string }>).map(l => ({
+    label: `${flags[l.code] ?? ''} ${l.name}`,
+    onSelect: () => switchLocale(l.code as AppLocale),
+  }))
+)
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -69,12 +96,13 @@ onMounted(async () => {
   }
 })
 
-const navItems = [
-  { label: 'Tables', to: '/tables' },
-  { label: 'Groups', to: '/groups' },
-  { label: 'History', to: '/history' },
-  { label: 'Settings', to: '/settings/project' },
-]
+
+const navItems = computed(() => [
+  { label: t('nav.tables'), to: '/tables' },
+  { label: t('nav.groups'), to: '/groups' },
+  { label: t('nav.history'), to: '/history' },
+  { label: t('nav.settings'), to: '/settings/project' },
+])
 
 function isActive(path: string): boolean {
   return route.path.startsWith(path)
@@ -97,14 +125,14 @@ function onProjectChange(val: string) {
 const userMenuItems = computed(() => [
   [
     {
-      label: 'Edit profile',
+      label: t('auth.editProfile'),
       icon: 'i-heroicons-user',
       onSelect: () => router.push('/settings/profile'),
     },
   ],
   [
     {
-      label: 'Sign out',
+      label: t('nav.signOut'),
       icon: 'i-heroicons-arrow-right-on-rectangle',
       onSelect: () => {
         authStore.logout()

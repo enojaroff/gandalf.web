@@ -1,23 +1,23 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-center mb-6">Sign In</h1>
+    <h1 class="text-2xl font-bold text-center mb-6">{{ $t('auth.signInTitle') }}</h1>
 
     <UForm :schema="schema" :state="form" @submit="onSubmit">
-      <UFormField label="Username" name="username" class="mb-4">
+      <UFormField :label="$t('auth.username')" name="username" class="mb-4">
         <UInput
           v-model="form.username"
-          placeholder="Your username"
+          :placeholder="$t('auth.usernamePlaceholder')"
           icon="i-heroicons-user"
           autocomplete="username"
           :disabled="loading"
         />
       </UFormField>
 
-      <UFormField label="Password" name="password" class="mb-6">
+      <UFormField :label="$t('auth.password')" name="password" class="mb-6">
         <UInput
           v-model="form.password"
           type="password"
-          placeholder="Your password"
+          :placeholder="$t('auth.passwordPlaceholder')"
           icon="i-heroicons-lock-closed"
           autocomplete="current-password"
           :disabled="loading"
@@ -27,20 +27,20 @@
       <UAlert v-if="error" color="error" :description="error" class="mb-4" />
 
       <UButton type="submit" block :loading="loading">
-        Sign In
+        {{ $t('auth.signIn') }}
       </UButton>
     </UForm>
 
     <div class="mt-4 text-center text-sm space-y-2">
       <div>
         <NuxtLink to="/auth/reset-password" class="text-primary hover:underline">
-          Forgot password?
+          {{ $t('auth.forgotPassword') }}
         </NuxtLink>
       </div>
       <div>
-        Don't have an account?
+        {{ $t('auth.noAccount') }}
         <NuxtLink to="/auth/sign-up" class="text-primary hover:underline">
-          Sign up
+          {{ $t('auth.signUpLink') }}
         </NuxtLink>
       </div>
     </div>
@@ -55,6 +55,7 @@ definePageMeta({
   middleware: 'guest',
 })
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const route = useRoute()
@@ -93,7 +94,7 @@ async function onSubmit() {
     error.value =
       fetchError?.data?.message
       || fetchError?.data?.error
-      || 'Invalid credentials. Please try again.'
+      || t('auth.invalidCredentials')
   }
   finally {
     loading.value = false

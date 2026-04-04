@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Decision History</h1>
+      <h1 class="text-2xl font-bold">{{ $t('history.title') }}</h1>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
@@ -10,7 +10,7 @@
 
     <UCard v-else>
       <div v-if="items.length === 0" class="text-center py-12 text-muted">
-        No decisions recorded yet.
+        {{ $t('history.noHistory') }}
       </div>
 
       <UTable v-else :data="items" :columns="columns">
@@ -34,6 +34,7 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 const items = ref<unknown[]>([])
 const meta = ref<{ total: number } | null>(null)
@@ -41,11 +42,11 @@ const loading = ref(true)
 const currentPage = ref(1)
 const pageSize = 20
 
-const columns = [
-  { accessorKey: '_id', header: 'ID' },
-  { accessorKey: 'table_id', header: 'Table' },
-  { accessorKey: 'created_at', header: 'Date' },
-]
+const columns = computed(() => [
+  { accessorKey: '_id', header: t('history.id') },
+  { accessorKey: 'table_id', header: t('history.table') },
+  { accessorKey: 'created_at', header: t('history.date') },
+])
 
 async function load() {
   loading.value = true

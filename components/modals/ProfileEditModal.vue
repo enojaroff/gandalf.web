@@ -1,23 +1,23 @@
 <template>
   <UModal :open="true" @close="emit('close')">
     <template #header>
-      <h3 class="text-base font-semibold">Edit Profile</h3>
+      <h3 class="text-base font-semibold">{{ $t('auth.editProfileTitle') }}</h3>
     </template>
 
     <div class="space-y-4">
-      <UFormField label="Username" name="username">
+      <UFormField :label="$t('auth.username')" name="username">
         <UInput v-model="form.username" :disabled="loading" />
       </UFormField>
-      <UFormField label="First Name" name="first_name">
+      <UFormField :label="$t('auth.firstName')" name="first_name">
         <UInput v-model="form.first_name" :disabled="loading" />
       </UFormField>
-      <UFormField label="Last Name" name="last_name">
+      <UFormField :label="$t('auth.lastName')" name="last_name">
         <UInput v-model="form.last_name" :disabled="loading" />
       </UFormField>
-      <UFormField label="Email" name="email">
+      <UFormField :label="$t('auth.email')" name="email">
         <UInput v-model="form.email" type="email" :disabled="loading" />
       </UFormField>
-      <UFormField label="Current Password" name="current_password" required>
+      <UFormField :label="$t('auth.currentPassword')" name="current_password" required>
         <UInput v-model="form.current_password" type="password" :disabled="loading" />
       </UFormField>
 
@@ -27,8 +27,8 @@
 
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <UButton variant="outline" :disabled="loading" @click="emit('close')">Cancel</UButton>
-        <UButton :loading="loading" @click="onSave">Save</UButton>
+        <UButton variant="outline" :disabled="loading" @click="emit('close')">{{ $t('common.cancel') }}</UButton>
+        <UButton :loading="loading" @click="onSave">{{ $t('common.save') }}</UButton>
       </div>
     </template>
   </UModal>
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 const emit = defineEmits<{ close: []; saved: [] }>()
 
+const { t } = useI18n()
 const userStore = useUserStore()
 
 const form = reactive({
@@ -51,17 +52,17 @@ const error = ref<string | null>(null)
 const success = ref<string | null>(null)
 
 async function onSave() {
-  if (!form.current_password) { error.value = 'Current password is required.'; return }
+  if (!form.current_password) { error.value = t('auth.currentPasswordRequired'); return }
   loading.value = true; error.value = null
   try {
     await userStore.update({ ...form })
-    success.value = 'Profile updated!'
+    success.value = t('auth.profileUpdated')
     emit('saved')
     setTimeout(() => emit('close'), 1500)
   }
   catch (err: unknown) {
     const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || 'Failed to update profile.'
+    error.value = e?.data?.message || t('auth.profileUpdateFailed')
   }
   finally { loading.value = false }
 }
