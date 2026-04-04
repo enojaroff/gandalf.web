@@ -142,7 +142,7 @@ const breadcrumbs = computed(() => [
 ])
 
 const tabs = computed(() => [
-  { label: t('tables.info'), to: `/tables/${tableId}/info` },
+  { label: t('tables.info'), to: `/tables/${tableId}/tableInfo` },
   { label: t('tables.revisions'), to: `/tables/${tableId}/revisions` },
   ...(table.value?.variants.map(v => ({
     label: v.title,

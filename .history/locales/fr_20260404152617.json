@@ -141,7 +141,7 @@
     "noHistory": "Aucune décision",
     "id": "ID",
     "date": "Horodatage",
-    "decisionName": "Règle",
+    "decisionName": "Nom de la règle",
     "decisionDescription": "Description",
     "decision": "Décision",
     "tableInfo": "Infos table",

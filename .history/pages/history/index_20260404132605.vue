@@ -27,19 +27,16 @@
       </div>
 
       <UTable v-else :data="items" :columns="columns" v-model:sorting="sorting">
-        <!--- ID de la décision -->
         <template #_id-cell="{ row }">
           <NuxtLink :to="`/history/${row.original._id}`" class="font-mono text-xs text-primary hover:underline">
             {{ row.original._id.slice(-6) }}
           </NuxtLink>
         </template>
 
-        <!-- Date d'exécution de la règle -->
         <template #created_at-cell="{ row }">
           {{ formatDate(row.original.created_at) }}
         </template>
 
-        <!-- Nom de la règle -->
         <template #title-cell="{ row }">
           <div>
             <div>{{ row.original.title }}</div>
@@ -47,31 +44,19 @@
           </div>
         </template>
 
-        <!-- Décision -->
         <template #final_decision-cell="{ row }">
           <UBadge variant="soft">{{ row.original.final_decision }}</UBadge>
         </template>
 
-        <!-- Nom de la table/variante -->
         <template #table_info-cell="{ row }">
-<!--
           <div class="text-sm">
             <div><strong>{{ row.original.table?.title }}</strong></div>
             <div v-if="variantTitle(row.original)" class="text-xs text-muted">
               {{ variantTitle(row.original) }}
             </div>
           </div>
--->
-          <div class="text-sm">
-            <div><strong>{{ variantTitle(row.original) }}</strong></div>
-            <div v-if="variantTitle(row.original)!= row.original.table?.title" class="text-xs text-muted">
-              {{ row.original.table?.title }}
-            </div>
-          </div>
-
         </template>
 
-        <!-- Lien vers détail -->
         <template #actions-cell="{ row }">
           <NuxtLink :to="`/history/${row.original._id}`" class="text-primary hover:underline text-sm">
             {{ $t('history.showDetails') }}
@@ -134,12 +119,11 @@ function sortableHeader(label: string) {
     })
   }
 }
-// Liste des colonnes de la table dans l'ordre d'affichage
+
 const columns = computed(() => [
   { accessorKey: 'created_at',    header: sortableHeader(t('history.date')) },
   { accessorKey: '_id',           header: sortableHeader(t('history.id')) },
-//  { id: 'table_info', accessorFn: (row: HistoryItem) => row.table?.title ?? '', header: sortableHeader(t('history.tableInfo')) },
-  { id: 'table_info', accessorFn: (row: HistoryItem) => row.table?.title ?? '', header: sortableHeader(t('history.tableName')) },
+  { id: 'table_info', accessorFn: (row: HistoryItem) => row.table?.title ?? '', header: sortableHeader(t('history.tableInfo')) },
   { accessorKey: 'title',         header: sortableHeader(t('history.decisionName')) },
   { accessorKey: 'final_decision',header: sortableHeader(t('history.decision')) },
   { id: 'actions',                header: '',                        enableSorting: false },
@@ -174,8 +158,7 @@ const debouncedSearch = useDebounceFn(() => {
 }, 300)
 
 function variantTitle(item: HistoryItem): string {
-//  return item.variant?.title || item.table?.variant?.title || ''
-  return '' + (item.variant?.title || item.table?.variant?.title || item.table?.title)
+  return item.variant?.title || item.table?.variant?.title || ''
 }
 
 function formatDate(iso: string): string {

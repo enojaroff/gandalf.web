@@ -54,21 +54,12 @@
 
         <!-- Nom de la table/variante -->
         <template #table_info-cell="{ row }">
-<!--
           <div class="text-sm">
             <div><strong>{{ row.original.table?.title }}</strong></div>
             <div v-if="variantTitle(row.original)" class="text-xs text-muted">
               {{ variantTitle(row.original) }}
             </div>
           </div>
--->
-          <div class="text-sm">
-            <div><strong>{{ variantTitle(row.original) }}</strong></div>
-            <div v-if="variantTitle(row.original)!= row.original.table?.title" class="text-xs text-muted">
-              {{ row.original.table?.title }}
-            </div>
-          </div>
-
         </template>
 
         <!-- Lien vers détail -->
@@ -174,8 +165,7 @@ const debouncedSearch = useDebounceFn(() => {
 }, 300)
 
 function variantTitle(item: HistoryItem): string {
-//  return item.variant?.title || item.table?.variant?.title || ''
-  return '' + (item.variant?.title || item.table?.variant?.title || item.table?.title)
+  return item.variant?.title || item.table?.variant?.title || ''
 }
 
 function formatDate(iso: string): string {
