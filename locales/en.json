@@ -149,6 +149,7 @@
     "tableName": "Table name",
     "tableVariant": "Table variant",
     "showDetails": "Show Details",
+    "detail": "Decision Detail",
     "searchPlaceholder": "Start typing table name…"
   },
   "settings": {

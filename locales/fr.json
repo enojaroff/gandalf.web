@@ -148,6 +148,7 @@
     "tableName": "Table",
     "tableVariant": "Variante",
     "showDetails": "Voir détails",
+    "detail": "Détail de la décision",
     "searchPlaceholder": "Commencez à saisir un nom de table…"
   },
   "settings": {

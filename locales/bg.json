@@ -137,10 +137,19 @@
   },
   "history": {
     "title": "История на решенията",
+    "subtitle": "Тук можете да намерите историята на всички решения в този проект.",
     "noHistory": "Няма записани решения.",
     "id": "ID",
-    "table": "Таблица",
-    "date": "Дата"
+    "date": "Дата и час",
+    "decisionName": "Име на решението",
+    "decisionDescription": "Описание",
+    "decision": "Решение",
+    "tableInfo": "Инфо таблица",
+    "tableName": "Таблица",
+    "tableVariant": "Вариант",
+    "showDetails": "Детайли",
+    "detail": "Детайл на решението",
+    "searchPlaceholder": "Търсене…"
   },
   "settings": {
     "title": "Настройки на проекта",

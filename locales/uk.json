@@ -149,6 +149,7 @@
     "tableName": "Таблиця",
     "tableVariant": "Варіант",
     "showDetails": "Деталі",
+    "detail": "Деталі рішення",
     "searchPlaceholder": "Почніть вводити назву таблиці…"
   },
   "settings": {

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <UBreadcrumb :items="[{ label: 'History', to: '/history' }, { label: id }]" class="mb-4" />
-    <h2 class="text-xl font-bold mb-6">Decision Detail</h2>
+    <UBreadcrumb :items="breadcrumbs" class="mb-4" />
+    <h2 class="text-xl font-bold mb-6">{{ $t('history.detail') }}</h2>
 
     <div v-if="loading" class="flex justify-center py-12">
       <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
@@ -25,9 +25,15 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
 const id = route.params.id as string
+
+const breadcrumbs = computed(() => [
+  { label: t('history.title'), to: '/history' },
+  { label: id },
+])
 
 const decision = ref<unknown>(null)
 const loading = ref(true)

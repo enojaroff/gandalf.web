@@ -137,10 +137,19 @@
   },
   "history": {
     "title": "Historial de decisiones",
+    "subtitle": "Aquí puedes encontrar el historial de todas las decisiones de este proyecto.",
     "noHistory": "No hay decisiones registradas.",
     "id": "ID",
-    "table": "Tabla",
-    "date": "Fecha"
+    "date": "Fecha y hora",
+    "decisionName": "Nombre de la decisión",
+    "decisionDescription": "Descripción",
+    "decision": "Decisión",
+    "tableInfo": "Info tabla",
+    "tableName": "Tabla",
+    "tableVariant": "Variante",
+    "showDetails": "Detalles",
+    "detail": "Detalle de la decisión",
+    "searchPlaceholder": "Buscar…"
   },
   "settings": {
     "title": "Configuración del proyecto",

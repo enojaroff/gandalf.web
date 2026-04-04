@@ -137,10 +137,19 @@
   },
   "history": {
     "title": "Cronologia decisioni",
+    "subtitle": "Qui puoi trovare la cronologia di tutte le decisioni in questo progetto.",
     "noHistory": "Nessuna decisione registrata.",
     "id": "ID",
-    "table": "Tabella",
-    "date": "Data"
+    "date": "Data e ora",
+    "decisionName": "Nome della decisione",
+    "decisionDescription": "Descrizione",
+    "decision": "Decisione",
+    "tableInfo": "Info tabella",
+    "tableName": "Tabella",
+    "tableVariant": "Variante",
+    "showDetails": "Dettagli",
+    "detail": "Dettaglio della decisione",
+    "searchPlaceholder": "Cerca…"
   },
   "settings": {
     "title": "Impostazioni progetto",

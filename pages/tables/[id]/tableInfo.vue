@@ -31,20 +31,7 @@
         </div>
       </div>
 
-      <!-- Tabs de navigation -->
-      <div class="flex gap-1 border-b border-default mb-6">
-        <NuxtLink
-          v-for="tab in tabs"
-          :key="tab.to"
-          :to="tab.to"
-          class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
-          :class="route.path === tab.to
-            ? 'border-primary text-primary'
-            : 'border-transparent text-muted hover:text-default'"
-        >
-          {{ tab.label }}
-        </NuxtLink>
-      </div>
+      <TableNav :table-id="tableId" :variants="table.variants" />
 
       <!-- Infos générales -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -141,14 +128,6 @@ const breadcrumbs = computed(() => [
   { label: table.value?.title || tableId },
 ])
 
-const tabs = computed(() => [
-  { label: t('tables.info'), to: `/tables/${tableId}/info` },
-  { label: t('tables.revisions'), to: `/tables/${tableId}/revisions` },
-  ...(table.value?.variants.map(v => ({
-    label: v.title,
-    to: `/tables/${tableId}/${v._id}/edit`,
-  })) || []),
-])
 
 const fieldColumns = computed(() => [
   { accessorKey: 'key', header: t('fields.key') },
