@@ -26,7 +26,7 @@
         {{ $t('history.noHistory') }}
       </div>
 
-      <UTable v-else :data="items" :columns="columns">
+      <UTable v-else :data="items" :columns="columns" v-model:sorting="sorting">
         <template #_id-cell="{ row }">
           <NuxtLink :to="`/history/${row.original._id}`" class="font-mono text-xs text-primary hover:underline">
             {{ row.original._id.slice(-6) }}
@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { h, resolveComponent } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -96,14 +97,36 @@ const loading = ref(true)
 const currentPage = ref(1)
 const pageSize = 20
 const search = ref('')
+const sorting = ref<{ id: string; desc: boolean }[]>([])
+
+const UButton = resolveComponent('UButton')
+
+function sortableHeader(label: string) {
+  return ({ column }: { column: { getIsSorted: () => string | false; toggleSorting: (desc: boolean) => void } }) => {
+    const isSorted = column.getIsSorted()
+    const icon = isSorted === 'asc'
+      ? 'i-lucide-arrow-up-narrow-wide'
+      : isSorted === 'desc'
+        ? 'i-lucide-arrow-down-wide-narrow'
+        : 'i-lucide-arrow-up-down'
+    return h(UButton, {
+      color: 'neutral',
+      variant: 'ghost',
+      label,
+      icon,
+      class: '-mx-2.5',
+      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+    })
+  }
+}
 
 const columns = computed(() => [
-  { accessorKey: 'created_at',    header: t('history.date') },
-  { accessorKey: '_id',           header: t('history.id') },
-  { id: 'table_info',             header: t('history.tableInfo') },
-  { accessorKey: 'title',         header: t('history.decisionName') },
-  { accessorKey: 'final_decision',header: t('history.decision') },
-  { id: 'actions',                header: '' },
+  { accessorKey: 'created_at',    header: sortableHeader(t('history.date')) },
+  { accessorKey: '_id',           header: sortableHeader(t('history.id')) },
+  { id: 'table_info', accessorFn: (row: HistoryItem) => row.table?.title ?? '', header: sortableHeader(t('history.tableInfo')) },
+  { accessorKey: 'title',         header: sortableHeader(t('history.decisionName')) },
+  { accessorKey: 'final_decision',header: sortableHeader(t('history.decision')) },
+  { id: 'actions',                header: '',                        enableSorting: false },
 ])
 
 async function load() {
@@ -111,9 +134,19 @@ async function load() {
   try {
     const response = await gandalf.history.list(undefined, pageSize, currentPage.value)
     const all = (response.data as HistoryItem[])
-    items.value = search.value
-      ? all.filter(i => i.table?.title?.toLowerCase().includes(search.value.toLowerCase()))
-      : all
+    if (search.value) {
+      const q = search.value.toLowerCase()
+      items.value = all.filter(i =>
+        i.table?.title?.toLowerCase().includes(q) ||
+        (i.variant?.title || i.table?.variant?.title || '').toLowerCase().includes(q) ||
+        i.title?.toLowerCase().includes(q) ||
+        i.description?.toLowerCase().includes(q) ||
+        i._id?.toLowerCase().includes(q) ||
+        formatDate(i.created_at).toLowerCase().includes(q)
+      )
+    } else {
+      items.value = all
+    }
     meta.value = response.meta as { total: number }
   }
   finally { loading.value = false }
