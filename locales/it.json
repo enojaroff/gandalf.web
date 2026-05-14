@@ -63,7 +63,7 @@
     "edit": "Modifica",
     "info": "Info",
     "revisions": "Revisioni",
-    "analytics": "Analytics",
+    "analytics": "Analitiche",
     "debugger": "Debug",
     "noTables": "Nessuna tabella.",
     "noTablesCreate": "Crea la tua prima tabella decisionale.",
@@ -82,6 +82,7 @@
     "delete": "Elimina",
     "confirmDelete": "Sei sicuro di voler eliminare questa tabella?",
     "deleteTable": "Elimina tabella",
+    "onlyActiveRules": "Solo regole con decisioni (> 0%)",
     "matchingTypeDescriptions": {
       "first": "Restituisce il risultato della prima regola corrispondente.",
       "scoring_sum": "Somma i punteggi di tutte le regole corrispondenti.",

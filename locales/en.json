@@ -83,6 +83,7 @@
     "delete": "Delete",
     "confirmDelete": "Are you sure you want to delete this table?",
     "deleteTable": "Delete Table",
+    "onlyActiveRules": "Only rules with decisions (> 0%)",
     "matchingTypeDescriptions": {
       "first": "Returns the result of the first matching rule.",
       "scoring_sum": "Sums the scores of all matching rules.",

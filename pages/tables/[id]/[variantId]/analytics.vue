@@ -43,6 +43,7 @@ const variantId = route.params.variantId as string
 const analytics = ref<unknown>(null)
 const loading = ref(true)
 const tableName = ref('')
+const variantName = ref('')
 
 onMounted(async () => {
   try {
@@ -52,6 +53,7 @@ onMounted(async () => {
     ])
     analytics.value = analyticsResp.data
     tableName.value = tableResp.data.title
+    variantName.value = tableResp.data.variants.find((v: { _id: string }) => v._id === variantId)?.title || variantId
   }
   finally {
     loading.value = false
@@ -61,6 +63,7 @@ onMounted(async () => {
 const breadcrumbs = computed(() => [
   { label: 'Tables', to: '/tables' },
   { label: tableName.value || tableId, to: `/tables/${tableId}/info` },
+  { label: variantName.value, to: `/tables/${tableId}/${variantId}/edit` },
   { label: 'Analytics' },
 ])
 </script>

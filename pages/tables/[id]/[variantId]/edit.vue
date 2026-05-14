@@ -7,78 +7,15 @@
     </div>
 
     <template v-else-if="table && variant">
-      <!-- Header: title, description, type selectors -->
-      <UCard class="mb-4">
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField :label="$t('tables.tableName')">
-              <UInput v-model="table.title" placeholder="Table name" class="inline-full" />
-            </UFormField>
-            <UFormField label="Description">
-              <UInput v-model="table.description" placeholder="Description" class="inline-full" />
-            </UFormField>
-          </div>
-
-          <div class="flex flex-wrap gap-6 items-start">
-            <!-- Table Type: Decision / Scoring -->
-            <div>
-              <p class="text-xs font-semibold text-muted uppercase mb-2">{{ $t('tables.tableType') }}</p>
-              <div class="flex gap-1">
-                <UButton
-                  size="sm"
-                  :variant="isDecisionType ? 'solid' : 'outline'"
-                  @click="setMatchingType('first')"
-                >
-                  Decision
-                </UButton>
-                <UButton
-                  size="sm"
-                  :variant="!isDecisionType ? 'solid' : 'outline'"
-                  @click="setMatchingType(!isDecisionType ? table.matching_type : 'scoring_sum')"
-                >
-                  Scoring
-                </UButton>
-              </div>
-            </div>
-
-            <!-- Decision Type (only for "first") -->
-            <div v-if="isDecisionType">
-              <p class="text-xs font-semibold text-muted uppercase mb-2">Decision Type</p>
-              <div class="flex gap-1">
-                <UButton
-                  v-for="dt in decisionTypes"
-                  :key="dt.value"
-                  size="sm"
-                  :variant="table.decision_type === dt.value ? 'solid' : 'outline'"
-                  @click="table.decision_type = dt.value"
-                >
-                  {{ dt.label }}
-                </UButton>
-              </div>
-            </div>
-
-            <!-- Scoring Type (only for scoring) -->
-            <div v-if="!isDecisionType">
-              <p class="text-xs font-semibold text-muted uppercase mb-2">{{ $t('tables.scoringType') }}</p>
-              <div class="flex gap-1">
-                <UButton
-                  v-for="st in scoringTypes"
-                  :key="st.value"
-                  size="sm"
-                  :variant="table.matching_type === st.value ? 'solid' : 'outline'"
-                  @click="setMatchingType(st.value)"
-                >
-                  {{ st.label }}
-                </UButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
-
       <!-- Actions bar -->
       <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-muted">Variant: {{ variant.title }}</p>
+        <div class="flex items-center gap-4">
+          <p class="text-sm text-muted">Variant: {{ variant.title }}</p>
+          <div class="flex gap-2">
+            <UButton variant="ghost" size="sm" :to="`/tables/${tableId}/debug`">Test</UButton>
+            <UButton variant="ghost" size="sm" :to="`/tables/${tableId}/analytics`">Analytics</UButton>
+          </div>
+        </div>
         <div class="flex gap-2">
           <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
             {{ $t('tables.addRule') }}
@@ -202,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition, MatchingType, DecisionType } from '~/types/decision-table'
+import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
 import { CONDITION_TYPES } from '~/utils/transforms'
 
@@ -285,20 +222,6 @@ const variantDefaultDecision = computed({
 
 const isDecisionType = computed(() => table.value?.matching_type === 'first')
 
-const decisionTypes: { value: DecisionType; label: string }[] = [
-  { value: 'alpha_num', label: 'Alphanumeric' },
-  { value: 'string', label: 'String' },
-  { value: 'numeric', label: 'Number' },
-  { value: 'json', label: 'JSON' },
-]
-
-const scoringTypes: { value: MatchingType; label: string }[] = [
-  { value: 'scoring_sum', label: 'Sum' },
-  { value: 'scoring_min', label: 'Min' },
-  { value: 'scoring_max', label: 'Max' },
-  { value: 'scoring_count', label: 'Count' },
-]
-
 onMounted(async () => {
   try {
     const response = await gandalf.tables.getById(tableId)
@@ -312,16 +235,10 @@ onMounted(async () => {
 const breadcrumbs = computed(() => [
   { label: 'Tables', to: '/tables' },
   { label: table.value?.title || tableId, to: `/tables/${tableId}/info` },
-  { label: variant.value?.title || 'Edit' },
+  { label: variant.value?.title || variantId, to: `/tables/${tableId}/${variantId}/edit` },
+  { label: 'Edit' },
 ])
 
-function setMatchingType(type: MatchingType) {
-  if (!table.value) return
-  table.value.matching_type = type
-  if (type !== 'first') {
-    table.value.decision_type = 'numeric'
-  }
-}
 
 function addRule() {
   if (!table.value || !variant.value) return

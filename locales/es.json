@@ -82,6 +82,7 @@
     "delete": "Eliminar",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esta tabla?",
     "deleteTable": "Eliminar tabla",
+    "onlyActiveRules": "Solo reglas con decisiones (> 0%)",
     "matchingTypeDescriptions": {
       "first": "Devuelve el resultado de la primera regla coincidente.",
       "scoring_sum": "Suma las puntuaciones de todas las reglas coincidentes.",

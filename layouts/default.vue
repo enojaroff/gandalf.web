@@ -117,8 +117,7 @@ const projectItems = computed(() =>
 
 function onProjectChange(val: string) {
   projectsStore.selectProject(val)
-  // Recharger la page courante pour prendre en compte le nouveau projet
-  router.go(0)
+  router.push('/')
 }
 
 // Menu utilisateur
