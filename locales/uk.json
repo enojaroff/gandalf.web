@@ -172,7 +172,13 @@
     "scopes": "Права",
     "clientId": "Client ID",
     "removeUser": "Видалити цього користувача?",
-    "removeConsumer": "Видалити цього споживача?"
+    "removeConsumer": "Видалити цього споживача?",
+    "createApplication": {
+      "title": "Новий застосунок",
+      "nameLabel": "Назва застосунку",
+      "namePlaceholder": "напр. Мій механізм рішень",
+      "descriptionPlaceholder": "Необов'язковий опис"
+    }
   },
   "common": {
     "save": "Зберегти",

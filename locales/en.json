@@ -172,7 +172,13 @@
     "scopes": "Scopes",
     "clientId": "Client ID",
     "removeUser": "Remove this user?",
-    "removeConsumer": "Remove this consumer?"
+    "removeConsumer": "Remove this consumer?",
+    "createApplication": {
+      "title": "New Application",
+      "nameLabel": "Application name",
+      "namePlaceholder": "e.g. My Decision Engine",
+      "descriptionPlaceholder": "Optional description"
+    }
   },
   "common": {
     "save": "Save",

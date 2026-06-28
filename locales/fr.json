@@ -171,7 +171,13 @@
     "scopes": "Droits",
     "clientId": "Client ID",
     "removeUser": "Supprimer cet utilisateur ?",
-    "removeConsumer": "Supprimer ce consommateur ?"
+    "removeConsumer": "Supprimer ce consommateur ?",
+    "createApplication": {
+      "title": "Nouvelle application",
+      "nameLabel": "Nom de l'application",
+      "namePlaceholder": "ex. Mon moteur de décision",
+      "descriptionPlaceholder": "Description optionnelle"
+    }
   },
   "common": {
     "save": "Enregistrer",

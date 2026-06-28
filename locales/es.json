@@ -171,7 +171,13 @@
     "scopes": "Permisos",
     "clientId": "Client ID",
     "removeUser": "¿Eliminar este usuario?",
-    "removeConsumer": "¿Eliminar este consumidor?"
+    "removeConsumer": "¿Eliminar este consumidor?",
+    "createApplication": {
+      "title": "Nueva aplicación",
+      "nameLabel": "Nombre de la aplicación",
+      "namePlaceholder": "ej. Mi motor de decisiones",
+      "descriptionPlaceholder": "Descripción opcional"
+    }
   },
   "common": {
     "save": "Guardar",
