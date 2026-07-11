@@ -8,10 +8,44 @@
 
     <template v-else>
       <!-- Infos projet -->
-      <UCard class="mb-6 shadow-md">
-        <template #header>
-          <h3 class="font-semibold">{{ $t('settings.projectDetails') }}</h3>
-        </template>
+
+      <!-- Mode lecture -->
+      <template v-if="!editingProject">
+        <dl class="space-y-3 text-sm">
+          
+        <div class="flex items-center justify-between">
+          <div>
+            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.projectName') }}</dt>
+            <dd class="text-xl whitespace-pre-line">{{ projectForm.title }}</dd>
+          </div>
+          
+          <UButton
+            v-if="!editingProject"
+            icon="i-lucide-pencil"
+            size="sm"
+            @click="startEditProject"
+          >
+            {{ $t('common.edit') }}
+          </UButton>
+        </div>
+
+          <div>
+            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('common.description') }}</dt>
+            <dd class="text-xl whitespace-pre-line">{{ projectForm.description || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.returnDecisionFlow') }}</dt>
+            <dd>
+              <UBadge :color="projectForm.showMeta ? 'success' : 'neutral'" variant="soft" size="lg">
+                {{ projectForm.showMeta ? $t('common.yes') : $t('common.no') }}
+              </UBadge>
+            </dd>
+          </div>
+        </dl>
+      </template>
+
+      <!-- Mode édition -->
+      <template v-else>
         <UForm :state="projectForm" @submit="saveProject">
           <UFormField :label="$t('settings.projectName')" name="title" class="mb-4">
             <UInput v-model="projectForm.title" :disabled="savingProject" class="inline-full" />
@@ -19,13 +53,40 @@
           <UFormField :label="$t('common.description')" name="description" class="mb-4">
             <UTextarea v-model="projectForm.description" :rows="3" :disabled="savingProject" class="inline-full" />
           </UFormField>
+          <UFormField
+            :label="$t('settings.returnDecisionFlow')"
+            :description="$t('settings.returnDecisionFlowHelp')"
+            name="returnDecisionFlow"
+            class="mb-4"
+          >
+            <USwitch v-model="projectForm.showMeta" :disabled="savingProject" />
+          </UFormField>
           <UAlert v-if="projectError" color="error" :description="projectError" class="mb-3" />
           <UAlert v-if="projectSuccess" color="success" :description="projectSuccess" class="mb-3" />
           <div class="flex gap-2 justify-end">
+            <UButton variant="ghost" color="neutral" :disabled="savingProject" @click="cancelEditProject">
+              {{ $t('common.cancel') }}
+            </UButton>
             <UButton type="submit" :loading="savingProject">{{ $t('common.save') }}</UButton>
           </div>
         </UForm>
-      </UCard>
+      </template>
+
+      <!-- Application ID : toujours en lecture seule -->
+      <div class="mt-4 mb-8">
+        <p class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.applicationId') }}</p>
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-sm break-all">{{ applicationId }}</span>
+          <UButton
+            :icon="applicationIdCopied ? 'i-lucide-check' : 'i-lucide-copy'"
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            :title="$t('settings.tempPasswordCopy')"
+            @click="copyApplicationId"
+          />
+        </div>
+      </div>
 
       <!-- Utilisateurs -->
       <UCard class="mb-6 shadow-md">
@@ -184,15 +245,26 @@ const loading = ref(false)
 const loadingUsers = ref(false)
 const loadingConsumers = ref(false)
 const savingProject = ref(false)
+// Project details are read-only by default; the "Edit" button flips this.
+const editingProject = ref(false)
 const projectError = ref<string | null>(null)
 const projectSuccess = ref<string | null>(null)
 const showInviteUser = ref(false)
 const showAddUser = ref(false)
 const showAddConsumer = ref(false)
 
-const projectForm = reactive({ title: '', description: '' })
+const projectForm = reactive({ title: '', description: '', showMeta: false })
 const users = ref<Collaborator[]>([])
 const consumers = ref<ProjectConsumer[]>([])
+
+// Read-only application identifier (Project._id), shown for API consumers.
+const applicationId = ref('')
+const applicationIdCopied = ref(false)
+// Original settings object from the API — preserved on save so we only
+// overwrite `show_meta` and never drop other backend-managed keys.
+const projectSettings = ref<Record<string, unknown>>({})
+// Snapshot of the form taken when entering edit mode, restored on cancel.
+let projectSnapshot = { title: '', description: '', showMeta: false }
 
 // Temp-password modal shown after confirming an invitation
 const showTempPassword = ref(false)
@@ -241,8 +313,11 @@ onMounted(async () => {
   loading.value = true
   try {
     const project = await gandalf.projects.current()
+    applicationId.value = project.data._id
     projectForm.title = project.data.title
     projectForm.description = project.data.description || ''
+    projectSettings.value = project.data.settings || {}
+    projectForm.showMeta = Boolean(projectSettings.value.show_meta)
     await Promise.all([loadUsers(), loadConsumers()])
   }
   finally { loading.value = false }
@@ -316,6 +391,15 @@ async function cancelInvitation(collaborator: Collaborator) {
   finally { busyKey.value = null }
 }
 
+async function copyApplicationId() {
+  try {
+    await navigator.clipboard.writeText(applicationId.value)
+    applicationIdCopied.value = true
+    setTimeout(() => { applicationIdCopied.value = false }, 2000)
+  }
+  catch { /* clipboard unavailable */ }
+}
+
 async function copyTempPassword() {
   try {
     await navigator.clipboard.writeText(tempPassword.value)
@@ -333,14 +417,41 @@ async function loadConsumers() {
   finally { loadingConsumers.value = false }
 }
 
+function startEditProject() {
+  projectSnapshot = {
+    title: projectForm.title,
+    description: projectForm.description,
+    showMeta: projectForm.showMeta,
+  }
+  projectError.value = null
+  projectSuccess.value = null
+  editingProject.value = true
+}
+
+function cancelEditProject() {
+  projectForm.title = projectSnapshot.title
+  projectForm.description = projectSnapshot.description
+  projectForm.showMeta = projectSnapshot.showMeta
+  projectError.value = null
+  editingProject.value = false
+}
+
 async function saveProject() {
   savingProject.value = true
   projectError.value = null
   projectSuccess.value = null
   try {
-    await gandalf.projects.update({ title: projectForm.title, description: projectForm.description })
+    // Preserve any backend-managed settings keys; only toggle show_meta.
+    const settings = { ...projectSettings.value, show_meta: projectForm.showMeta }
+    await gandalf.projects.update({
+      title: projectForm.title,
+      description: projectForm.description,
+      settings,
+    })
+    projectSettings.value = settings
     await projectsStore.fetchAll()
     projectSuccess.value = t('settings.projectUpdated')
+    editingProject.value = false
   }
   catch (err: unknown) {
     const e = err as { data?: { message?: string } }

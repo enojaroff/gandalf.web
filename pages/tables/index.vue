@@ -1,3 +1,4 @@
+<!-- Listes des tables de décision -->
 <template>
   <div>
     <!-- En-tête -->

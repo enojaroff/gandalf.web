@@ -1,3 +1,4 @@
+<!-- Page d'édition d'une table de décision. Pour une variante donnée -->
 <template>
   <div>
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />

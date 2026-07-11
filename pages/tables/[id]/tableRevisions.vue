@@ -1,3 +1,4 @@
+<!-- Onglet "Révisions" de la page de détail d'une table de décision -->
 <template>
   <div>
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />

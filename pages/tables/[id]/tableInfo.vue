@@ -1,3 +1,4 @@
+<!-- Onglet "Info" de la page de détail d'une table de décision -->
 <template>
   <div>
     <!-- Breadcrumb -->
