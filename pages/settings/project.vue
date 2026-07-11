@@ -8,85 +8,88 @@
 
     <template v-else>
       <!-- Infos projet -->
-
-      <!-- Mode lecture -->
-      <template v-if="!editingProject">
-        <dl class="space-y-3 text-sm">
-          
-        <div class="flex items-center justify-between">
-          <div>
-            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.projectName') }}</dt>
-            <dd class="text-xl whitespace-pre-line">{{ projectForm.title }}</dd>
-          </div>
-          
-          <UButton
-            v-if="!editingProject"
-            icon="i-lucide-pencil"
-            size="sm"
-            @click="startEditProject"
-          >
-            {{ $t('common.edit') }}
-          </UButton>
-        </div>
-
-          <div>
-            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('common.description') }}</dt>
-            <dd class="text-xl whitespace-pre-line">{{ projectForm.description || '—' }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.returnDecisionFlow') }}</dt>
-            <dd>
-              <UBadge :color="projectForm.showMeta ? 'success' : 'neutral'" variant="soft" size="lg">
-                {{ projectForm.showMeta ? $t('common.yes') : $t('common.no') }}
-              </UBadge>
-            </dd>
-          </div>
-        </dl>
-      </template>
-
-      <!-- Mode édition -->
-      <template v-else>
-        <UForm :state="projectForm" @submit="saveProject">
-          <UFormField :label="$t('settings.projectName')" name="title" class="mb-4">
-            <UInput v-model="projectForm.title" :disabled="savingProject" class="inline-full" />
-          </UFormField>
-          <UFormField :label="$t('common.description')" name="description" class="mb-4">
-            <UTextarea v-model="projectForm.description" :rows="3" :disabled="savingProject" class="inline-full" />
-          </UFormField>
-          <UFormField
-            :label="$t('settings.returnDecisionFlow')"
-            :description="$t('settings.returnDecisionFlowHelp')"
-            name="returnDecisionFlow"
-            class="mb-4"
-          >
-            <USwitch v-model="projectForm.showMeta" :disabled="savingProject" />
-          </UFormField>
-          <UAlert v-if="projectError" color="error" :description="projectError" class="mb-3" />
-          <UAlert v-if="projectSuccess" color="success" :description="projectSuccess" class="mb-3" />
-          <div class="flex gap-2 justify-end">
-            <UButton variant="ghost" color="neutral" :disabled="savingProject" @click="cancelEditProject">
-              {{ $t('common.cancel') }}
+      <UCard class="mb-6 shadow-md">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">{{ $t('settings.projectDetails') }}</h3>
+            <UButton
+              v-if="!editingProject"
+              icon="i-lucide-pencil"
+              variant="ghost"
+              size="sm"
+              @click="startEditProject"
+            >
+              {{ $t('common.edit') }}
             </UButton>
-            <UButton type="submit" :loading="savingProject">{{ $t('common.save') }}</UButton>
           </div>
-        </UForm>
-      </template>
+        </template>
 
-      <!-- Application ID : toujours en lecture seule -->
-      <div class="mt-4 mb-8">
-        <p class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.applicationId') }}</p>
-        <div class="flex items-center gap-2">
-          <span class="font-mono text-sm break-all">{{ applicationId }}</span>
-          <UButton
-            :icon="applicationIdCopied ? 'i-lucide-check' : 'i-lucide-copy'"
-            variant="ghost"
-            color="neutral"
-            size="xs"
-            :title="$t('settings.tempPasswordCopy')"
-            @click="copyApplicationId"
-          />
+        <!-- Application ID : toujours en lecture seule -->
+        <div class="mb-4">
+          <p class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.applicationId') }}</p>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-sm break-all">{{ applicationId }}</span>
+            <UButton
+              :icon="applicationIdCopied ? 'i-lucide-check' : 'i-lucide-copy'"
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              :title="$t('common.copy')"
+              @click="copyApplicationId"
+            />
+          </div>
         </div>
-      </div>
+
+        <!-- Mode lecture -->
+        <template v-if="!editingProject">
+          <dl class="space-y-3 text-sm">
+            <div>
+              <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.projectName') }}</dt>
+              <dd class="whitespace-pre-line">{{ projectForm.title }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('common.description') }}</dt>
+              <dd class="whitespace-pre-line">{{ projectForm.description || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold text-muted uppercase mb-1">{{ $t('settings.returnDecisionFlow') }}</dt>
+              <dd>
+                <UBadge :color="projectForm.showMeta ? 'success' : 'neutral'" variant="soft" size="sm">
+                  {{ projectForm.showMeta ? $t('common.yes') : $t('common.no') }}
+                </UBadge>
+              </dd>
+            </div>
+          </dl>
+        </template>
+
+        <!-- Mode édition -->
+        <template v-else>
+          <UForm :state="projectForm" @submit="saveProject">
+            <UFormField :label="$t('settings.projectName')" name="title" class="mb-4">
+              <UInput v-model="projectForm.title" :disabled="savingProject" class="inline-full" />
+            </UFormField>
+            <UFormField :label="$t('common.description')" name="description" class="mb-4">
+              <UTextarea v-model="projectForm.description" :rows="3" :disabled="savingProject" class="inline-full" />
+            </UFormField>
+            <UFormField
+              :label="$t('settings.returnDecisionFlow')"
+              :description="$t('settings.returnDecisionFlowHelp')"
+              name="returnDecisionFlow"
+              class="mb-4"
+            >
+              <USwitch v-model="projectForm.showMeta" :disabled="savingProject" />
+            </UFormField>
+            <UAlert v-if="projectError" color="error" :description="projectError" class="mb-3" />
+            <UAlert v-if="projectSuccess" color="success" :description="projectSuccess" class="mb-3" />
+            <div class="flex gap-2 justify-end">
+              <UButton variant="ghost" color="neutral" :disabled="savingProject" @click="cancelEditProject">
+                {{ $t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" :loading="savingProject">{{ $t('common.save') }}</UButton>
+            </div>
+          </UForm>
+        </template>
+      </UCard>
 
       <!-- Utilisateurs -->
       <UCard class="mb-6 shadow-md">
@@ -260,6 +263,8 @@ const consumers = ref<ProjectConsumer[]>([])
 // Read-only application identifier (Project._id), shown for API consumers.
 const applicationId = ref('')
 const applicationIdCopied = ref(false)
+// Timer that resets the "copied" checkmark; cleared on rapid re-clicks.
+let applicationIdCopiedTimer: ReturnType<typeof setTimeout> | null = null
 // Original settings object from the API — preserved on save so we only
 // overwrite `show_meta` and never drop other backend-managed keys.
 const projectSettings = ref<Record<string, unknown>>({})
@@ -319,6 +324,9 @@ onMounted(async () => {
     projectSettings.value = project.data.settings || {}
     projectForm.showMeta = Boolean(projectSettings.value.show_meta)
     await Promise.all([loadUsers(), loadConsumers()])
+  }
+  catch {
+    toast.add({ title: t('errors.failedToLoad'), color: 'error' })
   }
   finally { loading.value = false }
 })
@@ -395,10 +403,16 @@ async function copyApplicationId() {
   try {
     await navigator.clipboard.writeText(applicationId.value)
     applicationIdCopied.value = true
-    setTimeout(() => { applicationIdCopied.value = false }, 2000)
+    // Reset any pending timer so rapid clicks don't clear the checkmark early.
+    if (applicationIdCopiedTimer) clearTimeout(applicationIdCopiedTimer)
+    applicationIdCopiedTimer = setTimeout(() => { applicationIdCopied.value = false }, 2000)
   }
   catch { /* clipboard unavailable */ }
 }
+
+onBeforeUnmount(() => {
+  if (applicationIdCopiedTimer) clearTimeout(applicationIdCopiedTimer)
+})
 
 async function copyTempPassword() {
   try {

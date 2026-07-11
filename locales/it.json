@@ -187,6 +187,7 @@
     "cancel": "Annulla",
     "delete": "Elimina",
     "edit": "Modifica",
+    "copy": "Copia",
     "view": "Visualizza",
     "create": "Crea",
     "loading": "Caricamento…",
@@ -205,6 +206,7 @@
     "generic": "Si è verificato un errore. Riprova.",
     "tableNameRequired": "Il nome della tabella è obbligatorio.",
     "failedToCreate": "Creazione tabella fallita.",
+    "failedToLoad": "Caricamento dei dati fallito.",
     "failedToSave": "Salvataggio fallito."
   }
 }

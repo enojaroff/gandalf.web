@@ -223,6 +223,7 @@
     "close": "Close",
     "delete": "Delete",
     "edit": "Edit",
+    "copy": "Copy",
     "view": "View",
     "create": "Create",
     "loading": "Loading…",
@@ -241,6 +242,7 @@
     "generic": "An error occurred. Please try again.",
     "tableNameRequired": "Table name is required.",
     "failedToCreate": "Failed to create table.",
+    "failedToLoad": "Failed to load data.",
     "failedToSave": "Failed to save."
   }
 }

@@ -222,6 +222,7 @@
     "close": "Fermer",
     "delete": "Supprimer",
     "edit": "Éditer",
+    "copy": "Copier",
     "view": "Voir",
     "create": "Créer",
     "loading": "Chargement…",
@@ -240,6 +241,7 @@
     "generic": "Une erreur s'est produite. Veuillez réessayer.",
     "tableNameRequired": "Le nom de la table est requis.",
     "failedToCreate": "Échec de la création de la table.",
+    "failedToLoad": "Échec du chargement des données.",
     "failedToSave": "Échec de l'enregistrement."
   }
 }

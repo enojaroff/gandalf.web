@@ -187,6 +187,7 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "edit": "Editar",
+    "copy": "Copiar",
     "view": "Ver",
     "create": "Crear",
     "loading": "Cargando…",
@@ -205,6 +206,7 @@
     "generic": "Se ha producido un error. Inténtalo de nuevo.",
     "tableNameRequired": "El nombre de la tabla es obligatorio.",
     "failedToCreate": "Error al crear la tabla.",
+    "failedToLoad": "Error al cargar los datos.",
     "failedToSave": "Error al guardar."
   }
 }
