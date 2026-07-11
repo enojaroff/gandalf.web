@@ -1,6 +1,6 @@
 import type { OAuthToken } from '~/types/api'
 import type { DecisionTable } from '~/types/decision-table'
-import type { Project, ProjectUser, ProjectConsumer, User } from '~/types/project'
+import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, ConfirmCollaboratorResult } from '~/types/project'
 import type { Group } from '~/types/group'
 
 function btoa64(str: string): string {
@@ -200,6 +200,33 @@ export function useGandalf() {
 
     getUsers: () => request<{ data: ProjectUser[] }>(`${apiBase}/v1/projects/users`),
 
+    // Collaborators enriched with a confirmation status (active/pending/invited),
+    // merged with pending invitations.
+    getCollaborators: () =>
+      request<{ data: Collaborator[] }>(`${apiBase}/v1/projects/collaborators`),
+
+    // Admin-only: confirm a pending user, or create an account from an invitation.
+    // Pass user_id for a pending user, or email for a pending invitation.
+    confirmCollaborator: (payload: { user_id?: string; email?: string }) =>
+      request<{ data: ConfirmCollaboratorResult }>(`${apiBase}/v1/projects/collaborators/confirm`, {
+        method: 'POST',
+        body: payload,
+      }),
+
+    // Admin-only: cancel a pending invitation by email.
+    cancelInvitation: (email: string) =>
+      request(`${apiBase}/v1/projects/collaborators/invitation`, {
+        method: 'DELETE',
+        body: { email },
+      }),
+
+    // Admin-only: resend the invitation email for a pending invitation.
+    resendInvitation: (email: string) =>
+      request(`${apiBase}/v1/projects/collaborators/invitation/resend`, {
+        method: 'POST',
+        body: { email },
+      }),
+
     inviteUser: (user: { email: string; role: string; scope: string[] }) =>
       request(`${apiBase}/v1/invite`, { method: 'POST', body: user }),
 
@@ -211,6 +238,14 @@ export function useGandalf() {
 
     removeUser: (userId: string) =>
       request(`${apiBase}/v1/projects/users`, {
+        method: 'DELETE',
+        body: { user_id: userId },
+      }),
+
+    // Admin-only: permanently delete a user account (blocked by the API if the
+    // account still belongs to other projects — 409 with the blocking projects).
+    deleteAccount: (userId: string) =>
+      request(`${apiBase}/v1/projects/collaborators/account`, {
         method: 'DELETE',
         body: { user_id: userId },
       }),

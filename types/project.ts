@@ -35,6 +35,24 @@ export interface ProjectConsumer {
   access_token?: string
 }
 
+export type CollaboratorStatus = 'active' | 'pending' | 'invited'
+
+export interface Collaborator {
+  user_id: string | null
+  email: string | null
+  username: string | null
+  role: string
+  scope: string[]
+  status: CollaboratorStatus
+}
+
+export interface ConfirmCollaboratorResult {
+  user_id: string
+  email: string
+  status: 'active'
+  temporary_password?: string
+}
+
 export interface User {
   _id: string
   username: string
