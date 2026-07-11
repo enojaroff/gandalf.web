@@ -13,6 +13,9 @@
           <!-- Sélecteur de projet -->
           <USelect v-if="projectsStore.projects.length > 0" :model-value="projectsStore.selectedProjectId ?? undefined"
             :items="projectItems" class="w-48" size="sm" @update:model-value="onProjectChange" />
+          <UButton to="/settings/project/create" variant="ghost" icon="i-lucide-plus" size="sm">
+            {{ $t('settings.createApplication.title') }}
+          </UButton>
 
           <!-- Navigation principale -->
           <nav class="hidden md:flex items-center gap-1">

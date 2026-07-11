@@ -77,15 +77,30 @@ async function onSubmit() {
   loading.value = true
   error.value = null
 
+  // Step 1 — authenticate. Only failures here mean invalid credentials.
   try {
     await authStore.signIn(form.username, form.password)
-    console.error('[SIGNIN] After signIn, token:', authStore.accessToken?.substring(0, 8) ?? 'NULL', '| isAuth:', authStore.isAuthenticated)
+  }
+  catch (err: unknown) {
+    const fetchError = err as { data?: { message?: string; error?: string } }
+    error.value =
+      fetchError?.data?.message
+      || fetchError?.data?.error
+      || t('auth.invalidCredentials')
+    loading.value = false
+    return
+  }
+
+  // Step 2 — the user is authenticated. Loading projects or redirecting may
+  // still fail (e.g. a 500 from the API), but that is NOT a credentials error,
+  // so surface a distinct message instead of "invalid credentials".
+  try {
     await projectsStore.fetchAll()
 
-    // Redirection vers welcome si pas encore de projet
     if (projectsStore.projects.length === 0) {
       await navigateTo('/welcome')
-    } else {
+    }
+    else {
       await navigateTo('/tables')
     }
   }
@@ -94,7 +109,7 @@ async function onSubmit() {
     error.value =
       fetchError?.data?.message
       || fetchError?.data?.error
-      || t('auth.invalidCredentials')
+      || t('auth.loadProjectsFailed')
   }
   finally {
     loading.value = false

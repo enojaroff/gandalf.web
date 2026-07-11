@@ -171,7 +171,13 @@
     "scopes": "Права",
     "clientId": "Client ID",
     "removeUser": "Премахни този потребител?",
-    "removeConsumer": "Премахни този потребител?"
+    "removeConsumer": "Премахни този потребител?",
+    "createApplication": {
+      "title": "Ново приложение",
+      "nameLabel": "Име на приложението",
+      "namePlaceholder": "напр. Моят механизъм за решения",
+      "descriptionPlaceholder": "Незадължително описание"
+    }
   },
   "common": {
     "save": "Запази",
