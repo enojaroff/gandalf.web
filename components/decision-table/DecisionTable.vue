@@ -123,14 +123,28 @@
                 @pointerdown.stop="openEdit(rule._id, condIdx)"
               >
                 <template v-if="activeFields[condIdx]">
-                  <span class="condition-op">{{ conditionOpLabel(condition.condition) }}</span>
-                  <template v-if="conditionHasValue(condition)">
-                    <template v-if="isBetweenOp(condition.condition)">
-                      <span class="condition-op">{{ conditionBrackets(condition.condition).left }}</span>
-                      <span class="condition-val">{{ conditionInnerValue(condition) }}</span>
-                      <span class="condition-op">{{ conditionBrackets(condition.condition).right }}</span>
+                  <template v-if="condition.condition === '$any'">
+                    <span class="condition-op">---</span>
+                  </template>
+                  <template v-else-if="condition.condition === '$is_set'">
+                    <span class="condition-op"><big>◉</big></span>
+                  </template>
+                  <template v-else-if="condition.condition === '$is_null'">
+                    <span class="condition-op"><big>∅</big></span>
+                  </template>
+                  <template v-else-if="condition.condition === '$eq' && activeFields[condIdx]?.type === 'boolean'">
+                    <span class="condition-val">{{ condition.value ? 'True' : 'False' }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="condition-op">{{ conditionOpLabel(condition.condition) }}</span>
+                    <template v-if="conditionHasValue(condition)">
+                      <template v-if="isBetweenOp(condition.condition)">
+                        <span class="condition-op">{{ conditionBrackets(condition.condition).left }}</span>
+                        <span class="condition-val">{{ conditionInnerValue(condition) }}</span>
+                        <span class="condition-op">{{ conditionBrackets(condition.condition).right }}</span>
+                      </template>
+                      <span v-else class="condition-val">{{ conditionValueLabel(condition) }}</span>
                     </template>
-                    <span v-else class="condition-val">{{ conditionValueLabel(condition) }}</span>
                   </template>
                 </template>
               </div>
@@ -169,14 +183,14 @@
             <div class="flex gap-1">
               <UButton
                 variant="ghost"
-                icon="i-heroicons-document-duplicate"
+                icon="i-lucide-copy"
                 size="xs"
                 :title="'Clone rule'"
                 @click="cloneRule(rule, ruleIdx)"
               />
               <UButton
                 variant="ghost"
-                :icon="rule.isDeleted ? 'i-heroicons-arrow-uturn-left' : 'i-heroicons-trash'"
+                :icon="rule.isDeleted ? 'i-lucide-undo-2' : 'i-lucide-trash-2'"
                 :color="rule.isDeleted ? 'warning' : 'error'"
                 size="xs"
                 @click="toggleDelete(rule)"
@@ -476,6 +490,7 @@ thead .dt-cell--actions {
 .condition-display {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
   min-height: 1.75rem;
   padding: 0.375rem 0.5rem;

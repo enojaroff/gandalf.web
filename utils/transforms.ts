@@ -43,7 +43,7 @@ export const GANDALF_TRANSFORMS: {
 }
 
 export const CONDITION_OPTIONS = {
-  hasNotValue: ['$is_set', '$is_null'],
+  hasNotValue: ['$is_set', '$is_null', '$any'],
 }
 
 export const CONDITION_TYPES = {

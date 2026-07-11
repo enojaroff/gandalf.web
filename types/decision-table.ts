@@ -32,7 +32,11 @@ export type ConditionOperator =
   | '$is_set'
   | '$is_null'
   | '$between'
+  | '$between_excl'
+  | '$between_lexcl'
+  | '$between_rexcl'
   | '$not_between'
+  | '$any'
 
 // Champ d'une table de décision
 export interface DecisionField {

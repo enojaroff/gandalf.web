@@ -1,15 +1,16 @@
+<!-- Listes des tables de décision -->
 <template>
   <div>
     <!-- En-tête -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Decision Tables</h1>
+        <h1 class="text-2xl font-bold">{{ $t('tables.title') }}</h1>
         <p class="text-muted text-sm mt-1">
           {{ meta?.total ?? tables.length }} table{{ (meta?.total ?? tables.length) !== 1 ? 's' : '' }}
         </p>
       </div>
-      <UButton to="/tables/create" icon="i-heroicons-plus">
-        New Table
+      <UButton to="/tables/create" icon="i-lucide-plus">
+        {{ $t('tables.new') }}
       </UButton>
     </div>
 
@@ -17,24 +18,24 @@
     <div class="flex gap-3 mb-4">
       <UInput
         v-model="search"
-        placeholder="Search tables…"
-        icon="i-heroicons-magnifying-glass"
+        :placeholder="$t('tables.searchPlaceholder')"
+        icon="i-lucide-search"
         class="flex-1 max-w-sm"
         @input="debouncedSearch"
       />
     </div>
 
     <!-- Tableau -->
-    <UCard>
+    <UCard class="shadow-md">
       <div v-if="loading" class="flex justify-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+        <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
       </div>
 
       <div v-else-if="tables.length === 0" class="text-center py-12">
-        <UIcon name="i-heroicons-table-cells" class="text-5xl text-muted mb-4" />
-        <p class="text-muted">No tables yet. Create your first decision table.</p>
-        <UButton to="/tables/create" class="mt-4" icon="i-heroicons-plus">
-          Create Table
+        <UIcon name="i-lucide-table" class="text-5xl text-muted mb-4" />
+        <p class="text-muted">{{ $t('tables.noTables') }} {{ $t('tables.noTablesCreate') }}</p>
+        <UButton to="/tables/create" class="mt-4" icon="i-lucide-plus">
+          {{ $t('tables.create') }}
         </UButton>
       </div>
 
@@ -65,7 +66,7 @@
 
         <template #actions-cell="{ row }">
           <UDropdownMenu :items="tableActions(row.original)">
-            <UButton variant="ghost" icon="i-heroicons-ellipsis-horizontal" size="sm" />
+            <UButton variant="ghost" icon="i-lucide-ellipsis" size="sm" />
           </UDropdownMenu>
         </template>
       </UTable>
@@ -89,6 +90,7 @@ import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 const router = useRouter()
 
@@ -99,11 +101,11 @@ const search = ref('')
 const currentPage = ref(1)
 const pageSize = 20
 
-const columns = [
-  { accessorKey: 'title', header: 'Name' },
-  { accessorKey: 'matching_type', header: 'Matching' },
+const columns = computed(() => [
+  { accessorKey: 'title', header: t('common.name') },
+  { accessorKey: 'matching_type', header: t('tables.matchingType') },
   { id: 'actions', header: '' },
-]
+])
 
 async function loadTables() {
   loading.value = true
@@ -131,20 +133,20 @@ function tableActions(table: DecisionTable) {
   return [
     [
       {
-        label: 'View',
-        icon: 'i-heroicons-eye',
+        label: t('common.view'),
+        icon: 'i-lucide-eye',
         onSelect: () => router.push(`/tables/${table._id}/info`),
       },
       {
-        label: 'Edit',
-        icon: 'i-heroicons-pencil',
+        label: t('common.edit'),
+        icon: 'i-lucide-pencil',
         onSelect: () => router.push(`/tables/${table._id}`),
       },
     ],
     [
       {
-        label: 'Delete',
-        icon: 'i-heroicons-trash',
+        label: t('common.delete'),
+        icon: 'i-lucide-trash-2',
         color: 'error' as const,
         onSelect: () => confirmDelete(table),
       },

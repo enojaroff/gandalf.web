@@ -1,35 +1,35 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-center mb-6">Create Account</h1>
+    <h1 class="text-2xl font-bold text-center mb-6">{{ $t('auth.signUpTitle') }}</h1>
 
     <UForm :schema="schema" :state="form" @submit="onSubmit">
-      <UFormField label="Username" name="username" class="mb-4">
+      <UFormField :label="$t('auth.username')" name="username" class="mb-4">
         <UInput
           v-model="form.username"
-          placeholder="Choose a username"
-          icon="i-heroicons-user"
+          :placeholder="$t('auth.usernameChoosePlaceholder')"
+          icon="i-lucide-user"
           autocomplete="username"
           :disabled="loading"
         />
       </UFormField>
 
-      <UFormField label="Email" name="email" class="mb-4">
+      <UFormField :label="$t('auth.email')" name="email" class="mb-4">
         <UInput
           v-model="form.email"
           type="email"
-          placeholder="Your email address"
-          icon="i-heroicons-envelope"
+          :placeholder="$t('auth.emailPlaceholder')"
+          icon="i-lucide-mail"
           autocomplete="email"
           :disabled="loading"
         />
       </UFormField>
 
-      <UFormField label="Password" name="password" class="mb-4">
+      <UFormField :label="$t('auth.password')" name="password" class="mb-4">
         <UInput
           v-model="form.password"
           type="password"
-          placeholder="Create a password"
-          icon="i-heroicons-lock-closed"
+          :placeholder="$t('auth.passwordCreatePlaceholder')"
+          icon="i-lucide-lock"
           autocomplete="new-password"
           :disabled="loading"
         />
@@ -53,14 +53,14 @@
       <UAlert v-if="success" color="success" :description="success" class="mb-4" />
 
       <UButton type="submit" block :loading="loading" :disabled="!!success">
-        Create Account
+        {{ $t('auth.signUp') }}
       </UButton>
     </UForm>
 
     <div class="mt-4 text-center text-sm">
-      Already have an account?
+      {{ $t('auth.alreadyAccount') }}
       <NuxtLink to="/auth/sign-in" class="text-primary hover:underline">
-        Sign in
+        {{ $t('auth.signInLink') }}
       </NuxtLink>
     </div>
   </div>
@@ -75,6 +75,7 @@ definePageMeta({
   middleware: 'guest',
 })
 
+const { t } = useI18n()
 const route = useRoute()
 const authStore = useAuthStore()
 
@@ -97,7 +98,13 @@ const success = ref<string | null>(null)
 const passwordStrength = computed(() => {
   if (!form.password) return { score: 0, feedback: '' }
   const result = zxcvbn(form.password)
-  const labels = ['Very weak', 'Weak', 'Fair', 'Strong', 'Very strong']
+  const labels = [
+    t('auth.passwordStrength.veryWeak'),
+    t('auth.passwordStrength.weak'),
+    t('auth.passwordStrength.fair'),
+    t('auth.passwordStrength.strong'),
+    t('auth.passwordStrength.veryStrong'),
+  ]
   return {
     score: result.score + 1,
     feedback: labels[result.score] || '',
@@ -122,11 +129,11 @@ async function onSubmit() {
 
   try {
     await authStore.signUp(form.username, form.password, form.email)
-    success.value = 'Account created! Please check your email to activate your account.'
+    success.value = t('auth.signUpSuccess')
   }
   catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
-    error.value = fetchError?.data?.message || 'Registration failed. Please try again.'
+    error.value = fetchError?.data?.message || t('auth.registrationFailed')
   }
   finally {
     loading.value = false

@@ -15,6 +15,7 @@ npm-debug.log*
 # Éditeur
 .DS_Store
 .idea
+.history/
 
 # Tests
 test-results/

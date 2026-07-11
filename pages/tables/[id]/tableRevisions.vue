@@ -1,13 +1,19 @@
+<!-- Onglet "Révisions" de la page de détail d'une table de décision -->
 <template>
   <div>
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-bold">Revisions</h2>
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">{{ table?.title }}</h1>
+        <p v-if="table?.description" class="text-muted mt-1">{{ table.description }}</p>
+      </div>
     </div>
 
+      <TableNav :table-id="tableId" :variants="table?.variants" />
+
     <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <UCard v-else>
@@ -25,7 +31,7 @@
             <UButton
               size="xs"
               variant="outline"
-              icon="i-heroicons-arrow-path"
+              icon="i-lucide-refresh-cw"
               @click="rollback(row.original as { _id: string })"
             >
               Rollback
@@ -45,15 +51,18 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+import type { DecisionTable } from '~/types/decision-table'
 
+definePageMeta({ path: '/tables/:id/revisions', middleware: 'auth' })
+
+const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
 
 const changelogs = ref<unknown[]>([])
 const loading = ref(true)
-const tableName = ref('')
+const table = ref<DecisionTable | null>(null)
 
 onMounted(async () => {
   try {
@@ -62,7 +71,7 @@ onMounted(async () => {
       gandalf.tables.getById(tableId),
     ])
     changelogs.value = changelogsResp.data
-    tableName.value = tableResp.data.title
+    table.value = tableResp.data
   }
   finally {
     loading.value = false
@@ -70,10 +79,11 @@ onMounted(async () => {
 })
 
 const breadcrumbs = computed(() => [
-  { label: 'Tables', to: '/tables' },
-  { label: tableName.value || tableId, to: `/tables/${tableId}/info` },
-  { label: 'Revisions' },
+  { label: t('nav.tables'), to: '/tables' },
+  { label: table.value?.title || tableId, to: `/tables/${tableId}/info` },
+  { label: t('tables.revisions') },
 ])
+
 
 const columns = [
   { accessorKey: '_id', header: 'ID' },

@@ -4,7 +4,7 @@
     <h2 class="text-xl font-bold mb-6">Debugger</h2>
 
     <div v-if="loadingTable" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-3xl text-primary" />
+      <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
     <template v-else-if="table">
@@ -41,7 +41,7 @@
 
             <UButton
               block
-              icon="i-heroicons-play"
+              icon="i-lucide-play"
               :loading="testing"
               @click="runTest"
             >
@@ -92,6 +92,7 @@ definePageMeta({ middleware: 'auth' })
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
+const variantId = route.params.variantId as string
 
 const table = ref<DecisionTable | null>(null)
 const loadingTable = ref(true)
@@ -114,9 +115,14 @@ onMounted(async () => {
   }
 })
 
+const variantTitle = computed(() =>
+  table.value?.variants.find(v => v._id === variantId)?.title || variantId,
+)
+
 const breadcrumbs = computed(() => [
   { label: 'Tables', to: '/tables' },
   { label: table.value?.title || tableId, to: `/tables/${tableId}/info` },
+  { label: variantTitle.value, to: `/tables/${tableId}/${variantId}/edit` },
   { label: 'Debugger' },
 ])
 

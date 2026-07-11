@@ -8,7 +8,7 @@
           v-model="form.password"
           type="password"
           placeholder="New password"
-          icon="i-heroicons-lock-closed"
+          icon="i-lucide-lock"
           autocomplete="new-password"
           :disabled="loading"
         />
@@ -19,7 +19,7 @@
           v-model="form.confirm"
           type="password"
           placeholder="Confirm new password"
-          icon="i-heroicons-lock-closed"
+          icon="i-lucide-lock"
           autocomplete="new-password"
           :disabled="loading"
         />
