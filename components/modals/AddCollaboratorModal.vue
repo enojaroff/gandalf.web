@@ -103,22 +103,31 @@ const roleItems = [
 ]
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+// Monotonic sequence to drop out-of-order search responses.
+let searchSeq = 0
 function onSearch() {
   selected.value = null
   if (searchTimer) clearTimeout(searchTimer)
   const q = query.value.trim()
   if (!q) { results.value = []; return }
   // Debounce the search to avoid a request per keystroke.
+  const seq = ++searchSeq
   searchTimer = setTimeout(async () => {
     searching.value = true
     try {
       const resp = await gandalf.users.list(10, 1, q)
-      results.value = resp.data
+      // Ignore a stale response if a newer search has started meanwhile.
+      if (seq === searchSeq) results.value = resp.data
     }
-    catch { results.value = [] }
-    finally { searching.value = false }
+    catch { if (seq === searchSeq) results.value = [] }
+    finally { if (seq === searchSeq) searching.value = false }
   }, 300)
 }
+
+// Cancel any pending debounced search when the modal is torn down.
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 
 function toggleScope(key: string, checked: boolean) {
   if (checked) {

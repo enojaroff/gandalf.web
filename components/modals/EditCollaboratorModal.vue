@@ -138,7 +138,8 @@ async function onDeleteAccount() {
   const email = props.collaborator.email || ''
   const typed = window.prompt(t('settings.deleteAccountConfirm', { email }))
   if (typed === null) return
-  if (typed.trim() !== email) {
+  // Email comparison is case-insensitive (addresses are matched case-insensitively).
+  if (typed.trim().toLowerCase() !== email.toLowerCase()) {
     error.value = t('settings.deleteAccountMismatch')
     return
   }
