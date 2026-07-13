@@ -489,7 +489,10 @@ watch(structureKey, () => {
   border-radius: 100%;
   background: #94a3b8;
   cursor: crosshair;
-  transition: transform 0.1s ease, background 0.1s ease;
+  /* Do NOT transition/override `transform`: Vue Flow uses it to centre the
+     handle on the node edge (translate ±50%). The hover affordance below uses
+     box-shadow only, so the handle never shifts. */
+  transition: box-shadow 0.1s ease, background 0.1s ease;
 }
 
 /* Colours use !important to beat Vue Flow's theme-default rules, which target
@@ -512,9 +515,14 @@ watch(structureKey, () => {
   background: var(--ui-primary) !important;
 }
 
-/* Grow on hover so the grab target is forgiving and the affordance is clear. */
+/* Hover affordance via a halo ring (box-shadow), NOT transform — so the handle
+   stays centred on the node edge instead of jumping. */
 :deep(.vue-flow__handle:hover) {
-  transform: scale(1.4);
+  box-shadow: 0 0 0 4px color-mix(in srgb, #3b82f6 35%, transparent);
+}
+
+:deep(.vf-handle--out:hover) {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-primary) 35%, transparent);
 }
 
 :deep(.vue-flow__handle.connecting),
@@ -524,7 +532,7 @@ watch(structureKey, () => {
 
 /* Highlight valid drop targets while dragging a connection. */
 :deep(.vue-flow__handle-connecting) {
-  transform: scale(1.5);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-primary) 45%, transparent);
 }
 
 .vf-hint {
