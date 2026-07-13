@@ -227,7 +227,9 @@ function emptyFlow(): Flow {
 async function load() {
   loading.value = true
   try {
-    // Tables are needed to render node fields regardless of new/existing.
+    // The list endpoint returns a reduced projection (no `fields`), which is
+    // fine for the "add node" picker. The canvas needs each node's fields, so
+    // we load the full detail of the tables actually used by the flow below.
     const tablesResp = await gandalf.tables.list(200, 1)
     tables.value = tablesResp.data
 
@@ -238,6 +240,10 @@ async function load() {
     else {
       const resp = await gandalf.flows.getById(routeId.value)
       flow.value = { ...emptyFlow(), ...resp.data }
+      // Fetch full detail (with fields) for every referenced table, in parallel.
+      await Promise.all(
+        [...new Set(flow.value.nodes.map((n) => n.table_id))].map(ensureTableDetail),
+      )
     }
   }
   catch {
@@ -245,6 +251,23 @@ async function load() {
   }
   finally {
     loading.value = false
+  }
+}
+
+// Load a table's full detail (which includes `fields`) and merge it into the
+// tables list, so the canvas can render that node's field handles. The list
+// endpoint omits `fields`, so a table is only "complete" once fetched by id.
+async function ensureTableDetail(tableId: string) {
+  const existing = tables.value.find((t) => t._id === tableId)
+  if (existing?.fields?.length) return
+  try {
+    const resp = await gandalf.tables.getById(tableId)
+    const idx = tables.value.findIndex((t) => t._id === tableId)
+    if (idx >= 0) tables.value[idx] = resp.data
+    else tables.value.push(resp.data)
+  }
+  catch {
+    // Table may have been deleted; the canvas shows it as "missing".
   }
 }
 
@@ -270,9 +293,12 @@ function removeInput(key: string) {
 
 function addNode() {
   if (!newNode.node_id || !newNode.table_id) return
+  const tableId = newNode.table_id
   if (!flow.value.nodes.some((n) => n.node_id === newNode.node_id)) {
-    flow.value.nodes.push({ node_id: newNode.node_id, table_id: newNode.table_id })
+    flow.value.nodes.push({ node_id: newNode.node_id, table_id: tableId })
   }
+  // Load the table's fields so its field handles render on the canvas.
+  ensureTableDetail(tableId)
   newNode.node_id = ''
   newNode.table_id = ''
   nodeModalOpen.value = false
