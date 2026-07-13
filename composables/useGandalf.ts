@@ -2,6 +2,7 @@ import type { OAuthToken } from '~/types/api'
 import type { DecisionTable } from '~/types/decision-table'
 import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, ConfirmCollaboratorResult } from '~/types/project'
 import type { Group } from '~/types/group'
+import type { Flow, FlowRun, FlowResult } from '~/types/flow'
 
 function btoa64(str: string): string {
   return btoa(str)
@@ -317,6 +318,48 @@ export function useGandalf() {
       request<{ data: unknown }>(`${apiBase}/v1/admin/tables/${tableId}/${variantId}/analytics`),
   }
 
+  // ─── Flows (Decision Requirement Graph) ───────────────────────────────────
+
+  const flows = {
+    list: (size?: number, page?: number, filter?: { title?: string }) =>
+      request<{ data: Flow[]; meta: unknown }>(`${apiBase}/v1/admin/flows`, {
+        params: { size, page, ...filter },
+      }),
+
+    getById: (id: string) =>
+      request<{ data: Flow }>(`${apiBase}/v1/admin/flows/${id}`),
+
+    create: (flow: Partial<Flow>) =>
+      request<{ data: Flow }>(`${apiBase}/v1/admin/flows/`, {
+        method: 'POST',
+        body: flow,
+      }),
+
+    update: (id: string, flow: Partial<Flow>) =>
+      request<{ data: Flow }>(`${apiBase}/v1/admin/flows/${id}`, {
+        method: 'PUT',
+        body: flow,
+      }),
+
+    delete: (id: string) =>
+      request(`${apiBase}/v1/admin/flows/${id}`, { method: 'DELETE' }),
+
+    // Paginated run history for a flow (most recent first).
+    getRuns: (id: string, size?: number, page?: number) =>
+      request<{ data: FlowRun[]; meta: unknown }>(`${apiBase}/v1/admin/flows/${id}/runs`, {
+        params: { size, page },
+      }),
+
+    // Execute a flow. Like every endpoint, the DRG result comes wrapped in the
+    // standard { meta, data } envelope; `data` is the FlowResult
+    // (flow_run_id, answer, answer_types, decision_kind, nodes).
+    run: (id: string, inputs: Record<string, unknown>) =>
+      request<{ data: FlowResult }>(`${apiBase}/v1/flows/${id}/decisions`, {
+        method: 'POST',
+        body: inputs,
+      }),
+  }
+
   // ─── Groups ───────────────────────────────────────────────────────────────
 
   const groups = {
@@ -374,5 +417,5 @@ export function useGandalf() {
       request<{ data: unknown }>(`${apiBase}/v1/decisions/${decisionId}`),
   }
 
-  return { auth, users, projects, tables, groups, history, consumer }
+  return { auth, users, projects, tables, flows, groups, history, consumer }
 }

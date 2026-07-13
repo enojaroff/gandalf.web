@@ -102,6 +102,7 @@ onMounted(async () => {
 
 const navItems = computed(() => [
   { label: t('nav.tables'), to: '/tables' },
+  { label: t('nav.flows'), to: '/flows' },
   { label: t('nav.groups'), to: '/groups' },
   { label: t('nav.history'), to: '/history' },
   { label: t('nav.settings'), to: '/settings/project' },
