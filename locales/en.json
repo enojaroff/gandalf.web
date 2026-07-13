@@ -142,7 +142,8 @@
     "loadError": "Failed to load flows",
     "saveError": "Failed to save the flow",
     "deleteError": "Failed to delete the flow",
-    "deleteConfirm": "Delete flow \"{title}\"?"
+    "deleteConfirm": "Delete flow \"{title}\"?",
+    "wireHint": "Drag from a blue dot on the right of an input or table, to a dot on the left of a table field."
   },
   "fields": {
     "key": "Key",

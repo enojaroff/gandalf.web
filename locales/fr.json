@@ -142,7 +142,8 @@
     "loadError": "Échec du chargement des flows",
     "saveError": "Échec de l'enregistrement du flow",
     "deleteError": "Échec de la suppression du flow",
-    "deleteConfirm": "Supprimer le flow « {title} » ?"
+    "deleteConfirm": "Supprimer le flow « {title} » ?",
+    "wireHint": "Glissez depuis un point bleu à droite d'une entrée ou d'une table, vers un point à gauche d'un champ de table."
   },
   "fields": {
     "key": "Clé",

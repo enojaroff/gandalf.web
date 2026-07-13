@@ -21,6 +21,7 @@
       :default-viewport="{ zoom: 0.9 }"
       :min-zoom="0.2"
       :max-zoom="2"
+      :connect-on-click="true"
       fit-view-on-init
       @connect="onConnect"
       @edges-change="onEdgesChange"
@@ -28,6 +29,12 @@
     >
       <Background :gap="16" pattern-color="#cbd5e1" />
       <Controls />
+
+      <!-- How-to-wire hint -->
+      <Panel position="top-left" class="vf-hint">
+        <UIcon name="i-lucide-mouse-pointer-click" class="vf-hint__icon" />
+        <span>{{ $t('flows.wireHint') }}</span>
+      </Panel>
 
       <!-- Input node -->
       <template #node-input="{ data }">
@@ -37,7 +44,7 @@
             <div class="vf-node__title">{{ data.label }}</div>
             <div class="vf-node__sub">{{ data.type }}</div>
           </div>
-          <Handle :id="data.key" type="source" :position="Position.Right" />
+          <Handle :id="data.key" type="source" :position="Position.Right" class="vf-handle vf-handle--source" />
         </div>
       </template>
 
@@ -84,7 +91,7 @@
       <!-- Output node -->
       <template #node-output="{ data }">
         <div class="vf-node vf-node--output">
-          <Handle :id="`out:${data.name}`" type="target" :position="Position.Left" />
+          <Handle :id="`out:${data.name}`" type="target" :position="Position.Left" class="vf-handle vf-handle--field" />
           <div class="vf-node__body">
             <div class="vf-node__title">{{ data.name }}</div>
             <div class="vf-node__sub">{{ $t('flows.output') }}</div>
@@ -103,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { VueFlow, Handle, Position, useVueFlow } from '@vue-flow/core'
+import { VueFlow, Handle, Position, Panel, useVueFlow } from '@vue-flow/core'
 import type { Connection, EdgeChange, NodeChange, Node, Edge } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -306,6 +313,7 @@ watch(() => props.flow.nodes.length, () => nextTick(() => updateNodeInternals())
 }
 
 .vf-node {
+  position: relative;
   border-radius: 8px;
   border: 1px solid var(--ui-border);
   background: var(--ui-bg);
@@ -412,11 +420,66 @@ watch(() => props.flow.nodes.length, () => nextTick(() => updateNodeInternals())
   color: var(--ui-primary);
 }
 
-.vf-handle--field {
+/* Handles: make them large, visible and obviously grabbable. Vue Flow's base
+   style.css only positions them (5px, no colour); we override the internal
+   .vue-flow__handle class via :deep so they read as real connection points. */
+:deep(.vue-flow__handle) {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ui-bg);
+  border-radius: 100%;
+  background: #94a3b8;
+  cursor: crosshair;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+/* Source handles (right side): where you START a wire. */
+:deep(.vf-handle--source) {
   background: #3b82f6;
 }
 
-.vf-handle--out {
+/* Field target handles (left side): where you DROP a wire. */
+:deep(.vf-handle--field) {
+  background: #3b82f6;
+}
+
+/* A table's final_decision output handle. */
+:deep(.vf-handle--out) {
   background: var(--ui-primary);
+}
+
+/* Grow on hover so the grab target is forgiving and the affordance is clear. */
+:deep(.vue-flow__handle:hover) {
+  transform: scale(1.4);
+}
+
+:deep(.vue-flow__handle.connecting),
+:deep(.vue-flow__handle.connectionindicator) {
+  background: var(--ui-primary);
+}
+
+/* Highlight valid drop targets while dragging a connection. */
+:deep(.vue-flow__handle-connecting) {
+  transform: scale(1.5);
+}
+
+.vf-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--ui-text-muted);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  max-width: 260px;
+}
+
+.vf-hint__icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: var(--ui-primary);
 }
 </style>

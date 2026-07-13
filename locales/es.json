@@ -141,7 +141,8 @@
     "loadError": "Error al cargar los flujos",
     "saveError": "Error al guardar el flujo",
     "deleteError": "Error al eliminar el flujo",
-    "deleteConfirm": "¿Eliminar el flujo «{title}»?"
+    "deleteConfirm": "¿Eliminar el flujo «{title}»?",
+    "wireHint": "Arrastra desde un punto azul a la derecha de una entrada o tabla, hasta un punto a la izquierda de un campo de tabla."
   },
   "fields": {
     "key": "Clave",
