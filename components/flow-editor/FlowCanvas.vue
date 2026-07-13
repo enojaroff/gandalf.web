@@ -36,8 +36,8 @@
         <span>{{ $t('flows.wireHint') }}</span>
       </Panel>
 
-      <!-- Input node -->
-      <template #node-input="{ data }">
+      <!-- Input node (custom type name to avoid Vue Flow's reserved 'input') -->
+      <template #node-finput="{ data }">
         <div class="vf-node vf-node--input">
           <UIcon name="i-lucide-log-in" class="vf-node__icon" />
           <div class="vf-node__body">
@@ -49,7 +49,7 @@
       </template>
 
       <!-- Table node: a target handle per field, one source handle -->
-      <template #node-table="{ data }">
+      <template #node-ftable="{ data }">
         <div class="vf-node vf-node--table" :class="{ 'vf-node--missing': data.missing }">
           <div class="vf-node__header">
             <UIcon name="i-lucide-table-2" class="vf-node__icon" />
@@ -88,8 +88,8 @@
         </div>
       </template>
 
-      <!-- Output node -->
-      <template #node-output="{ data }">
+      <!-- Output node (custom type name to avoid Vue Flow's reserved 'output') -->
+      <template #node-foutput="{ data }">
         <div class="vf-node vf-node--output">
           <Handle :id="`out:${data.name}`" type="target" :position="Position.Left" class="vf-handle vf-handle--field" />
           <div class="vf-node__body">
@@ -169,7 +169,7 @@ const vfNodes = computed<Node[]>(() => {
   for (const inp of props.flow.inputs) {
     nodes.push({
       id: `input:${inp.key}`,
-      type: 'input',
+      type: 'finput',
       position: pos[`input:${inp.key}`],
       data: { key: inp.key, label: inp.key, type: inp.type },
     })
@@ -179,7 +179,7 @@ const vfNodes = computed<Node[]>(() => {
     const table = tablesById.value.get(n.table_id)
     nodes.push({
       id: `table:${n.node_id}`,
-      type: 'table',
+      type: 'ftable',
       position: pos[`table:${n.node_id}`],
       data: {
         nodeId: n.node_id,
@@ -193,7 +193,7 @@ const vfNodes = computed<Node[]>(() => {
   for (const o of props.flow.outputs) {
     nodes.push({
       id: `output:${o.name}`,
-      type: 'output',
+      type: 'foutput',
       position: pos[`output:${o.name}`],
       data: { name: o.name, from_node: o.from_node, from_output: o.from_output },
     })
@@ -433,19 +433,24 @@ watch(() => props.flow.nodes.length, () => nextTick(() => updateNodeInternals())
   transition: transform 0.1s ease, background 0.1s ease;
 }
 
+/* Colours use !important to beat Vue Flow's theme-default rules, which target
+   handles via a two-class selector (e.g. `.vue-flow__node-input .vue-flow__handle`)
+   and would otherwise win on specificity. Our node types are also renamed away
+   from the reserved input/output names so those theme rules no longer match. */
+
 /* Source handles (right side): where you START a wire. */
 :deep(.vf-handle--source) {
-  background: #3b82f6;
+  background: #3b82f6 !important;
 }
 
 /* Field target handles (left side): where you DROP a wire. */
 :deep(.vf-handle--field) {
-  background: #3b82f6;
+  background: #3b82f6 !important;
 }
 
 /* A table's final_decision output handle. */
 :deep(.vf-handle--out) {
-  background: var(--ui-primary);
+  background: var(--ui-primary) !important;
 }
 
 /* Grow on hover so the grab target is forgiving and the affordance is clear. */
