@@ -27,6 +27,9 @@ export interface FlowOutput {
 export interface FlowNode {
   node_id: string
   table_id: string
+  // Optional display name shown in the canvas node header. Useful when the same
+  // table is used by several nodes. The backend stores it but ignores it.
+  label?: string
 }
 
 // Source d'une arête : soit une entrée de flow ({ input }), soit la sortie

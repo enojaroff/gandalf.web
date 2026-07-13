@@ -143,7 +143,9 @@
     "saveError": "Failed to save the flow",
     "deleteError": "Failed to delete the flow",
     "deleteConfirm": "Delete flow \"{title}\"?",
-    "wireHint": "Drag from a blue dot on the right of an input or table, to a dot on the left of a table field."
+    "wireHint": "Drag from a blue dot on the right of an input or table, to a dot on the left of a table field.",
+    "nodeLabel": "Name",
+    "nodeLabelPlaceholder": "e.g. risk check"
   },
   "fields": {
     "key": "Key",
@@ -286,7 +288,8 @@
     "default": "Default",
     "description": "Description",
     "name": "Name",
-    "add": "Add"
+    "add": "Add",
+    "optional": "optional"
   },
   "errors": {
     "required": "This field is required.",

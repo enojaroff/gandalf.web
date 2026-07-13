@@ -121,18 +121,18 @@
     <UModal v-model:open="nodeModalOpen" :title="$t('flows.addNode')">
       <template #body>
         <div class="space-y-3">
-          <UFormField :label="$t('flows.nodeId')">
-            <UInput v-model="newNode.node_id" placeholder="n_risk" class="w-full" />
-          </UFormField>
           <UFormField :label="$t('flows.nodeTable')">
             <USelect v-model="newNode.table_id" :items="tableOptions" class="w-full" :placeholder="$t('flows.selectTable')" />
+          </UFormField>
+          <UFormField :label="$t('flows.nodeLabel')" :hint="$t('common.optional')">
+            <UInput v-model="newNode.label" :placeholder="$t('flows.nodeLabelPlaceholder')" class="w-full" />
           </UFormField>
         </div>
       </template>
       <template #footer>
         <div class="flex justify-end gap-2 w-full">
           <UButton variant="ghost" @click="nodeModalOpen = false">{{ $t('common.cancel') }}</UButton>
-          <UButton :disabled="!newNode.node_id || !newNode.table_id" @click="addNode">{{ $t('common.add') }}</UButton>
+          <UButton :disabled="!newNode.table_id" @click="addNode">{{ $t('common.add') }}</UButton>
         </div>
       </template>
     </UModal>
@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Flow, FlowInput, FlowIOType } from '~/types/flow'
+import type { Flow, FlowInput, FlowIOType, FlowNode } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
 
 definePageMeta({ middleware: 'auth' })
@@ -193,7 +193,7 @@ const nodeModalOpen = ref(false)
 const outputModalOpen = ref(false)
 
 const newInput = reactive<{ key: string; type: FlowIOType }>({ key: '', type: 'string' })
-const newNode = reactive<{ node_id: string; table_id: string }>({ node_id: '', table_id: '' })
+const newNode = reactive<{ table_id: string; label: string }>({ table_id: '', label: '' })
 const newOutput = reactive<{ name: string; from_node: string }>({ name: '', from_node: '' })
 
 const flowTitle = computed({
@@ -291,16 +291,26 @@ function removeInput(key: string) {
   flow.value.edges = flow.value.edges.filter((e) => e.from.input !== key)
 }
 
+// Generate a short, unique, human-readable node id (n_1, n_2, …). The user no
+// longer types it — only the optional label — so we own it.
+function nextNodeId(): string {
+  let i = flow.value.nodes.length + 1
+  const taken = new Set(flow.value.nodes.map((n) => n.node_id))
+  while (taken.has(`n_${i}`)) i++
+  return `n_${i}`
+}
+
 function addNode() {
-  if (!newNode.node_id || !newNode.table_id) return
+  if (!newNode.table_id) return
   const tableId = newNode.table_id
-  if (!flow.value.nodes.some((n) => n.node_id === newNode.node_id)) {
-    flow.value.nodes.push({ node_id: newNode.node_id, table_id: tableId })
-  }
+  const label = newNode.label.trim()
+  const node: FlowNode = { node_id: nextNodeId(), table_id: tableId }
+  if (label) node.label = label
+  flow.value.nodes.push(node)
   // Load the table's fields so its field handles render on the canvas.
   ensureTableDetail(tableId)
-  newNode.node_id = ''
   newNode.table_id = ''
+  newNode.label = ''
   nodeModalOpen.value = false
 }
 

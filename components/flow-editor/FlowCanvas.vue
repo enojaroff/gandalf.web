@@ -53,7 +53,10 @@
         <div class="vf-node vf-node--table" :class="{ 'vf-node--missing': data.missing }">
           <div class="vf-node__header">
             <UIcon name="i-lucide-table-2" class="vf-node__icon" />
-            <div class="vf-node__title">{{ data.label }}</div>
+            <div class="vf-node__heading">
+              <div class="vf-node__title">{{ data.tableTitle ?? data.nodeId }}</div>
+              <div v-if="data.label" class="vf-node__label">{{ data.label }}</div>
+            </div>
             <UButton
               icon="i-lucide-x"
               size="xs"
@@ -114,6 +117,17 @@ import { VueFlow, Handle, Position, Panel, useVueFlow } from '@vue-flow/core'
 import type { Connection, EdgeChange, NodeChange, Node, Edge } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
+
+// Vue Flow's Node generic is deeply recursive and trips TS's "excessively deep"
+// guard as soon as it's used in a Map/record. We keep our own minimal node
+// shape for internal state and cast to Vue Flow's Node only at the <VueFlow>
+// boundary (Vue Flow reads exactly these fields).
+interface VFNode {
+  id: string
+  type: string
+  position: { x: number; y: number }
+  data: Record<string, unknown>
+}
 import type { Flow, FlowEdge } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
 
@@ -142,65 +156,80 @@ const tablesById = computed(() => {
   return map
 })
 
-// ── Layout: assign a column per role, stack rows within a column. ───────────
-function layout() {
-  const colInput = 0
-  const colTable = 360
-  const colOutput = 900
-  const rowGap = 160
-  const pos: Record<string, { x: number; y: number }> = {}
-  props.flow.inputs.forEach((inp, i) => {
-    pos[`input:${inp.key}`] = { x: colInput, y: i * rowGap + 40 }
-  })
-  props.flow.nodes.forEach((n, i) => {
-    pos[`table:${n.node_id}`] = { x: colTable, y: i * (rowGap + 60) + 40 }
-  })
-  props.flow.outputs.forEach((o, i) => {
-    pos[`output:${o.name}`] = { x: colOutput, y: i * rowGap + 40 }
-  })
+// Column x-positions per role; a fresh node gets stacked below the last one in
+// its column. Positions are assigned ONCE per node and then preserved (so a
+// node the user has dragged, or that was already placed, never jumps when the
+// flow changes) — this is why vfNodes is a mutable ref, not a computed.
+const COL = { input: 0, table: 360, output: 900 }
+const ROW_GAP = 170
+
+// Remember every position we have assigned, keyed by node id, so re-syncs and
+// remounts keep the same layout.
+const positions = new Map<string, { x: number; y: number }>()
+
+function nextPosition(id: string, column: keyof typeof COL): { x: number; y: number } {
+  const existing = positions.get(id)
+  if (existing) return existing
+  // Stack below the lowest node currently in this column.
+  const x = COL[column]
+  let maxY = -ROW_GAP + 40
+  for (const [, p] of positions) {
+    if (p.x === x) maxY = Math.max(maxY, p.y)
+  }
+  const pos = { x, y: maxY + ROW_GAP }
+  positions.set(id, pos)
   return pos
 }
 
-// ── Build Vue Flow nodes from the backend flow. ─────────────────────────────
-const vfNodes = computed<Node[]>(() => {
-  const pos = layout()
-  const nodes: Node[] = []
+const vfNodes = ref<VFNode[]>([])
+
+// Reconcile vfNodes with the backend flow: add new nodes (assigning a position
+// once), refresh the data of existing ones IN PLACE (keeping their position),
+// and drop nodes that no longer exist. Never re-lays-out existing nodes.
+function syncNodes() {
+  // Plain record index (a typed Map.set on Vue Flow's deep Node generic trips
+  // "excessively deep" inference).
+  const byId: Record<string, VFNode> = {}
+  for (const n of vfNodes.value) byId[n.id] = n
+  const next: VFNode[] = []
+  const keep = new Set<string>()
+
+  const upsert = (id: string, type: string, column: keyof typeof COL, data: Record<string, unknown>) => {
+    keep.add(id)
+    const existing = byId[id]
+    if (existing) {
+      existing.data = data // refresh data, keep position/selection
+      next.push(existing)
+    }
+    else {
+      next.push({ id, type, position: nextPosition(id, column), data } as VFNode)
+    }
+  }
 
   for (const inp of props.flow.inputs) {
-    nodes.push({
-      id: `input:${inp.key}`,
-      type: 'finput',
-      position: pos[`input:${inp.key}`],
-      data: { key: inp.key, label: inp.key, type: inp.type },
-    })
+    upsert(`input:${inp.key}`, 'finput', 'input', { key: inp.key, label: inp.key, type: inp.type })
   }
-
   for (const n of props.flow.nodes) {
     const table = tablesById.value.get(n.table_id)
-    nodes.push({
-      id: `table:${n.node_id}`,
-      type: 'ftable',
-      position: pos[`table:${n.node_id}`],
-      data: {
-        nodeId: n.node_id,
-        label: table?.title ?? n.node_id,
-        missing: !table,
-        fields: (table?.fields ?? []).map((f) => ({ key: f.key, type: f.type })),
-      },
+    upsert(`table:${n.node_id}`, 'ftable', 'table', {
+      nodeId: n.node_id,
+      tableTitle: table?.title ?? null,
+      label: n.label ?? '',
+      missing: !table,
+      fields: (table?.fields ?? []).map((f) => ({ key: f.key, type: f.type })),
     })
   }
-
   for (const o of props.flow.outputs) {
-    nodes.push({
-      id: `output:${o.name}`,
-      type: 'foutput',
-      position: pos[`output:${o.name}`],
-      data: { name: o.name, from_node: o.from_node, from_output: o.from_output },
-    })
+    upsert(`output:${o.name}`, 'foutput', 'output', { name: o.name, from_node: o.from_node, from_output: o.from_output })
   }
 
-  return nodes
-})
+  // Forget positions of removed nodes so a future node can reuse the slot.
+  for (const id of positions.keys()) {
+    if (!keep.has(id)) positions.delete(id)
+  }
+
+  vfNodes.value = next
+}
 
 // ── Build Vue Flow edges from backend edges + outputs. ──────────────────────
 const vfEdges = computed<Edge[]>(() => {
@@ -298,11 +327,34 @@ function onEdgesChange(changes: EdgeChange[]) {
   emit('update:flow', flow)
 }
 
-// Positions change purely client-side; Vue Flow manages them internally.
-function onNodesChange(_changes: NodeChange[]) {}
+// Positions are client-side only. When the user drags a node, remember its new
+// position so a later sync (and any newly-added node) respects it.
+function onNodesChange(changes: NodeChange[]) {
+  for (const c of changes) {
+    if (c.type === 'position' && c.position) {
+      positions.set(c.id, { x: c.position.x, y: c.position.y })
+    }
+  }
+}
 
-// Re-measure handles when the field set of a node changes.
-watch(() => props.flow.nodes.length, () => nextTick(() => updateNodeInternals()))
+// Rebuild the node set from the flow only when the STRUCTURE changes (a node,
+// input or output added/removed, or a table's fields arriving) — not on every
+// edge tweak, and never re-laying-out existing nodes. A structural signature
+// keeps the watch from firing on unrelated flow mutations.
+const structureKey = computed(() =>
+  JSON.stringify({
+    i: props.flow.inputs.map((x) => x.key),
+    n: props.flow.nodes.map((x) => [x.node_id, x.table_id, x.label ?? '']),
+    o: props.flow.outputs.map((x) => x.name),
+    // include field counts so handles appear once table detail loads
+    f: props.flow.nodes.map((x) => tablesById.value.get(x.table_id)?.fields?.length ?? 0),
+  }),
+)
+
+watch(structureKey, () => {
+  syncNodes()
+  nextTick(() => updateNodeInternals())
+}, { immediate: true })
 </script>
 
 <style scoped>
@@ -368,8 +420,15 @@ watch(() => props.flow.nodes.length, () => nextTick(() => updateNodeInternals())
   border-bottom: 1px solid var(--ui-border);
 }
 
-.vf-node__header .vf-node__title {
+.vf-node__heading {
   flex: 1;
+  min-width: 0;
+}
+
+.vf-node__label {
+  font-size: 10px;
+  color: var(--ui-primary);
+  font-style: italic;
 }
 
 .vf-node__remove {

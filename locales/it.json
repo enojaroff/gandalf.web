@@ -142,7 +142,9 @@
     "saveError": "Salvataggio del flow non riuscito",
     "deleteError": "Eliminazione del flow non riuscita",
     "deleteConfirm": "Eliminare il flow \"{title}\"?",
-    "wireHint": "Trascina da un punto blu a destra di un ingresso o tabella, verso un punto a sinistra di un campo tabella."
+    "wireHint": "Trascina da un punto blu a destra di un ingresso o tabella, verso un punto a sinistra di un campo tabella.",
+    "nodeLabel": "Nome",
+    "nodeLabelPlaceholder": "es. controllo rischio"
   },
   "fields": {
     "key": "Chiave",
@@ -251,7 +253,8 @@
     "default": "Predefinito",
     "description": "Descrizione",
     "name": "Nome",
-    "add": "Aggiungi"
+    "add": "Aggiungi",
+    "optional": "opzionale"
   },
   "errors": {
     "required": "Questo campo è obbligatorio.",

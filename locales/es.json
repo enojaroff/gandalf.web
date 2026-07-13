@@ -142,7 +142,9 @@
     "saveError": "Error al guardar el flujo",
     "deleteError": "Error al eliminar el flujo",
     "deleteConfirm": "¿Eliminar el flujo «{title}»?",
-    "wireHint": "Arrastra desde un punto azul a la derecha de una entrada o tabla, hasta un punto a la izquierda de un campo de tabla."
+    "wireHint": "Arrastra desde un punto azul a la derecha de una entrada o tabla, hasta un punto a la izquierda de un campo de tabla.",
+    "nodeLabel": "Nombre",
+    "nodeLabelPlaceholder": "ej. control de riesgo"
   },
   "fields": {
     "key": "Clave",
@@ -251,7 +253,8 @@
     "default": "Por defecto",
     "description": "Descripción",
     "name": "Nombre",
-    "add": "Añadir"
+    "add": "Añadir",
+    "optional": "opcional"
   },
   "errors": {
     "required": "Este campo es obligatorio.",

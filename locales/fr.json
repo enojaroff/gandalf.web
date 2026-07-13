@@ -143,7 +143,9 @@
     "saveError": "Échec de l'enregistrement du flow",
     "deleteError": "Échec de la suppression du flow",
     "deleteConfirm": "Supprimer le flow « {title} » ?",
-    "wireHint": "Glissez depuis un point bleu à droite d'une entrée ou d'une table, vers un point à gauche d'un champ de table."
+    "wireHint": "Glissez depuis un point bleu à droite d'une entrée ou d'une table, vers un point à gauche d'un champ de table.",
+    "nodeLabel": "Nom",
+    "nodeLabelPlaceholder": "ex. contrôle du risque"
   },
   "fields": {
     "key": "Clé",
@@ -286,7 +288,8 @@
     "default": "Défaut",
     "description": "Description",
     "name": "Nom",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "optional": "optionnel"
   },
   "errors": {
     "required": "Ce champ est requis.",
