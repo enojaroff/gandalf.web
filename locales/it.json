@@ -90,7 +90,19 @@
       "scoring_max": "Restituisce il punteggio massimo tra le regole corrispondenti.",
       "scoring_min": "Restituisce il punteggio minimo tra le regole corrispondenti.",
       "scoring_count": "Conta il numero di regole corrispondenti."
-    }
+    },
+    "exportExcel": "Esporta Excel",
+    "importExcel": "Importa Excel",
+    "exportError": "Esportazione della tabella non riuscita.",
+    "importError": "Importazione del file non riuscita.",
+    "importSuccess": "Tabella importata con successo.",
+    "importNotFound": "La tabella indicata da questo file non esiste più in questo progetto.",
+    "importErrorsTitle": "Errori di importazione",
+    "importConflictTitle": "Tabella modificata dopo l'esportazione",
+    "importConflictBody": "Questa tabella è stata modificata sul server dopo l'esportazione del file. Sovrascrivere eliminerà quelle modifiche.",
+    "importConflictServer": "Ultima modifica sul server",
+    "importConflictFile": "File esportato il",
+    "importForce": "Sovrascrivi comunque"
   },
   "flows": {
     "title": "Flow",
@@ -254,7 +266,8 @@
     "description": "Descrizione",
     "name": "Nome",
     "add": "Aggiungi",
-    "optional": "opzionale"
+    "optional": "opzionale",
+    "close": "Chiudi"
   },
   "errors": {
     "required": "Questo campo è obbligatorio.",

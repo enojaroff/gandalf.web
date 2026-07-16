@@ -1,11 +1,10 @@
-import { defineEventHandler, getRouterParam, getMethod, getHeaders, getQuery, readBody, setResponseStatus, setResponseHeader } from 'h3'
+import { defineEventHandler, getRouterParam, getHeaders, getQuery, proxyRequest } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const apiEndpoint: string = (config.apiEndpoint as string) || 'https://api.gndf.io/'
 
   const path = getRouterParam(event, 'path') ?? ''
-  const method = getMethod(event)
   const incomingHeaders = getHeaders(event)
   const query = getQuery(event)
 
@@ -25,32 +24,12 @@ export default defineEventHandler(async (event) => {
     : ''
   const targetUrl = `${base}/api/${path}${queryStr}`
 
-  // Parse and re-serialize body for mutating methods to ensure correct encoding
-  let bodyStr: string | undefined
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    const parsed = await readBody(event)
-    if (parsed !== null && parsed !== undefined) {
-      bodyStr = JSON.stringify(parsed)
-      forwardHeaders['content-type'] = 'application/json'
-    }
-  }
-
-  const response = await fetch(targetUrl, {
-    method,
+  // proxyRequest streams the incoming body (JSON and multipart alike, the
+  // multipart boundary lives in the forwarded content-type header) and the
+  // upstream response (JSON and binary downloads alike) without any text
+  // decoding — the previous hand-rolled fetch + response.text() corrupted
+  // binary Excel downloads and multipart uploads.
+  return proxyRequest(event, targetUrl, {
     headers: forwardHeaders,
-    body: bodyStr,
   })
-
-  const responseText = await response.text()
-
-  setResponseStatus(event, response.status)
-  const ct = response.headers.get('content-type')
-  if (ct) setResponseHeader(event, 'content-type', ct)
-
-  try {
-    return JSON.parse(responseText)
-  }
-  catch {
-    return responseText
-  }
 })
