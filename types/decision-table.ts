@@ -113,3 +113,21 @@ export interface DiffTable {
     rules: unknown[]
   }
 }
+
+// Erreur adressée par cellule retournée par l'import Excel (422)
+export interface TableImportError {
+  cell: string | null
+  row: number | null
+  column: string | null
+  field: string | null
+  message: string
+}
+
+// Corps de la réponse 409 de l'import Excel (verrou optimiste)
+export interface TableImportConflict {
+  message: string
+  error: 'table_conflict'
+  server_updated_at: string
+  file_exported_at: string
+  hint: string
+}

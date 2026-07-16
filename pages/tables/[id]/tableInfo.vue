@@ -51,12 +51,15 @@
           </div>
         </div>
 
-        <UButton
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="ghost"
-          @click="confirmDelete"
-        />
+        <div class="flex items-center gap-2">
+          <DecisionTableExcelExportImport :table-id="tableId" @imported="onImported" />
+          <UButton
+            icon="i-lucide-trash-2"
+            color="error"
+            variant="ghost"
+            @click="confirmDelete"
+          />
+        </div>
       </div>
 
       <TableNav :table-id="tableId" :variants="table.variants" />
@@ -181,9 +184,16 @@
               >
                 {{ variant.title }}
               </NuxtLink>
-              <span class="text-muted">
+              <span class="flex items-center gap-2 text-muted">
                 {{ variant.rules.length }} rule{{ variant.rules.length !== 1 ? 's' : '' }}
                 · {{ variant.probability }}%
+                <UButton
+                  icon="i-lucide-download"
+                  variant="ghost"
+                  size="xs"
+                  :title="$t('tables.exportExcel')"
+                  @click="excel.exportExcel(tableId, variant._id)"
+                />
               </span>
             </li>
           </ul>
@@ -213,6 +223,8 @@ definePageMeta({ path: '/tables/:id/info', middleware: 'auth' })
 const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
+// Export Excel par variante (boutons de la carte "Variants")
+const excel = useTableExcel()
 
 const tableId = route.params.id as string
 const table = ref<DecisionTable | null>(null)
@@ -237,6 +249,17 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+/** Import Excel réussi : rafraîchit l'état local avec la table renvoyée. */
+function onImported(imported: DecisionTable) {
+  if (imported._id === tableId) {
+    table.value = imported
+  }
+  else {
+    // mode=create : nouvelle table — proposer d'y naviguer via un lien discret
+    navigateTo(`/tables/${imported._id}/info`)
+  }
+}
 
 const breadcrumbs = computed(() => [
   { label: t('nav.tables'), to: '/tables' },

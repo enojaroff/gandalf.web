@@ -315,6 +315,64 @@ export function useGandalf() {
 
     getAnalytics: (tableId: string, variantId: string) =>
       request<{ data: unknown }>(`${apiBase}/v1/admin/tables/${tableId}/${variantId}/analytics`),
+
+    /**
+     * Télécharge une variante de la table en classeur Excel round-trip
+     * (gandalf-xlsx-v2). Sans variantId, exporte la variante par défaut.
+     * Retourne le Blob + le nom de fichier suggéré par le serveur.
+     */
+    exportExcel: async (id: string, variantId?: string): Promise<{ blob: Blob; filename: string }> => {
+      const authStore = useAuthStore()
+      const projectsStore = useProjectsStore()
+      const headers: Record<string, string> = {}
+      if (authStore.accessToken && authStore.tokenType) {
+        headers['Authorization'] = `${authStore.tokenType} ${authStore.accessToken}`
+      }
+      if (projectsStore.selectedProjectId) {
+        headers['X-Application'] = projectsStore.selectedProjectId
+      }
+      const url = buildUrl(`${apiBase}/v1/admin/tables/${id}/export`, {
+        format: 'excel',
+        variant_id: variantId,
+      })
+      const response = await $fetch.raw(url, { headers, responseType: 'blob' })
+      const disposition = response.headers.get('content-disposition') ?? ''
+      const match = disposition.match(/filename="?([^";]+)"?/)
+      return {
+        blob: response._data as Blob,
+        filename: match?.[1] ?? 'table.xlsx',
+      }
+    },
+
+    /**
+     * Importe un fichier de table (Excel round-trip → mise à jour de la table
+     * d'origine ; JSON/CSV/legacy → création). Le Content-Type est laissé au
+     * navigateur pour que le boundary multipart soit correct.
+     *
+     * Réponses d'erreur à gérer côté appelant :
+     *  - 409 { error: 'table_conflict', server_updated_at, file_exported_at } → proposer force
+     *  - 422 { errors: [{ cell, row, column, field, message }] } → afficher la liste
+     */
+    importFile: async (file: File, opts: { force?: boolean; mode?: 'auto' | 'create' | 'update' } = {}): Promise<{ data: DecisionTable }> => {
+      const authStore = useAuthStore()
+      const projectsStore = useProjectsStore()
+      const headers: Record<string, string> = {}
+      if (authStore.accessToken && authStore.tokenType) {
+        headers['Authorization'] = `${authStore.tokenType} ${authStore.accessToken}`
+      }
+      if (projectsStore.selectedProjectId) {
+        headers['X-Application'] = projectsStore.selectedProjectId
+      }
+      const form = new FormData()
+      form.append('file', file)
+      if (opts.force) form.append('force', '1')
+      if (opts.mode) form.append('mode', opts.mode)
+      return await $fetch<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/import`, {
+        method: 'POST',
+        headers,
+        body: form,
+      })
+    },
   }
 
   // ─── Groups ───────────────────────────────────────────────────────────────
