@@ -90,7 +90,19 @@
       "scoring_max": "Retourne le score maximum parmi les règles correspondantes.",
       "scoring_min": "Retourne le score minimum parmi les règles correspondantes.",
       "scoring_count": "Compte le nombre de règles correspondantes."
-    }
+    },
+    "exportExcel": "Exporter Excel",
+    "importExcel": "Importer Excel",
+    "exportError": "Échec de l'export de la table.",
+    "importError": "Échec de l'import du fichier.",
+    "importSuccess": "Table importée avec succès.",
+    "importNotFound": "La table référencée par ce fichier n'existe plus dans ce projet.",
+    "importErrorsTitle": "Erreurs d'import",
+    "importConflictTitle": "Table modifiée depuis l'export",
+    "importConflictBody": "Cette table a été modifiée sur le serveur après l'export de ce fichier. Écraser fera perdre ces modifications.",
+    "importConflictServer": "Dernière modification serveur",
+    "importConflictFile": "Fichier exporté le",
+    "importForce": "Écraser quand même"
   },
   "fields": {
     "key": "Clé",
