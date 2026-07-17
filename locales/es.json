@@ -90,7 +90,19 @@
       "scoring_max": "Devuelve la puntuación máxima entre las reglas coincidentes.",
       "scoring_min": "Devuelve la puntuación mínima entre las reglas coincidentes.",
       "scoring_count": "Cuenta el número de reglas coincidentes."
-    }
+    },
+    "exportExcel": "Exportar Excel",
+    "importExcel": "Importar Excel",
+    "exportError": "Error al exportar la tabla.",
+    "importError": "Error al importar el archivo.",
+    "importSuccess": "Tabla importada correctamente.",
+    "importNotFound": "La tabla a la que hace referencia este archivo ya no existe en este proyecto.",
+    "importErrorsTitle": "Errores de importación",
+    "importConflictTitle": "Tabla modificada desde la exportación",
+    "importConflictBody": "Esta tabla se modificó en el servidor después de exportar este archivo. Sobrescribir descartará esos cambios.",
+    "importConflictServer": "Última modificación en el servidor",
+    "importConflictFile": "Archivo exportado el",
+    "importForce": "Sobrescribir de todos modos"
   },
   "flows": {
     "title": "Flujos",
@@ -258,7 +270,8 @@
     "description": "Descripción",
     "name": "Nombre",
     "add": "Añadir",
-    "optional": "opcional"
+    "optional": "opcional",
+    "close": "Cerrar"
   },
   "errors": {
     "required": "Este campo es obligatorio.",

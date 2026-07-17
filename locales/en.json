@@ -91,7 +91,19 @@
       "scoring_max": "Returns the maximum score among matching rules.",
       "scoring_min": "Returns the minimum score among matching rules.",
       "scoring_count": "Counts the number of matching rules."
-    }
+    },
+    "exportExcel": "Export Excel",
+    "importExcel": "Import Excel",
+    "exportError": "Failed to export the table.",
+    "importError": "Failed to import the file.",
+    "importSuccess": "Table imported successfully.",
+    "importNotFound": "The table referenced by this file no longer exists in this project.",
+    "importErrorsTitle": "Import errors",
+    "importConflictTitle": "Table changed since export",
+    "importConflictBody": "This table was modified on the server after this file was exported. Overwriting will discard those changes.",
+    "importConflictServer": "Server last modified",
+    "importConflictFile": "File exported at",
+    "importForce": "Overwrite anyway"
   },
   "flows": {
     "title": "Flows",

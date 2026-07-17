@@ -18,6 +18,11 @@
           </div>
         </div>
         <div class="flex gap-2">
+          <DecisionTableExcelExportImport
+            :table-id="tableId"
+            :variant-id="variantId"
+            @imported="onImported"
+          />
           <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
             {{ $t('tables.addRule') }}
           </UButton>
@@ -232,6 +237,15 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+/** Import Excel réussi : l'API renvoie la table à jour, on remplace l'état local. */
+function onImported(imported: DecisionTable) {
+  // L'import round-trip met à jour la table courante ; un import mode=create
+  // renverrait une autre table — dans ce cas on ne remplace pas l'éditeur.
+  if (imported._id === tableId) {
+    table.value = imported
+  }
+}
 
 const breadcrumbs = computed(() => [
   { label: 'Tables', to: '/tables' },
