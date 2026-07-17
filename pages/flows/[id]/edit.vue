@@ -4,13 +4,13 @@
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
     <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 flex-1 mr-4">
+        <UIcon name="i-lucide-pencil" class="text-muted shrink-0" />
         <UInput
           v-model="flowTitle"
           :placeholder="$t('flows.titlePlaceholder')"
           size="lg"
-          variant="none"
-          class="text-xl font-bold"
+          class="text-xl font-bold flex-1 max-w-md"
         />
       </div>
       <div class="flex items-center gap-2">
@@ -25,6 +25,14 @@
         <UButton icon="i-lucide-save" :loading="saving" @click="save">
           {{ $t('common.save') }}
         </UButton>
+        <UButton
+          v-if="!isNew"
+          icon="i-lucide-trash-2"
+          color="error"
+          variant="ghost"
+          :title="$t('flows.deleteFlow')"
+          @click="deleteModalOpen = true"
+        />
       </div>
     </div>
 
@@ -70,9 +78,18 @@
           <div>
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.nodes') }}</span>
-              <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="nodeModalOpen = true" />
+              <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="openNodeModal" />
             </div>
             <div v-if="!flow.nodes.length" class="text-xs text-muted">{{ $t('flows.noNodes') }}</div>
+            <div v-else class="space-y-1">
+              <div v-for="n in flow.nodes" :key="n.node_id" class="flex items-center justify-between text-sm py-1">
+                <span class="truncate">
+                  {{ nodeDisplayName(n) }}
+                  <span class="text-muted font-mono text-xs">{{ n.node_id }}</span>
+                </span>
+                <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeNode(n.node_id)" />
+              </div>
+            </div>
           </div>
 
           <div>
@@ -122,7 +139,16 @@
       <template #body>
         <div class="space-y-3">
           <UFormField :label="$t('flows.nodeTable')">
-            <USelect v-model="newNode.table_id" :items="tableOptions" class="w-full" :placeholder="$t('flows.selectTable')" />
+            <USelect
+              v-model="newNode.table_id"
+              :items="tableOptions"
+              class="w-full"
+              :placeholder="$t('flows.selectTable')"
+              @update:model-value="onNodeTableChange"
+            />
+          </UFormField>
+          <UFormField :label="$t('flows.nodeId')" :error="nodeIdError">
+            <UInput v-model="newNode.node_id" class="w-full font-mono" />
           </UFormField>
           <UFormField :label="$t('flows.nodeLabel')" :hint="$t('common.optional')">
             <UInput v-model="newNode.label" :placeholder="$t('flows.nodeLabelPlaceholder')" class="w-full" />
@@ -132,7 +158,7 @@
       <template #footer>
         <div class="flex justify-end gap-2 w-full">
           <UButton variant="ghost" @click="nodeModalOpen = false">{{ $t('common.cancel') }}</UButton>
-          <UButton :disabled="!newNode.table_id" @click="addNode">{{ $t('common.add') }}</UButton>
+          <UButton :disabled="!newNode.table_id || nodeIdError !== ''" @click="addNode">{{ $t('common.add') }}</UButton>
         </div>
       </template>
     </UModal>
@@ -157,11 +183,27 @@
       </template>
     </UModal>
 
+    <!-- Delete confirmation modal -->
+    <UModal v-model:open="deleteModalOpen" :title="$t('flows.deleteFlow')">
+      <template #body>
+        <p class="text-sm">
+          {{ $t('flows.deleteFlowConfirm', { title: flow.title || $t('flows.untitled') }) }}
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton variant="ghost" @click="deleteModalOpen = false">{{ $t('common.cancel') }}</UButton>
+          <UButton color="error" :loading="deleting" @click="deleteFlow">{{ $t('common.delete') }}</UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Run panel -->
     <FlowEditorRunPanel
       v-if="!isNew"
       v-model:open="runPanelOpen"
       :flow="flow"
+      :node-labels="nodeLabels"
     />
   </div>
 </template>
@@ -185,15 +227,17 @@ const flow = ref<Flow>(emptyFlow())
 const tables = ref<DecisionTable[]>([])
 const loading = ref(true)
 const saving = ref(false)
+const deleting = ref(false)
 const validationErrors = ref<string[]>([])
 const runPanelOpen = ref(false)
 
 const inputModalOpen = ref(false)
 const nodeModalOpen = ref(false)
 const outputModalOpen = ref(false)
+const deleteModalOpen = ref(false)
 
 const newInput = reactive<{ key: string; type: FlowIOType }>({ key: '', type: 'string' })
-const newNode = reactive<{ table_id: string; label: string }>({ table_id: '', label: '' })
+const newNode = reactive<{ table_id: string; node_id: string; label: string }>({ table_id: '', node_id: '', label: '' })
 const newOutput = reactive<{ name: string; from_node: string }>({ name: '', from_node: '' })
 
 const flowTitle = computed({
@@ -216,9 +260,34 @@ const tableOptions = computed(() =>
   tables.value.map((t) => ({ label: t.title, value: t._id })),
 )
 
+// Human-readable name for a node: its label, else the referenced table title,
+// falling back to the raw id. Used by the output picker and the run trace so
+// the user sees "Scoring FR" instead of "n_2".
+function nodeDisplayName(node: FlowNode): string {
+  if (node.label) return node.label
+  const table = tables.value.find((t) => t._id === node.table_id)
+  return table?.title ?? node.node_id
+}
+
+// node_id → display name, passed to the RunPanel so its node trace shows names.
+const nodeLabels = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const n of flow.value.nodes) map[n.node_id] = nodeDisplayName(n)
+  return map
+})
+
 const nodeOptions = computed(() =>
-  flow.value.nodes.map((n) => ({ label: n.node_id, value: n.node_id })),
+  flow.value.nodes.map((n) => ({ label: nodeDisplayName(n), value: n.node_id })),
 )
+
+// Live validation of the (editable) node id: format + uniqueness.
+const nodeIdError = computed(() => {
+  const id = newNode.node_id.trim()
+  if (id === '') return t('flows.nodeIdInvalid')
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) return t('flows.nodeIdInvalid')
+  if (flow.value.nodes.some((n) => n.node_id === id)) return t('flows.nodeIdDuplicate')
+  return ''
+})
 
 function emptyFlow(): Flow {
   return { _id: '', title: '', description: '', inputs: [], outputs: [], nodes: [], edges: [] }
@@ -300,16 +369,31 @@ function nextNodeId(): string {
   return `n_${i}`
 }
 
+// Reset the add-node form and open the modal with a fresh default id.
+function openNodeModal() {
+  newNode.table_id = ''
+  newNode.node_id = nextNodeId()
+  newNode.label = ''
+  nodeModalOpen.value = true
+}
+
+// Refresh the default id when a table is picked, unless the user already typed
+// their own (i.e. it still matches the auto value).
+function onNodeTableChange() {
+  if (newNode.node_id.trim() === '') newNode.node_id = nextNodeId()
+}
+
 function addNode() {
-  if (!newNode.table_id) return
+  if (!newNode.table_id || nodeIdError.value !== '') return
   const tableId = newNode.table_id
   const label = newNode.label.trim()
-  const node: FlowNode = { node_id: nextNodeId(), table_id: tableId }
+  const node: FlowNode = { node_id: newNode.node_id.trim(), table_id: tableId }
   if (label) node.label = label
   flow.value.nodes.push(node)
   // Load the table's fields so its field handles render on the canvas.
   ensureTableDetail(tableId)
   newNode.table_id = ''
+  newNode.node_id = ''
   newNode.label = ''
   nodeModalOpen.value = false
 }
@@ -382,6 +466,19 @@ async function save() {
   }
   finally {
     saving.value = false
+  }
+}
+
+async function deleteFlow() {
+  deleting.value = true
+  try {
+    await gandalf.flows.delete(routeId.value)
+    toast.add({ title: t('flows.deleted'), color: 'success' })
+    await router.push('/flows')
+  }
+  catch {
+    toast.add({ title: t('flows.deleteError'), color: 'error' })
+    deleting.value = false
   }
 }
 

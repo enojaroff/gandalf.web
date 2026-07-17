@@ -144,7 +144,11 @@
     "deleteConfirm": "¿Eliminar el flujo «{title}»?",
     "wireHint": "Arrastra desde un punto azul a la derecha de una entrada o tabla, hasta un punto a la izquierda de un campo de tabla.",
     "nodeLabel": "Nombre",
-    "nodeLabelPlaceholder": "ej. control de riesgo"
+    "nodeLabelPlaceholder": "ej. control de riesgo",
+    "nodeIdInvalid": "El identificador del nodo es obligatorio y solo puede contener letras, dígitos, guiones bajos o guiones.",
+    "nodeIdDuplicate": "Ya existe un nodo con este identificador.",
+    "deleteFlow": "Eliminar flujo",
+    "deleteFlowConfirm": "¿Eliminar el flujo \"{title}\"? Esta acción no se puede deshacer."
   },
   "fields": {
     "key": "Clave",

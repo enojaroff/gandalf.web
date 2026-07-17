@@ -145,7 +145,11 @@
     "deleteConfirm": "Delete flow \"{title}\"?",
     "wireHint": "Drag from a blue dot on the right of an input or table, to a dot on the left of a table field.",
     "nodeLabel": "Name",
-    "nodeLabelPlaceholder": "e.g. risk check"
+    "nodeLabelPlaceholder": "e.g. risk check",
+    "nodeIdInvalid": "Node id is required and may only contain letters, digits, underscores or hyphens.",
+    "nodeIdDuplicate": "A node with this id already exists.",
+    "deleteFlow": "Delete flow",
+    "deleteFlowConfirm": "Delete the flow \"{title}\"? This cannot be undone."
   },
   "fields": {
     "key": "Key",

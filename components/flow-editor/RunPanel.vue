@@ -76,7 +76,10 @@
             <div class="space-y-2">
               <UCard v-for="node in result.nodes" :key="node.node_id" :ui="{ body: 'p-3' }">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="font-mono text-sm font-semibold">{{ node.node_id }}</span>
+                  <span class="text-sm font-semibold">
+                    {{ nodeName(node.node_id) }}
+                    <span class="text-muted font-mono text-xs">{{ node.node_id }}</span>
+                  </span>
                   <UBadge v-if="node.decision_id" variant="outline" size="sm">
                     {{ node.decision_id.slice(0, 8) }}…
                   </UBadge>
@@ -108,7 +111,16 @@ import type { Flow, FlowResult } from '~/types/flow'
 const props = defineProps<{
   flow: Flow
   open: boolean
+  // node_id → human-readable name (table title or label), for the run trace.
+  nodeLabels?: Record<string, string>
 }>()
+
+// Fall back to the node's own label/id when no map entry exists.
+function nodeName(nodeId: string): string {
+  return props.nodeLabels?.[nodeId]
+    ?? props.flow.nodes.find((n) => n.node_id === nodeId)?.label
+    ?? nodeId
+}
 
 const emit = defineEmits<{ 'update:open': [value: boolean] }>()
 
