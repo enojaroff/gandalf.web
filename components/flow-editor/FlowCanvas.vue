@@ -155,7 +155,7 @@ interface VFNode {
   position: { x: number; y: number }
   data: Record<string, unknown>
 }
-import type { Flow, FlowEdge } from '~/types/flow'
+import type { Flow, FlowEdge, CanvasPosition } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
 
 import '@vue-flow/core/dist/style.css'
@@ -279,7 +279,7 @@ function syncNodes() {
   }
 
   for (const inp of props.flow.inputs) {
-    upsert(`input:${inp.key}`, 'finput', 'input', { key: inp.key, label: inp.key, type: inp.type })
+    upsert(`input:${inp.key}`, 'finput', 'input', { key: inp.key, label: inp.key, type: inp.type }, inp.position)
   }
   for (const n of props.flow.nodes) {
     const table = tablesById.value.get(n.table_id)
@@ -292,7 +292,7 @@ function syncNodes() {
     }, n.position)
   }
   for (const o of props.flow.outputs) {
-    upsert(`output:${o.name}`, 'foutput', 'output', { name: o.name, from_node: o.from_node, from_output: o.from_output })
+    upsert(`output:${o.name}`, 'foutput', 'output', { name: o.name, from_node: o.from_node, from_output: o.from_output }, o.position)
   }
 
   // Forget positions of removed nodes so a future node can reuse the slot.
@@ -420,28 +420,38 @@ function onNodesChange(changes: NodeChange[]) {
     if (c.position) positions.set(c.id, { x: c.position.x, y: c.position.y })
     if (c.dragging === false) dragEnded = true
   }
-  if (dragEnded) persistTableNodePositions()
+  if (dragEnded) persistNodePositions()
 }
 
-// Write the current canvas positions of table nodes back into the flow so they
-// are saved (and restored on reopen). Only table nodes carry a persisted
-// position — inputs/outputs are auto-laid-out and have no backend node to
-// store coordinates on. Emits update:flow only when something actually moved.
-function persistTableNodePositions() {
+// Read the current canvas position for a Vue Flow node id, preferring Vue
+// Flow's own findNode() (authoritative), falling back to our tracked map so a
+// dropped position frame can't lose the final coordinates.
+function currentPosition(id: string): CanvasPosition | undefined {
+  return findNode(id)?.position ?? positions.get(id)
+}
+
+// Write the current canvas positions of ALL draggable elements (inputs, table
+// nodes and outputs) back into the flow so they are saved and restored on
+// reopen. Each element type carries its own persisted position (the Mongo
+// backend stores it verbatim). Emits update:flow only when something moved.
+function persistNodePositions() {
   const flow = structuredClone(toRaw(props.flow)) as Flow
   let changed = false
-  for (const n of flow.nodes) {
-    // Read the authoritative current position from Vue Flow, falling back to
-    // our tracked map — robust even if the last position frame was dropped.
-    const live = findNode(`table:${n.node_id}`)?.position
-    const p = live ?? positions.get(`table:${n.node_id}`)
-    if (!p) continue
-    positions.set(`table:${n.node_id}`, { x: p.x, y: p.y })
-    if (!n.position || n.position.x !== p.x || n.position.y !== p.y) {
-      n.position = { x: p.x, y: p.y }
+
+  const apply = (id: string, target: { position?: CanvasPosition }) => {
+    const p = currentPosition(id)
+    if (!p) return
+    positions.set(id, { x: p.x, y: p.y })
+    if (!target.position || target.position.x !== p.x || target.position.y !== p.y) {
+      target.position = { x: p.x, y: p.y }
       changed = true
     }
   }
+
+  for (const inp of flow.inputs) apply(`input:${inp.key}`, inp)
+  for (const n of flow.nodes) apply(`table:${n.node_id}`, n)
+  for (const o of flow.outputs) apply(`output:${o.name}`, o)
+
   if (changed) emit('update:flow', flow)
 }
 
