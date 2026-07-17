@@ -158,12 +158,18 @@
     "wireHintTrackpad": "Arrastra desde un punto azul hasta un campo. Desliza con dos dedos para desplazarte, pellizca para hacer zoom.",
     "inputModeMouse": "Ratón",
     "inputModeTrackpad": "Trackpad",
+    "inputMode": "Modo de navegación",
+    "inputModeHelp": "Cómo se comportan la rueda y el arrastre en el editor de flujos.",
     "nodeLabel": "Nombre",
     "nodeLabelPlaceholder": "ej. control de riesgo",
     "nodeIdInvalid": "El identificador del nodo es obligatorio y solo puede contener letras, dígitos, guiones bajos o guiones.",
     "nodeIdDuplicate": "Ya existe un nodo con este identificador.",
     "deleteFlow": "Eliminar flujo",
     "deleteFlowConfirm": "¿Eliminar el flujo \"{title}\"? Esta acción no se puede deshacer."
+  },
+  "profile": {
+    "preferences": "Preferencias",
+    "preferencesSaved": "Preferencias guardadas."
   },
   "fields": {
     "key": "Clave",

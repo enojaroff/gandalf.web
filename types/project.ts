@@ -53,6 +53,14 @@ export interface ConfirmCollaboratorResult {
   temporary_password?: string
 }
 
+// Free-form per-user UI preferences, persisted with the profile. Typed for the
+// keys we know; open-ended so new preferences can be added without a type churn.
+export interface UserSettings {
+  // Flow editor pointer mode: 'mouse' or 'trackpad'.
+  flow_input_mode?: 'mouse' | 'trackpad'
+  [key: string]: unknown
+}
+
 export interface User {
   _id: string
   username: string
@@ -61,4 +69,5 @@ export interface User {
   last_name?: string
   is_active?: boolean
   avatar?: string
+  settings?: UserSettings
 }

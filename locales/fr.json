@@ -159,12 +159,18 @@
     "wireHintTrackpad": "Glissez depuis un point bleu vers un champ. Balayez à deux doigts pour vous déplacer, pincez pour zoomer.",
     "inputModeMouse": "Souris",
     "inputModeTrackpad": "Trackpad",
+    "inputMode": "Mode de navigation",
+    "inputModeHelp": "Comment la molette et le glisser se comportent dans l'éditeur de flow.",
     "nodeLabel": "Nom",
     "nodeLabelPlaceholder": "ex. contrôle du risque",
     "nodeIdInvalid": "L'identifiant du nœud est obligatoire et ne peut contenir que lettres, chiffres, tirets bas ou tirets.",
     "nodeIdDuplicate": "Un nœud avec cet identifiant existe déjà.",
     "deleteFlow": "Supprimer le flow",
     "deleteFlowConfirm": "Supprimer le flow « {title} » ? Cette action est irréversible."
+  },
+  "profile": {
+    "preferences": "Préférences",
+    "preferencesSaved": "Préférences enregistrées."
   },
   "fields": {
     "key": "Clé",

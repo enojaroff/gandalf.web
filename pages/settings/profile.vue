@@ -39,6 +39,46 @@
         </div>
       </UForm>
     </UCard>
+
+    <!-- UI preferences: no current-password needed, saved on its own. -->
+    <UCard v-if="!loadingUser" class="mt-6">
+      <template #header>
+        <h2 class="font-semibold">{{ $t('profile.preferences') }}</h2>
+      </template>
+
+      <UFormField
+        :label="$t('flows.inputMode')"
+        :description="$t('flows.inputModeHelp')"
+        name="flow_input_mode"
+        class="mb-4"
+      >
+        <UButtonGroup>
+          <UButton
+            icon="i-lucide-mouse"
+            :variant="flowInputMode === 'mouse' ? 'solid' : 'outline'"
+            :disabled="savingPrefs"
+            @click="() => { flowInputMode = 'mouse' }"
+          >
+            {{ $t('flows.inputModeMouse') }}
+          </UButton>
+          <UButton
+            icon="i-lucide-square-mouse-pointer"
+            :variant="flowInputMode === 'trackpad' ? 'solid' : 'outline'"
+            :disabled="savingPrefs"
+            @click="() => { flowInputMode = 'trackpad' }"
+          >
+            {{ $t('flows.inputModeTrackpad') }}
+          </UButton>
+        </UButtonGroup>
+      </UFormField>
+
+      <UAlert v-if="prefsError" color="error" :description="prefsError" class="mb-4" />
+      <UAlert v-if="prefsSuccess" color="success" :description="prefsSuccess" class="mb-4" />
+
+      <div class="flex justify-end">
+        <UButton :loading="savingPrefs" @click="savePreferences">{{ $t('common.save') }}</UButton>
+      </div>
+    </UCard>
   </div>
 </template>
 
@@ -60,6 +100,12 @@ const saving = ref(false)
 const error = ref<string | null>(null)
 const success = ref<string | null>(null)
 
+// UI preferences (saved separately from the profile — no password required).
+const flowInputMode = ref<'mouse' | 'trackpad'>('mouse')
+const savingPrefs = ref(false)
+const prefsError = ref<string | null>(null)
+const prefsSuccess = ref<string | null>(null)
+
 // Seed the form from currentUser (fetching it if the page was opened directly
 // by URL, before the user menu populated the store).
 function seedForm() {
@@ -68,6 +114,7 @@ function seedForm() {
   form.first_name = u?.first_name || ''
   form.last_name = u?.last_name || ''
   form.email = u?.email || ''
+  flowInputMode.value = u?.settings?.flow_input_mode === 'trackpad' ? 'trackpad' : 'mouse'
 }
 
 onMounted(async () => {
@@ -105,6 +152,27 @@ async function onSave() {
   }
   finally {
     saving.value = false
+  }
+}
+
+// Save UI preferences on their own — sends only `settings`, so no current
+// password is required. Merges into any existing settings to preserve other
+// (future) preferences.
+async function savePreferences() {
+  savingPrefs.value = true
+  prefsError.value = null
+  prefsSuccess.value = null
+  try {
+    const settings = { ...userStore.currentUser?.settings, flow_input_mode: flowInputMode.value }
+    await userStore.update({ settings })
+    prefsSuccess.value = t('profile.preferencesSaved')
+  }
+  catch (err: unknown) {
+    const e = err as { data?: { message?: string } }
+    prefsError.value = e?.data?.message || t('errors.failedToSave')
+  }
+  finally {
+    savingPrefs.value = false
   }
 }
 </script>

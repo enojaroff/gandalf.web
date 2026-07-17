@@ -35,29 +35,7 @@
       <Background :gap="16" pattern-color="#cbd5e1" />
       <Controls />
 
-      <!-- Input mode toggle (mouse ↔ trackpad) -->
-      <Panel position="top-right" class="vf-mode">
-        <UButtonGroup size="xs">
-          <UButton
-            :variant="inputMode === 'mouse' ? 'solid' : 'outline'"
-            icon="i-lucide-mouse"
-            :title="$t('flows.inputModeMouse')"
-            @click="setInputMode('mouse')"
-          >
-            {{ $t('flows.inputModeMouse') }}
-          </UButton>
-          <UButton
-            :variant="inputMode === 'trackpad' ? 'solid' : 'outline'"
-            icon="i-lucide-square-mouse-pointer"
-            :title="$t('flows.inputModeTrackpad')"
-            @click="setInputMode('trackpad')"
-          >
-            {{ $t('flows.inputModeTrackpad') }}
-          </UButton>
-        </UButtonGroup>
-      </Panel>
-
-      <!-- How-to-wire hint -->
+      <!-- How-to-wire hint (adapts to the user's input-mode preference) -->
       <Panel position="top-left" class="vf-hint">
         <UIcon name="i-lucide-mouse-pointer-click" class="vf-hint__icon" />
         <span>{{ inputMode === 'trackpad' ? $t('flows.wireHintTrackpad') : $t('flows.wireHint') }}</span>
@@ -177,29 +155,18 @@ const emit = defineEmits<{
 const { updateNodeInternals, findNode } = useVueFlow()
 
 // ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
-// Persisted per machine (a hardware preference, like the UI locale), not on the
-// flow. Mirrors Genesis's two modes:
+// A per-USER preference (edited on the profile page, persisted with the
+// profile), not a per-machine or per-flow setting. We only READ it here.
+// Mirrors Genesis's two modes:
 //   - mouse    : wheel = zoom (cursor-centred); drag the background to pan.
 //   - trackpad : two-finger swipe = 2D pan; pinch (or Ctrl/Cmd+wheel) = zoom;
 //                background drag disabled to avoid ambiguous gestures.
 // Vue Flow exposes exactly these behaviours through props, so we map the mode
 // onto them instead of hand-rolling a wheel handler.
-type InputMode = 'mouse' | 'trackpad'
-const INPUT_MODE_KEY = 'flow-editor-input-mode'
-
-const inputMode = ref<InputMode>('mouse')
-
-// SPA (SSR disabled), so onMounted and click handlers are always client-side —
-// localStorage is safe to touch directly, as the .client plugins already do.
-onMounted(() => {
-  const stored = localStorage.getItem(INPUT_MODE_KEY)
-  if (stored === 'mouse' || stored === 'trackpad') inputMode.value = stored
-})
-
-function setInputMode(mode: InputMode) {
-  inputMode.value = mode
-  localStorage.setItem(INPUT_MODE_KEY, mode)
-}
+const userStore = useUserStore()
+const inputMode = computed(() =>
+  userStore.currentUser?.settings?.flow_input_mode === 'trackpad' ? 'trackpad' : 'mouse',
+)
 
 // Vue Flow interaction props derived from the current mode.
 const interaction = computed(() => {
@@ -671,11 +638,5 @@ watch(structureKey, () => {
   font-size: 14px;
   flex-shrink: 0;
   color: var(--ui-primary);
-}
-
-.vf-mode {
-  background: var(--ui-bg);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
 }
 </style>

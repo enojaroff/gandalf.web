@@ -159,12 +159,18 @@
     "wireHintTrackpad": "Drag from a blue dot to a field. Two-finger swipe to pan, pinch to zoom.",
     "inputModeMouse": "Mouse",
     "inputModeTrackpad": "Trackpad",
+    "inputMode": "Navigation mode",
+    "inputModeHelp": "How the wheel and drag behave in the flow editor.",
     "nodeLabel": "Name",
     "nodeLabelPlaceholder": "e.g. risk check",
     "nodeIdInvalid": "Node id is required and may only contain letters, digits, underscores or hyphens.",
     "nodeIdDuplicate": "A node with this id already exists.",
     "deleteFlow": "Delete flow",
     "deleteFlowConfirm": "Delete the flow \"{title}\"? This cannot be undone."
+  },
+  "profile": {
+    "preferences": "Preferences",
+    "preferencesSaved": "Preferences saved."
   },
   "fields": {
     "key": "Key",

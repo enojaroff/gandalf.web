@@ -158,12 +158,18 @@
     "wireHintTrackpad": "Trascina da un punto blu a un campo. Scorri con due dita per spostarti, pizzica per lo zoom.",
     "inputModeMouse": "Mouse",
     "inputModeTrackpad": "Trackpad",
+    "inputMode": "Modalità di navigazione",
+    "inputModeHelp": "Come si comportano la rotellina e il trascinamento nell'editor di flow.",
     "nodeLabel": "Nome",
     "nodeLabelPlaceholder": "es. controllo rischio",
     "nodeIdInvalid": "L'identificatore del nodo è obbligatorio e può contenere solo lettere, cifre, trattini bassi o trattini.",
     "nodeIdDuplicate": "Esiste già un nodo con questo identificatore.",
     "deleteFlow": "Elimina flusso",
     "deleteFlowConfirm": "Eliminare il flusso \"{title}\"? L'operazione è irreversibile."
+  },
+  "profile": {
+    "preferences": "Preferenze",
+    "preferencesSaved": "Preferenze salvate."
   },
   "fields": {
     "key": "Chiave",
