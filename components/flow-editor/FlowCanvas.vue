@@ -174,7 +174,7 @@ const emit = defineEmits<{
   'remove-output': [name: string]
 }>()
 
-const { updateNodeInternals } = useVueFlow()
+const { updateNodeInternals, findNode } = useVueFlow()
 
 // ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
 // Persisted per machine (a hardware preference, like the UI locale), not on the
@@ -407,16 +407,18 @@ function onEdgesChange(changes: EdgeChange[]) {
 }
 
 // Track dragging so we persist a table node's position only once, when the
-// drag ENDS — Vue Flow streams a position change every frame while dragging.
+// drag ENDS. Vue Flow streams a `position` change every frame while dragging,
+// but the FINAL end-of-drag change carries `dragging: false` and often NO
+// `position` (it is only attached when the frame actually moved). So detect the
+// end of drag on `dragging === false` alone — never gate it on `c.position`,
+// or the persist step would never fire.
 function onNodesChange(changes: NodeChange[]) {
   let dragEnded = false
   for (const c of changes) {
-    if (c.type === 'position' && c.position) {
-      // Keep the live map in sync so re-syncs and new nodes respect the layout.
-      positions.set(c.id, { x: c.position.x, y: c.position.y })
-      // `dragging` is true on every intermediate frame, false on the last one.
-      if (c.dragging === false) dragEnded = true
-    }
+    if (c.type !== 'position') continue
+    // Keep the live map in sync while dragging (position present each frame).
+    if (c.position) positions.set(c.id, { x: c.position.x, y: c.position.y })
+    if (c.dragging === false) dragEnded = true
   }
   if (dragEnded) persistTableNodePositions()
 }
@@ -429,8 +431,12 @@ function persistTableNodePositions() {
   const flow = structuredClone(toRaw(props.flow)) as Flow
   let changed = false
   for (const n of flow.nodes) {
-    const p = positions.get(`table:${n.node_id}`)
+    // Read the authoritative current position from Vue Flow, falling back to
+    // our tracked map — robust even if the last position frame was dropped.
+    const live = findNode(`table:${n.node_id}`)?.position
+    const p = live ?? positions.get(`table:${n.node_id}`)
     if (!p) continue
+    positions.set(`table:${n.node_id}`, { x: p.x, y: p.y })
     if (!n.position || n.position.x !== p.x || n.position.y !== p.y) {
       n.position = { x: p.x, y: p.y }
       changed = true
