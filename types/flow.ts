@@ -30,6 +30,10 @@ export interface FlowNode {
   // Optional display name shown in the canvas node header. Useful when the same
   // table is used by several nodes. The backend stores it but ignores it.
   label?: string
+  // Canvas position, in flow coordinates. Persisted so the layout the user
+  // arranges is restored on reopen. The backend stores it verbatim (MongoDB,
+  // no per-field whitelist) and ignores it at execution.
+  position?: { x: number; y: number }
 }
 
 // Source d'une arête : soit une entrée de flow ({ input }), soit la sortie
