@@ -340,14 +340,26 @@ async function ensureTableDetail(tableId: string) {
   }
 }
 
+// Single source of truth for the flow is `flow.value`. The canvas owns edges
+// and output wiring: it emits a fresh (structured-cloned) Flow via update:flow,
+// which we adopt wholesale here. This page owns inputs / nodes / outputs: it
+// mutates flow.value in place. Both paths funnel through this one ref, so the
+// canvas prop always reflects the latest state — never keep a separate copy of
+// flow.edges/outputs around, or it will drift from what the canvas emitted.
 function onFlowUpdate(updated: Flow) {
   flow.value = updated
 }
 
+// Output source name that the DRG reserves for a node's decision. Users must
+// not name a flow output after it, to avoid ambiguity at execution.
+const RESERVED_IO_NAMES = new Set(['final_decision'])
+
 function addInput() {
-  if (!newInput.key) return
-  if (!flow.value.inputs.some((i) => i.key === newInput.key)) {
-    flow.value.inputs.push({ key: newInput.key, type: newInput.type } as FlowInput)
+  const key = newInput.key.trim()
+  // Reject empty, reserved, or duplicate keys.
+  if (!key || RESERVED_IO_NAMES.has(key)) return
+  if (!flow.value.inputs.some((i) => i.key === key)) {
+    flow.value.inputs.push({ key, type: newInput.type } as FlowInput)
   }
   newInput.key = ''
   newInput.type = 'string'
@@ -369,6 +381,12 @@ function nextNodeId(): string {
   return `n_${i}`
 }
 
+// An id still holding an auto-generated value (n_<number>) or empty — i.e. one
+// the user has not personalised, so we may freely refresh it.
+function isAutoNodeId(id: string): boolean {
+  return id.trim() === '' || /^n_\d+$/.test(id.trim())
+}
+
 // Reset the add-node form and open the modal with a fresh default id.
 function openNodeModal() {
   newNode.table_id = ''
@@ -378,9 +396,9 @@ function openNodeModal() {
 }
 
 // Refresh the default id when a table is picked, unless the user already typed
-// their own (i.e. it still matches the auto value).
+// their own (i.e. it still matches an auto-generated value).
 function onNodeTableChange() {
-  if (newNode.node_id.trim() === '') newNode.node_id = nextNodeId()
+  if (isAutoNodeId(newNode.node_id)) newNode.node_id = nextNodeId()
 }
 
 function addNode() {
@@ -408,10 +426,14 @@ function removeNode(nodeId: string) {
 }
 
 function addOutput() {
-  if (!newOutput.name || !newOutput.from_node) return
-  if (!flow.value.outputs.some((o) => o.name === newOutput.name)) {
+  const name = newOutput.name.trim()
+  // Reject empty, reserved, or names colliding with an input key or another
+  // output — all of these are ambiguous in the assembled answer.
+  if (!name || !newOutput.from_node || RESERVED_IO_NAMES.has(name)) return
+  if (flow.value.inputs.some((i) => i.key === name)) return
+  if (!flow.value.outputs.some((o) => o.name === name)) {
     flow.value.outputs.push({
-      name: newOutput.name,
+      name,
       from_node: newOutput.from_node,
       from_output: 'final_decision',
     })
@@ -440,12 +462,20 @@ async function save() {
       title: flow.value.title,
       description: flow.value.description,
       inputs: flow.value.inputs,
-      outputs: flow.value.outputs,
+      // Drop outputs whose source wire was removed (from_node cleared to ''):
+      // an output with no source is incomplete and would be rejected by the
+      // backend. The user re-wires it (or re-adds it) to send it.
+      outputs: flow.value.outputs.filter((o) => o.from_node !== ''),
       nodes: flow.value.nodes,
       edges: flow.value.edges,
     }
     if (isNew.value) {
       const resp = await gandalf.flows.create(payload)
+      // Adopt the persisted flow (with its new _id) BEFORE swapping the URL:
+      // router.replace reuses this component (same dynamic route), so isNew
+      // flips to false and the RunPanel appears immediately — it must receive a
+      // flow with a real _id, not the empty one we started from.
+      flow.value = { ...emptyFlow(), ...resp.data }
       toast.add({ title: t('flows.created'), color: 'success' })
       router.replace(`/flows/${resp.data._id}/edit`)
     }

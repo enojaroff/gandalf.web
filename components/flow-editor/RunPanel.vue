@@ -143,13 +143,40 @@ const boolOptions = [
   { label: 'false', value: false },
 ]
 
+// Seed inputValues so every input has a concrete initial value — in particular
+// a boolean the user never touches must default to `false`, not undefined
+// (which JSON.stringify would drop, sending the backend a flow missing a
+// required field). Keeps any value the user already entered for a key.
+function seedInputValues() {
+  for (const inp of props.flow.inputs) {
+    if (inputValues[inp.key] !== undefined) continue
+    inputValues[inp.key] = inp.type === 'boolean' ? false : ''
+  }
+}
+
+// Re-seed whenever the panel opens or the flow's input contract changes.
+watch(
+  () => [props.open, props.flow.inputs.map((i) => `${i.key}:${i.type}`).join(',')],
+  () => { if (props.open) seedInputValues() },
+  { immediate: true },
+)
+
 // Coerce numeric inputs from their string form before sending.
 function buildPayload(): Record<string, unknown> {
   const payload: Record<string, unknown> = {}
   for (const inp of props.flow.inputs) {
     const raw = inputValues[inp.key]
     if (inp.type === 'numeric') {
-      payload[inp.key] = raw === '' || raw === undefined ? raw : Number(raw)
+      // Leave empty as '' (backend flags the missing value); otherwise coerce,
+      // but never send NaN — pass the raw string through so the error is
+      // reported on the real value instead of a silent null.
+      if (raw === '' || raw === undefined || raw === null) {
+        payload[inp.key] = raw
+      }
+      else {
+        const n = Number(raw)
+        payload[inp.key] = Number.isNaN(n) ? raw : n
+      }
     }
     else {
       payload[inp.key] = raw

@@ -305,25 +305,32 @@ function onConnect(conn: Connection) {
   emit('update:flow', flow)
 }
 
-// Edge removal (user selects an edge and deletes it).
+// Edge removal (user selects one or more edges and deletes them).
+// Edge ids encode their index in the source array (`e<i>` for flow.edges,
+// `o<i>` for flow.outputs). We must collect ALL indices first and remove them
+// in one pass — splicing per-id inside the loop would shift the remaining
+// indices and delete the wrong entries when several edges go at once.
 function onEdgesChange(changes: EdgeChange[]) {
   const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
   if (removed.length === 0) return
   const flow = structuredClone(toRaw(props.flow)) as Flow
 
+  const removeEdgeIdx = new Set<number>()
+  const clearOutputIdx = new Set<number>()
   for (const id of removed) {
-    if (id.startsWith('e')) {
-      const idx = Number(id.slice(1))
-      flow.edges.splice(idx, 1)
-    }
-    else if (id.startsWith('o')) {
-      const idx = Number(id.slice(1))
-      // Clearing an output edge just unsets its source (keeps the output slot).
-      if (flow.outputs[idx]) {
-        flow.outputs[idx].from_node = ''
-      }
-    }
+    const idx = Number(id.slice(1))
+    if (Number.isNaN(idx)) continue
+    if (id.startsWith('e')) removeEdgeIdx.add(idx)
+    else if (id.startsWith('o')) clearOutputIdx.add(idx)
   }
+
+  // Filter by original index — stable regardless of how many are removed.
+  flow.edges = flow.edges.filter((_, i) => !removeEdgeIdx.has(i))
+  // Clearing an output edge just unsets its source (keeps the output slot).
+  for (const idx of clearOutputIdx) {
+    if (flow.outputs[idx]) flow.outputs[idx].from_node = ''
+  }
+
   emit('update:flow', flow)
 }
 

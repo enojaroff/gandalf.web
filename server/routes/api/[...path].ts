@@ -1,4 +1,4 @@
-import { defineEventHandler, getRouterParam, getMethod, getHeaders, getQuery, readBody, setResponseStatus, setResponseHeader } from 'h3'
+import { defineEventHandler, getRouterParam, getMethod, getHeaders, getQuery, readRawBody, proxyRequest, setResponseStatus, setResponseHeader } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -25,32 +25,46 @@ export default defineEventHandler(async (event) => {
     : ''
   const targetUrl = `${base}/api/${path}${queryStr}`
 
-  // Parse and re-serialize body for mutating methods to ensure correct encoding
-  let bodyStr: string | undefined
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    const parsed = await readBody(event)
-    if (parsed !== null && parsed !== undefined) {
-      bodyStr = JSON.stringify(parsed)
-      forwardHeaders['content-type'] = 'application/json'
-    }
+  // Default path: stream the request body and the upstream response verbatim.
+  // proxyRequest forwards JSON, multipart and binary payloads without any text
+  // decoding, so uploads keep their multipart boundary and downloads keep their
+  // bytes intact. Only a JSON body needs special handling (below), so anything
+  // that is not explicitly application/json — including multipart uploads and
+  // bodyless requests — goes through here untouched.
+  const contentType = (forwardHeaders['content-type'] ?? '').toLowerCase()
+  const isJsonBody = contentType.includes('application/json')
+
+  if (!isJsonBody) {
+    return proxyRequest(event, targetUrl, { headers: forwardHeaders })
   }
+
+  // JSON body: read the raw bytes (NOT readBody, which would parse+lose fidelity
+  // and can mangle number/precision) and forward them as-is. We still parse the
+  // upstream response as JSON when it is JSON, and stream everything else so a
+  // binary download is never corrupted by text decoding.
+  const rawBody = await readRawBody(event)
 
   const response = await fetch(targetUrl, {
     method,
     headers: forwardHeaders,
-    body: bodyStr,
+    body: rawBody ?? undefined,
   })
 
-  const responseText = await response.text()
-
   setResponseStatus(event, response.status)
-  const ct = response.headers.get('content-type')
-  if (ct) setResponseHeader(event, 'content-type', ct)
+  const responseCt = response.headers.get('content-type')
+  if (responseCt) setResponseHeader(event, 'content-type', responseCt)
 
-  try {
-    return JSON.parse(responseText)
+  // Only decode as text when the response is textual; stream binary verbatim.
+  if (responseCt && responseCt.includes('application/json')) {
+    const text = await response.text()
+    try {
+      return JSON.parse(text)
+    }
+    catch {
+      return text
+    }
   }
-  catch {
-    return responseText
-  }
+
+  // Non-JSON (or unknown) response: return the raw bytes untouched.
+  return new Uint8Array(await response.arrayBuffer())
 })
