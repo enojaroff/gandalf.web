@@ -303,6 +303,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "copy": "Copy",
+    "retry": "Retry",
     "view": "View",
     "create": "Create",
     "loading": "Loading…",

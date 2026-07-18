@@ -12,6 +12,16 @@
       <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
+    <!-- Load failed: show the error and a retry, never an empty form the user
+         could accidentally save over their real profile. -->
+    <UCard v-else-if="!userLoaded">
+      <div class="flex flex-col items-center gap-4 py-8 text-center">
+        <UIcon name="i-lucide-alert-triangle" class="text-3xl text-error" />
+        <p class="text-sm text-muted">{{ error || $t('errors.failedToLoad') }}</p>
+        <UButton icon="i-lucide-refresh-cw" @click="loadUser">{{ $t('common.retry') }}</UButton>
+      </div>
+    </UCard>
+
     <UCard v-else>
       <UForm :state="form" @submit="onSave">
         <UFormField :label="$t('auth.username')" name="username" class="mb-4">
@@ -41,7 +51,7 @@
     </UCard>
 
     <!-- UI preferences: no current-password needed, saved on its own. -->
-    <UCard v-if="!loadingUser" class="mt-6">
+    <UCard v-if="!loadingUser && userLoaded" class="mt-6">
       <template #header>
         <h2 class="font-semibold">{{ $t('profile.preferences') }}</h2>
       </template>
@@ -96,6 +106,9 @@ const form = reactive({
   current_password: '',
 })
 const loadingUser = ref(false)
+// True once currentUser is available and the form has been seeded from it. Gates
+// the forms so we never render (or save) an empty form over a real profile.
+const userLoaded = ref(false)
 const saving = ref(false)
 const error = ref<string | null>(null)
 const success = ref<string | null>(null)
@@ -117,23 +130,35 @@ function seedForm() {
   flowInputMode.value = u?.settings?.flow_input_mode === 'trackpad' ? 'trackpad' : 'mouse'
 }
 
-onMounted(async () => {
-  if (!userStore.currentUser) {
-    loadingUser.value = true
-    try {
-      await userStore.fetchCurrent()
-    }
-    catch {
-      error.value = t('errors.failedToLoad')
-    }
-    finally {
-      loadingUser.value = false
-    }
+// Ensure currentUser is available, then seed the form. Only flips userLoaded
+// (which reveals the forms) on success — a failed load keeps the retry state.
+async function loadUser() {
+  error.value = null
+  if (userStore.currentUser) {
+    seedForm()
+    userLoaded.value = true
+    return
   }
-  seedForm()
-})
+  loadingUser.value = true
+  try {
+    await userStore.fetchCurrent()
+    seedForm()
+    userLoaded.value = true
+  }
+  catch {
+    error.value = t('errors.failedToLoad')
+    userLoaded.value = false
+  }
+  finally {
+    loadingUser.value = false
+  }
+}
+
+onMounted(loadUser)
 
 async function onSave() {
+  // Guard: never submit a form that wasn't seeded from a loaded profile.
+  if (!userLoaded.value) return
   if (!form.current_password) {
     error.value = t('auth.currentPasswordRequired')
     return
@@ -159,6 +184,8 @@ async function onSave() {
 // password is required. Merges into any existing settings to preserve other
 // (future) preferences.
 async function savePreferences() {
+  // Guard: don't overwrite settings we never loaded (would clobber real prefs).
+  if (!userLoaded.value) return
   savingPrefs.value = true
   prefsError.value = null
   prefsSuccess.value = null

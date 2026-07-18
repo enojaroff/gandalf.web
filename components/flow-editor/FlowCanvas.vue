@@ -234,7 +234,15 @@ function syncNodes() {
     keep.add(id)
     const existing = byId[id]
     if (existing) {
-      existing.data = data // refresh data, keep position/selection
+      existing.data = data // refresh data, keep selection
+      // Adopt a saved position from the flow ONLY when we have not tracked a
+      // local position for this id (i.e. the user hasn't dragged it this
+      // session) — this re-syncs a server-normalised position after reload
+      // without clobbering an in-progress local arrangement.
+      if (saved && !positions.has(id)) {
+        positions.set(id, { ...saved })
+        existing.position = { ...saved }
+      }
       next.push(existing)
     }
     else {
@@ -400,26 +408,43 @@ function currentPosition(id: string): CanvasPosition | undefined {
 // Write the current canvas positions of ALL draggable elements (inputs, table
 // nodes and outputs) back into the flow so they are saved and restored on
 // reopen. Each element type carries its own persisted position (the Mongo
-// backend stores it verbatim). Emits update:flow only when something moved.
+// backend stores it verbatim).
+//
+// Two passes so we never clone the flow for nothing (a plain click emits a
+// dragging:false change with no movement): first collect the fresh positions
+// and check whether any differs from what the flow already holds; only then
+// clone and write. Emits update:flow only when something actually moved.
 function persistNodePositions() {
-  const flow = structuredClone(toRaw(props.flow)) as Flow
-  let changed = false
-
-  const apply = (id: string, target: { position?: CanvasPosition }) => {
+  const elements: { id: string; pos: CanvasPosition; saved?: CanvasPosition }[] = []
+  const collect = (id: string, saved?: CanvasPosition) => {
     const p = currentPosition(id)
     if (!p) return
     positions.set(id, { x: p.x, y: p.y })
-    if (!target.position || target.position.x !== p.x || target.position.y !== p.y) {
-      target.position = { x: p.x, y: p.y }
-      changed = true
-    }
+    elements.push({ id, pos: p, saved })
   }
 
-  for (const inp of flow.inputs) apply(`input:${inp.key}`, inp)
-  for (const n of flow.nodes) apply(`table:${n.node_id}`, n)
-  for (const o of flow.outputs) apply(`output:${o.name}`, o)
+  for (const inp of props.flow.inputs) collect(`input:${inp.key}`, inp.position)
+  for (const n of props.flow.nodes) collect(`table:${n.node_id}`, n.position)
+  for (const o of props.flow.outputs) collect(`output:${o.name}`, o.position)
 
-  if (changed) emit('update:flow', flow)
+  const moved = new Set(
+    elements
+      .filter((e) => !e.saved || e.saved.x !== e.pos.x || e.saved.y !== e.pos.y)
+      .map((e) => e.id),
+  )
+  if (moved.size === 0) return
+
+  const flow = structuredClone(toRaw(props.flow)) as Flow
+  const write = (id: string, target: { position?: CanvasPosition }) => {
+    if (!moved.has(id)) return
+    const p = positions.get(id)
+    if (p) target.position = { x: p.x, y: p.y }
+  }
+  for (const inp of flow.inputs) write(`input:${inp.key}`, inp)
+  for (const n of flow.nodes) write(`table:${n.node_id}`, n)
+  for (const o of flow.outputs) write(`output:${o.name}`, o)
+
+  emit('update:flow', flow)
 }
 
 // Rebuild the node set from the flow only when the STRUCTURE changes (a node,
