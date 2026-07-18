@@ -9,10 +9,19 @@ export type FlowIOType = 'numeric' | 'boolean' | 'string'
 // table_simple / table_advanced ; un flow renvoie drg.
 export type DecisionKind = 'table_simple' | 'table_advanced' | 'drg'
 
+// Canvas position, in flow coordinates. Persisted on inputs, outputs and nodes
+// so the layout the user arranges is restored on reopen. The backend stores it
+// verbatim (MongoDB, no per-field whitelist) and ignores it at execution.
+export interface CanvasPosition {
+  x: number
+  y: number
+}
+
 // Contrat d'entrée public du flow.
 export interface FlowInput {
   key: string
   type: FlowIOType
+  position?: CanvasPosition
 }
 
 // Contrat de sortie public du flow. Chaque sortie nomme la sortie d'un nœud
@@ -21,6 +30,7 @@ export interface FlowOutput {
   name: string
   from_node: string
   from_output: string
+  position?: CanvasPosition
 }
 
 // Un nœud : référence une table de décision par son id.
@@ -30,6 +40,7 @@ export interface FlowNode {
   // Optional display name shown in the canvas node header. Useful when the same
   // table is used by several nodes. The backend stores it but ignores it.
   label?: string
+  position?: CanvasPosition
 }
 
 // Source d'une arête : soit une entrée de flow ({ input }), soit la sortie

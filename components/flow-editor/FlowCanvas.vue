@@ -22,6 +22,11 @@
       :min-zoom="0.2"
       :max-zoom="2"
       :connect-on-click="true"
+      :pan-on-drag="interaction.panOnDrag"
+      :pan-on-scroll="interaction.panOnScroll"
+      :zoom-on-scroll="interaction.zoomOnScroll"
+      :zoom-on-pinch="interaction.zoomOnPinch"
+      :zoom-on-double-click="false"
       fit-view-on-init
       @connect="onConnect"
       @edges-change="onEdgesChange"
@@ -30,10 +35,10 @@
       <Background :gap="16" pattern-color="#cbd5e1" />
       <Controls />
 
-      <!-- How-to-wire hint -->
+      <!-- How-to-wire hint (adapts to the user's input-mode preference) -->
       <Panel position="top-left" class="vf-hint">
         <UIcon name="i-lucide-mouse-pointer-click" class="vf-hint__icon" />
-        <span>{{ $t('flows.wireHint') }}</span>
+        <span>{{ inputMode === 'trackpad' ? $t('flows.wireHintTrackpad') : $t('flows.wireHint') }}</span>
       </Panel>
 
       <!-- Input node (custom type name to avoid Vue Flow's reserved 'input') -->
@@ -128,7 +133,7 @@ interface VFNode {
   position: { x: number; y: number }
   data: Record<string, unknown>
 }
-import type { Flow, FlowEdge } from '~/types/flow'
+import type { Flow, FlowEdge, CanvasPosition } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
 
 import '@vue-flow/core/dist/style.css'
@@ -147,7 +152,30 @@ const emit = defineEmits<{
   'remove-output': [name: string]
 }>()
 
-const { updateNodeInternals } = useVueFlow()
+const { updateNodeInternals, findNode } = useVueFlow()
+
+// ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
+// A per-USER preference (edited on the profile page, persisted with the
+// profile), not a per-machine or per-flow setting. We only READ it here.
+// Mirrors Genesis's two modes:
+//   - mouse    : wheel = zoom (cursor-centred); drag the background to pan.
+//   - trackpad : two-finger swipe = 2D pan; pinch (or Ctrl/Cmd+wheel) = zoom;
+//                background drag disabled to avoid ambiguous gestures.
+// Vue Flow exposes exactly these behaviours through props, so we map the mode
+// onto them instead of hand-rolling a wheel handler.
+const userStore = useUserStore()
+const inputMode = computed(() =>
+  userStore.currentUser?.settings?.flow_input_mode === 'trackpad' ? 'trackpad' : 'mouse',
+)
+
+// Vue Flow interaction props derived from the current mode.
+const interaction = computed(() => {
+  if (inputMode.value === 'trackpad') {
+    return { panOnDrag: false, panOnScroll: true, zoomOnScroll: false, zoomOnPinch: true }
+  }
+  // mouse
+  return { panOnDrag: true, panOnScroll: false, zoomOnScroll: true, zoomOnPinch: true }
+})
 
 // Index tables by id for field lookup.
 const tablesById = computed(() => {
@@ -194,20 +222,39 @@ function syncNodes() {
   const next: VFNode[] = []
   const keep = new Set<string>()
 
-  const upsert = (id: string, type: string, column: keyof typeof COL, data: Record<string, unknown>) => {
+  // `saved` is a position persisted on the backend node ({x,y}); when present
+  // it wins over the auto-layout so the user's arrangement is restored.
+  const upsert = (
+    id: string,
+    type: string,
+    column: keyof typeof COL,
+    data: Record<string, unknown>,
+    saved?: { x: number; y: number },
+  ) => {
     keep.add(id)
     const existing = byId[id]
     if (existing) {
-      existing.data = data // refresh data, keep position/selection
+      existing.data = data // refresh data, keep selection
+      // Adopt a saved position from the flow ONLY when we have not tracked a
+      // local position for this id (i.e. the user hasn't dragged it this
+      // session) — this re-syncs a server-normalised position after reload
+      // without clobbering an in-progress local arrangement.
+      if (saved && !positions.has(id)) {
+        positions.set(id, { ...saved })
+        existing.position = { ...saved }
+      }
       next.push(existing)
     }
     else {
-      next.push({ id, type, position: nextPosition(id, column), data } as VFNode)
+      // Seed the positions map from a saved position so later re-syncs keep it.
+      if (saved && !positions.has(id)) positions.set(id, { ...saved })
+      const position = saved ?? nextPosition(id, column)
+      next.push({ id, type, position, data } as VFNode)
     }
   }
 
   for (const inp of props.flow.inputs) {
-    upsert(`input:${inp.key}`, 'finput', 'input', { key: inp.key, label: inp.key, type: inp.type })
+    upsert(`input:${inp.key}`, 'finput', 'input', { key: inp.key, label: inp.key, type: inp.type }, inp.position)
   }
   for (const n of props.flow.nodes) {
     const table = tablesById.value.get(n.table_id)
@@ -217,10 +264,10 @@ function syncNodes() {
       label: n.label ?? '',
       missing: !table,
       fields: (table?.fields ?? []).map((f) => ({ key: f.key, type: f.type })),
-    })
+    }, n.position)
   }
   for (const o of props.flow.outputs) {
-    upsert(`output:${o.name}`, 'foutput', 'output', { name: o.name, from_node: o.from_node, from_output: o.from_output })
+    upsert(`output:${o.name}`, 'foutput', 'output', { name: o.name, from_node: o.from_node, from_output: o.from_output }, o.position)
   }
 
   // Forget positions of removed nodes so a future node can reuse the slot.
@@ -334,14 +381,70 @@ function onEdgesChange(changes: EdgeChange[]) {
   emit('update:flow', flow)
 }
 
-// Positions are client-side only. When the user drags a node, remember its new
-// position so a later sync (and any newly-added node) respects it.
+// Track dragging so we persist a table node's position only once, when the
+// drag ENDS. Vue Flow streams a `position` change every frame while dragging,
+// but the FINAL end-of-drag change carries `dragging: false` and often NO
+// `position` (it is only attached when the frame actually moved). So detect the
+// end of drag on `dragging === false` alone — never gate it on `c.position`,
+// or the persist step would never fire.
 function onNodesChange(changes: NodeChange[]) {
+  let dragEnded = false
   for (const c of changes) {
-    if (c.type === 'position' && c.position) {
-      positions.set(c.id, { x: c.position.x, y: c.position.y })
-    }
+    if (c.type !== 'position') continue
+    // Keep the live map in sync while dragging (position present each frame).
+    if (c.position) positions.set(c.id, { x: c.position.x, y: c.position.y })
+    if (c.dragging === false) dragEnded = true
   }
+  if (dragEnded) persistNodePositions()
+}
+
+// Read the current canvas position for a Vue Flow node id, preferring Vue
+// Flow's own findNode() (authoritative), falling back to our tracked map so a
+// dropped position frame can't lose the final coordinates.
+function currentPosition(id: string): CanvasPosition | undefined {
+  return findNode(id)?.position ?? positions.get(id)
+}
+
+// Write the current canvas positions of ALL draggable elements (inputs, table
+// nodes and outputs) back into the flow so they are saved and restored on
+// reopen. Each element type carries its own persisted position (the Mongo
+// backend stores it verbatim).
+//
+// Two passes so we never clone the flow for nothing (a plain click emits a
+// dragging:false change with no movement): first collect the fresh positions
+// and check whether any differs from what the flow already holds; only then
+// clone and write. Emits update:flow only when something actually moved.
+function persistNodePositions() {
+  const elements: { id: string; pos: CanvasPosition; saved?: CanvasPosition }[] = []
+  const collect = (id: string, saved?: CanvasPosition) => {
+    const p = currentPosition(id)
+    if (!p) return
+    positions.set(id, { x: p.x, y: p.y })
+    elements.push({ id, pos: p, saved })
+  }
+
+  for (const inp of props.flow.inputs) collect(`input:${inp.key}`, inp.position)
+  for (const n of props.flow.nodes) collect(`table:${n.node_id}`, n.position)
+  for (const o of props.flow.outputs) collect(`output:${o.name}`, o.position)
+
+  const moved = new Set(
+    elements
+      .filter((e) => !e.saved || e.saved.x !== e.pos.x || e.saved.y !== e.pos.y)
+      .map((e) => e.id),
+  )
+  if (moved.size === 0) return
+
+  const flow = structuredClone(toRaw(props.flow)) as Flow
+  const write = (id: string, target: { position?: CanvasPosition }) => {
+    if (!moved.has(id)) return
+    const p = positions.get(id)
+    if (p) target.position = { x: p.x, y: p.y }
+  }
+  for (const inp of flow.inputs) write(`input:${inp.key}`, inp)
+  for (const n of flow.nodes) write(`table:${n.node_id}`, n)
+  for (const o of flow.outputs) write(`output:${o.name}`, o)
+
+  emit('update:flow', flow)
 }
 
 // Rebuild the node set from the flow only when the STRUCTURE changes (a node,
