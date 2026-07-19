@@ -68,6 +68,8 @@ export interface Flow {
   _id: string
   title: string
   description?: string
+  // Référence optionnelle à une catégorie de l'application (pastille en liste).
+  category_id?: string | null
   inputs: FlowInput[]
   outputs: FlowOutput[]
   nodes: FlowNode[]

@@ -162,6 +162,9 @@
         </UTable>
       </UCard>
 
+      <!-- Catégories (labels de tables & flows) -->
+      <CategoryManager />
+
       <!-- Consommateurs API -->
       <UCard class="shadow-md">
         <template #header>
@@ -233,6 +236,7 @@ import InviteUserModal from '~/components/modals/InviteUserModal.vue'
 import AddConsumerModal from '~/components/modals/AddConsumerModal.vue'
 import EditCollaboratorModal from '~/components/modals/EditCollaboratorModal.vue'
 import AddCollaboratorModal from '~/components/modals/AddCollaboratorModal.vue'
+import CategoryManager from '~/components/categories/CategoryManager.vue'
 
 definePageMeta({ middleware: 'auth' })
 

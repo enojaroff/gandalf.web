@@ -90,6 +90,18 @@
           <!-- Mode lecture -->
           <template v-if="!editingTypes">
             <dl class="space-y-2 text-sm">
+              <div class="flex justify-between items-center">
+                <dt class="text-muted">Catégorie</dt>
+                <dd>
+                  <CategoryBadge
+                    v-if="currentCategory"
+                    :name="currentCategory.name"
+                    :color="currentCategory.color"
+                    size="sm"
+                  />
+                  <span v-else class="text-muted">—</span>
+                </dd>
+              </div>
               <div class="flex justify-between">
                 <dt class="text-muted">{{ $t('tables.matchingType') }}</dt>
                 <dd><UBadge variant="soft">{{ table.matching_type }}</UBadge></dd>
@@ -112,6 +124,11 @@
           <!-- Mode édition -->
           <template v-else>
             <div class="space-y-4 text-sm">
+              <div>
+                <p class="text-xs font-semibold text-muted uppercase mb-2">Catégorie</p>
+                <CategorySelect v-model="table.category_id" :categories="categories" />
+              </div>
+
               <div>
                 <p class="text-xs font-semibold text-muted uppercase mb-2">{{ $t('tables.tableType') }}</p>
                 <div class="flex gap-1">
@@ -217,6 +234,9 @@
 
 <script setup lang="ts">
 import type { DecisionTable, MatchingType, DecisionType } from '~/types/decision-table'
+import type { Category } from '~/types/category'
+import CategorySelect from '~/components/categories/CategorySelect.vue'
+import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 
 definePageMeta({ path: '/tables/:id/info', middleware: 'auth' })
 
@@ -229,6 +249,13 @@ const excel = useTableExcel()
 const tableId = route.params.id as string
 const table = ref<DecisionTable | null>(null)
 const loading = ref(true)
+
+// Catégories de l'application (pour l'affichage et le sélecteur).
+const categories = ref<Category[]>([])
+const categoryById = computed(() => new Map(categories.value.map(c => [c.id, c])))
+const currentCategory = computed(() =>
+  table.value?.category_id ? categoryById.value.get(table.value.category_id) ?? null : null,
+)
 const saving = ref(false)
 const editingTitle = ref(false)
 const editingDescription = ref(false)
@@ -242,13 +269,19 @@ let decisionTypeSnapshot: DecisionType = 'alpha_num'
 
 onMounted(async () => {
   try {
-    const response = await gandalf.tables.getById(tableId)
-    table.value = response.data
+    const [tableResponse, categoriesResponse] = await Promise.all([
+      gandalf.tables.getById(tableId),
+      gandalf.categories.list().catch(() => ({ data: { categories: [] as Category[] } })),
+    ])
+    table.value = tableResponse.data
+    categories.value = categoriesResponse.data.categories
   }
   finally {
     loading.value = false
   }
 })
+
+let categorySnapshot: string | null | undefined = null
 
 /** Import Excel réussi : rafraîchit l'état local avec la table renvoyée. */
 function onImported(imported: DecisionTable) {
@@ -295,6 +328,7 @@ function cancelEdit(field: 'title' | 'description' | 'types') {
   if (field === 'types') {
     table.value.matching_type = matchingTypeSnapshot
     table.value.decision_type = decisionTypeSnapshot
+    table.value.category_id = categorySnapshot
     editingTypes.value = false
   }
 }
@@ -306,6 +340,7 @@ watch(editingTypes, (val) => {
   if (val && table.value) {
     matchingTypeSnapshot = table.value.matching_type
     decisionTypeSnapshot = table.value.decision_type
+    categorySnapshot = table.value.category_id
   }
 })
 

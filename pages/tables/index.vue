@@ -23,6 +23,16 @@
         class="flex-1 max-w-sm"
         @input="debouncedSearch"
       />
+      <USelect
+        v-if="categories.length"
+        v-model="categoryFilter"
+        :items="categoryFilterOptions"
+        value-key="value"
+        label-key="label"
+        icon="i-lucide-tag"
+        class="w-52"
+        @update:model-value="onCategoryFilterChange"
+      />
     </div>
 
     <!-- Tableau -->
@@ -46,12 +56,20 @@
       >
         <template #title-cell="{ row }">
           <div>
-            <NuxtLink
-              :to="`/tables/${row.original._id}/info`"
-              class="font-medium text-primary hover:underline"
-            >
-              {{ row.original.title }}
-            </NuxtLink>
+            <div class="flex items-center gap-2">
+              <NuxtLink
+                :to="`/tables/${row.original._id}/info`"
+                class="font-medium text-primary hover:underline"
+              >
+                {{ row.original.title }}
+              </NuxtLink>
+              <CategoryBadge
+                v-if="row.original.category_id && categoryById.get(row.original.category_id)"
+                :name="categoryById.get(row.original.category_id)!.name"
+                :color="categoryById.get(row.original.category_id)!.color"
+                size="xs"
+              />
+            </div>
             <p v-if="row.original.description" class="text-xs text-muted truncate max-w-xs">
               {{ row.original.description }}
             </p>
@@ -86,6 +104,8 @@
 
 <script setup lang="ts">
 import type { DecisionTable } from '~/types/decision-table'
+import type { Category } from '~/types/category'
+import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -101,6 +121,36 @@ const search = ref('')
 const currentPage = ref(1)
 const pageSize = 20
 
+// Catégories de l'application, indexées par id pour résoudre la pastille en O(1).
+const categories = ref<Category[]>([])
+const categoryById = computed(
+  () => new Map(categories.value.map(c => [c.id, c])),
+)
+
+// Filtre par catégorie. Sentinelle non-vide : @nuxt/ui (reka) réserve la chaîne
+// vide comme "aucune sélection" et refuse un SelectItem de value ''.
+const ALL_CATEGORIES = '__all__'
+const categoryFilter = ref(ALL_CATEGORIES)
+const categoryFilterOptions = computed(() => [
+  { label: 'Toutes les catégories', value: ALL_CATEGORIES },
+  ...categories.value.map(c => ({ label: c.name, value: c.id })),
+])
+
+async function loadCategories() {
+  try {
+    const response = await gandalf.categories.list()
+    categories.value = response.data.categories
+  }
+  catch {
+    categories.value = []
+  }
+}
+
+function onCategoryFilterChange() {
+  currentPage.value = 1
+  loadTables()
+}
+
 const columns = computed(() => [
   { accessorKey: 'title', header: t('common.name') },
   { accessorKey: 'matching_type', header: t('tables.matchingType') },
@@ -112,6 +162,7 @@ async function loadTables() {
   try {
     const response = await gandalf.tables.list(pageSize, currentPage.value, {
       title: search.value || undefined,
+      category_id: categoryFilter.value !== ALL_CATEGORIES ? categoryFilter.value : undefined,
     })
     tables.value = response.data
     meta.value = response.meta as { total: number }
@@ -165,5 +216,8 @@ async function confirmDelete(table: DecisionTable) {
   }
 }
 
-onMounted(loadTables)
+onMounted(() => {
+  loadCategories()
+  loadTables()
+})
 </script>
