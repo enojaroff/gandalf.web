@@ -3,6 +3,7 @@ import type { DecisionTable } from '~/types/decision-table'
 import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, ConfirmCollaboratorResult } from '~/types/project'
 import type { Group } from '~/types/group'
 import type { Flow, FlowRun, FlowResult } from '~/types/flow'
+import type { Category } from '~/types/category'
 
 function btoa64(str: string): string {
   return btoa(str)
@@ -267,10 +268,26 @@ export function useGandalf() {
       }),
   }
 
+  // ─── Categories ───────────────────────────────────────────────────────────
+  // Liste de catégories propre à l'application courante (scopée par le header
+  // X-Application, comme les autres routes projet). GET lit la liste ; PUT la
+  // remplace entièrement (réservé aux admins projet côté API).
+
+  const categories = {
+    list: () =>
+      request<{ data: { categories: Category[] } }>(`${apiBase}/v1/admin/categories`),
+
+    replace: (list: Category[]) =>
+      request<{ data: { categories: Category[] } }>(`${apiBase}/v1/admin/categories`, {
+        method: 'PUT',
+        body: { categories: list },
+      }),
+  }
+
   // ─── Tables ───────────────────────────────────────────────────────────────
 
   const tables = {
-    list: (size?: number, page?: number, filter?: { title?: string; description?: string }) =>
+    list: (size?: number, page?: number, filter?: { title?: string; description?: string; category_id?: string }) =>
       request<{ data: DecisionTable[]; meta: unknown }>(`${apiBase}/v1/admin/tables`, {
         params: { size, page, ...filter },
       }),
@@ -379,7 +396,7 @@ export function useGandalf() {
   // ─── Flows (Decision Requirement Graph) ───────────────────────────────────
 
   const flows = {
-    list: (size?: number, page?: number, filter?: { title?: string }) =>
+    list: (size?: number, page?: number, filter?: { title?: string; category_id?: string }) =>
       request<{ data: Flow[]; meta: unknown }>(`${apiBase}/v1/admin/flows`, {
         params: { size, page, ...filter },
       }),
@@ -475,5 +492,5 @@ export function useGandalf() {
       request<{ data: unknown }>(`${apiBase}/v1/decisions/${decisionId}`),
   }
 
-  return { auth, users, projects, tables, flows, groups, history, consumer }
+  return { auth, users, projects, categories, tables, flows, groups, history, consumer }
 }

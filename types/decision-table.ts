@@ -86,6 +86,8 @@ export interface DecisionTable {
   _id: string
   title: string
   description?: string
+  // Référence optionnelle à une catégorie de l'application (pastille en liste).
+  category_id?: string | null
   matching_type: MatchingType
   decision_type: DecisionType
   variants_probability?: string

@@ -36,6 +36,12 @@
       </div>
     </div>
 
+    <!-- Catégorie du flow -->
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-xs font-semibold text-muted uppercase shrink-0">Catégorie</span>
+      <CategorySelect v-model="flow.category_id" :categories="categories" />
+    </div>
+
     <!-- Validation errors (422) -->
     <UAlert
       v-if="validationErrors.length"
@@ -211,6 +217,8 @@
 <script setup lang="ts">
 import type { Flow, FlowInput, FlowIOType, FlowNode } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
+import type { Category } from '~/types/category'
+import CategorySelect from '~/components/categories/CategorySelect.vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -225,6 +233,8 @@ const isNew = computed(() => routeId.value === 'new')
 
 const flow = ref<Flow>(emptyFlow())
 const tables = ref<DecisionTable[]>([])
+// Catégories de l'application, pour le sélecteur dans l'en-tête.
+const categories = ref<Category[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const deleting = ref(false)
@@ -290,7 +300,7 @@ const nodeIdError = computed(() => {
 })
 
 function emptyFlow(): Flow {
-  return { _id: '', title: '', description: '', inputs: [], outputs: [], nodes: [], edges: [] }
+  return { _id: '', title: '', description: '', category_id: null, inputs: [], outputs: [], nodes: [], edges: [] }
 }
 
 async function load() {
@@ -299,8 +309,12 @@ async function load() {
     // The list endpoint returns a reduced projection (no `fields`), which is
     // fine for the "add node" picker. The canvas needs each node's fields, so
     // we load the full detail of the tables actually used by the flow below.
-    const tablesResp = await gandalf.tables.list(200, 1)
+    const [tablesResp, categoriesResp] = await Promise.all([
+      gandalf.tables.list(200, 1),
+      gandalf.categories.list().catch(() => ({ data: { categories: [] as Category[] } })),
+    ])
     tables.value = tablesResp.data
+    categories.value = categoriesResp.data.categories
 
     if (isNew.value) {
       flow.value = emptyFlow()
@@ -461,6 +475,7 @@ async function save() {
     const payload: Partial<Flow> = {
       title: flow.value.title,
       description: flow.value.description,
+      category_id: flow.value.category_id ?? null,
       inputs: flow.value.inputs,
       // Drop outputs whose source wire was removed (from_node cleared to ''):
       // an output with no source is incomplete and would be rejected by the
