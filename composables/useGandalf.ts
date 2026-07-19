@@ -200,7 +200,9 @@ export function useGandalf() {
 
     export: () => request<unknown>(`${apiBase}/v1/projects/export`),
 
-    getUsers: () => request<{ data: ProjectUser[] }>(`${apiBase}/v1/projects/users`),
+    // Returns the CURRENT member of the active project (a single object), not a
+    // list — the backend maps this to ApplicationController@getCurrentUser.
+    getUsers: () => request<{ data: ProjectUser | ProjectUser[] }>(`${apiBase}/v1/projects/users`),
 
     // Collaborators enriched with a confirmation status (active/pending/invited),
     // merged with pending invitations.
@@ -312,6 +314,19 @@ export function useGandalf() {
 
     copy: (id: string) =>
       request<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/${id}/copy`, {
+        method: 'POST',
+      }),
+
+    // Copy the table into another project (admin only). The source is the active
+    // project (X-Application header); the destination is in the URL.
+    copyTo: (id: string, projectId: string) =>
+      request<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/${id}/copyto/${projectId}`, {
+        method: 'POST',
+      }),
+
+    // Move the table to another project (admin only): it leaves the source.
+    moveTo: (id: string, projectId: string) =>
+      request<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/${id}/moveto/${projectId}`, {
         method: 'POST',
       }),
 
@@ -432,6 +447,20 @@ export function useGandalf() {
       request<{ data: FlowResult }>(`${apiBase}/v1/flows/${id}/decisions`, {
         method: 'POST',
         body: inputs,
+      }),
+
+    // Copy the flow (with copies of its referenced tables) into another project
+    // (admin only). Source = active project (X-Application); destination in URL.
+    copyTo: (id: string, projectId: string) =>
+      request<{ data: Flow }>(`${apiBase}/v1/admin/flows/${id}/copyto/${projectId}`, {
+        method: 'POST',
+      }),
+
+    // Move the flow to another project (admin only): it leaves the source; its
+    // referenced tables are copied into the destination.
+    moveTo: (id: string, projectId: string) =>
+      request<{ data: Flow }>(`${apiBase}/v1/admin/flows/${id}/moveto/${projectId}`, {
+        method: 'POST',
       }),
   }
 

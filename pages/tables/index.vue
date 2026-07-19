@@ -99,6 +99,16 @@
         @update:page="loadTables"
       />
     </div>
+
+    <!-- Copier / déplacer vers un autre projet (admin) -->
+    <CopyMoveModal
+      v-if="copyMove"
+      resource="table"
+      :mode="copyMove.mode"
+      :item="copyMove.item"
+      @close="copyMove = null"
+      @saved="onCopyMoveSaved"
+    />
   </div>
 </template>
 
@@ -106,6 +116,7 @@
 import type { DecisionTable } from '~/types/decision-table'
 import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
+import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -113,6 +124,11 @@ definePageMeta({ middleware: 'auth' })
 const { t } = useI18n()
 const gandalf = useGandalf()
 const router = useRouter()
+const projectsStore = useProjectsStore()
+
+// Copier/déplacer vers un autre projet — admin uniquement.
+const isAdmin = computed(() => projectsStore.isAdmin)
+const copyMove = ref<{ mode: 'copy' | 'move'; item: DecisionTable } | null>(null)
 
 const tables = ref<DecisionTable[]>([])
 const meta = ref<{ total: number } | null>(null)
@@ -180,29 +196,52 @@ const debouncedSearch = useDebounceFn(() => {
   loadTables()
 }, 300)
 
-function tableActions(table: DecisionTable) {
-  return [
+interface MenuItem {
+  label: string
+  icon: string
+  color?: 'error'
+  onSelect: () => void
+}
+
+function tableActions(table: DecisionTable): MenuItem[][] {
+  const groups: MenuItem[][] = [
     [
       {
         label: t('common.view'),
         icon: 'i-lucide-eye',
-        onSelect: () => router.push(`/tables/${table._id}/info`),
+        onSelect: () => { router.push(`/tables/${table._id}/info`) },
       },
       {
         label: t('common.edit'),
         icon: 'i-lucide-pencil',
-        onSelect: () => router.push(`/tables/${table._id}`),
-      },
-    ],
-    [
-      {
-        label: t('common.delete'),
-        icon: 'i-lucide-trash-2',
-        color: 'error' as const,
-        onSelect: () => confirmDelete(table),
+        onSelect: () => { router.push(`/tables/${table._id}`) },
       },
     ],
   ]
+  // Copier/déplacer : admin uniquement.
+  if (isAdmin.value) {
+    groups.push([
+      {
+        label: 'Copier vers…',
+        icon: 'i-lucide-copy',
+        onSelect: () => { copyMove.value = { mode: 'copy', item: table } },
+      },
+      {
+        label: 'Déplacer vers…',
+        icon: 'i-lucide-corner-up-right',
+        onSelect: () => { copyMove.value = { mode: 'move', item: table } },
+      },
+    ])
+  }
+  groups.push([
+    {
+      label: t('common.delete'),
+      icon: 'i-lucide-trash-2',
+      color: 'error',
+      onSelect: () => { confirmDelete(table) },
+    },
+  ])
+  return groups
 }
 
 async function confirmDelete(table: DecisionTable) {
@@ -216,8 +255,18 @@ async function confirmDelete(table: DecisionTable) {
   }
 }
 
+// Après une copie/déplacement : recharger la liste (un déplacement retire la
+// table du projet courant).
+function onCopyMoveSaved() {
+  loadTables()
+}
+
 onMounted(() => {
   loadCategories()
   loadTables()
+  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
+  if (projectsStore.currentUserRole === null) {
+    projectsStore.fetchCurrentUserRole()
+  }
 })
 </script>
