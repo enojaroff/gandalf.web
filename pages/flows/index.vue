@@ -106,6 +106,16 @@
         @update:page="loadFlows"
       />
     </div>
+
+    <!-- Copier / déplacer vers un autre projet (admin) -->
+    <CopyMoveModal
+      v-if="copyMove"
+      resource="flow"
+      :mode="copyMove.mode"
+      :item="copyMove.item"
+      @close="copyMove = null"
+      @saved="onCopyMoveSaved"
+    />
   </div>
 </template>
 
@@ -113,6 +123,7 @@
 import type { Flow } from '~/types/flow'
 import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
+import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -121,6 +132,11 @@ const { t } = useI18n()
 const gandalf = useGandalf()
 const router = useRouter()
 const toast = useToast()
+const projectsStore = useProjectsStore()
+
+// Copier/déplacer vers un autre projet — admin uniquement.
+const isAdmin = computed(() => projectsStore.isAdmin)
+const copyMove = ref<{ mode: 'copy' | 'move'; item: Flow } | null>(null)
 
 const flows = ref<Flow[]>([])
 const meta = ref<{ total: number } | null>(null)
@@ -199,29 +215,52 @@ function createFlow() {
   router.push('/flows/new/edit')
 }
 
-function flowActions(flow: Flow) {
-  return [
+interface MenuItem {
+  label: string
+  icon: string
+  color?: 'error'
+  onSelect: () => void
+}
+
+function flowActions(flow: Flow): MenuItem[][] {
+  const groups: MenuItem[][] = [
     [
       {
         label: t('common.edit'),
         icon: 'i-lucide-pencil',
-        onSelect: () => router.push(`/flows/${flow._id}/edit`),
+        onSelect: () => { router.push(`/flows/${flow._id}/edit`) },
       },
       {
         label: t('flows.viewRuns'),
         icon: 'i-lucide-history',
-        onSelect: () => router.push(`/flows/${flow._id}/runs`),
-      },
-    ],
-    [
-      {
-        label: t('common.delete'),
-        icon: 'i-lucide-trash-2',
-        color: 'error' as const,
-        onSelect: () => confirmDelete(flow),
+        onSelect: () => { router.push(`/flows/${flow._id}/runs`) },
       },
     ],
   ]
+  // Copier/déplacer : admin uniquement.
+  if (isAdmin.value) {
+    groups.push([
+      {
+        label: 'Copier vers…',
+        icon: 'i-lucide-copy',
+        onSelect: () => { copyMove.value = { mode: 'copy', item: flow } },
+      },
+      {
+        label: 'Déplacer vers…',
+        icon: 'i-lucide-corner-up-right',
+        onSelect: () => { copyMove.value = { mode: 'move', item: flow } },
+      },
+    ])
+  }
+  groups.push([
+    {
+      label: t('common.delete'),
+      icon: 'i-lucide-trash-2',
+      color: 'error',
+      onSelect: () => { confirmDelete(flow) },
+    },
+  ])
+  return groups
 }
 
 async function confirmDelete(flow: Flow) {
@@ -236,8 +275,17 @@ async function confirmDelete(flow: Flow) {
   }
 }
 
+// Après une copie/déplacement : recharger la liste (un déplacement retire le
+// flow du projet courant).
+function onCopyMoveSaved() {
+  loadFlows()
+}
+
 onMounted(() => {
   loadCategories()
   loadFlows()
+  if (projectsStore.currentUserRole === null) {
+    projectsStore.fetchCurrentUserRole()
+  }
 })
 </script>

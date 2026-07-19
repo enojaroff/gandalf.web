@@ -26,6 +26,20 @@
           {{ $t('common.save') }}
         </UButton>
         <UButton
+          v-if="!isNew && isAdmin"
+          icon="i-lucide-copy"
+          variant="ghost"
+          title="Copier vers un autre projet"
+          @click="() => { copyMove = { mode: 'copy', item: flow } }"
+        />
+        <UButton
+          v-if="!isNew && isAdmin"
+          icon="i-lucide-corner-up-right"
+          variant="ghost"
+          title="Déplacer vers un autre projet"
+          @click="() => { copyMove = { mode: 'move', item: flow } }"
+        />
+        <UButton
           v-if="!isNew"
           icon="i-lucide-trash-2"
           color="error"
@@ -211,6 +225,16 @@
       :flow="flow"
       :node-labels="nodeLabels"
     />
+
+    <!-- Copier / déplacer vers un autre projet (admin) -->
+    <CopyMoveModal
+      v-if="copyMove"
+      resource="flow"
+      :mode="copyMove.mode"
+      :item="copyMove.item"
+      @close="copyMove = null"
+      @saved="onCopyMoveSaved"
+    />
   </div>
 </template>
 
@@ -219,6 +243,7 @@ import type { Flow, FlowInput, FlowIOType, FlowNode } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
 import type { Category } from '~/types/category'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
+import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -227,9 +252,21 @@ const gandalf = useGandalf()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const projectsStore = useProjectsStore()
 
 const routeId = computed(() => route.params.id as string)
 const isNew = computed(() => routeId.value === 'new')
+
+// Copier/déplacer vers un autre projet — admin uniquement.
+const isAdmin = computed(() => projectsStore.isAdmin)
+const copyMove = ref<{ mode: 'copy' | 'move'; item: Flow } | null>(null)
+
+function onCopyMoveSaved() {
+  // Un déplacement retire le flow du projet courant : revenir à la liste.
+  if (copyMove.value?.mode === 'move') {
+    router.push('/flows')
+  }
+}
 
 const flow = ref<Flow>(emptyFlow())
 const tables = ref<DecisionTable[]>([])
@@ -527,7 +564,13 @@ async function deleteFlow() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
+  if (projectsStore.currentUserRole === null) {
+    projectsStore.fetchCurrentUserRole()
+  }
+})
 </script>
 
 <style scoped>

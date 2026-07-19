@@ -54,6 +54,20 @@
         <div class="flex items-center gap-2">
           <DecisionTableExcelExportImport :table-id="tableId" @imported="onImported" />
           <UButton
+            v-if="isAdmin && table"
+            icon="i-lucide-copy"
+            variant="ghost"
+            title="Copier vers un autre projet"
+            @click="() => { if (table) copyMove = { mode: 'copy', item: table } }"
+          />
+          <UButton
+            v-if="isAdmin && table"
+            icon="i-lucide-corner-up-right"
+            variant="ghost"
+            title="Déplacer vers un autre projet"
+            @click="() => { if (table) copyMove = { mode: 'move', item: table } }"
+          />
+          <UButton
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -229,6 +243,16 @@
         </UTable>
       </UCard>
     </template>
+
+    <!-- Copier / déplacer vers un autre projet (admin) -->
+    <CopyMoveModal
+      v-if="copyMove"
+      resource="table"
+      :mode="copyMove.mode"
+      :item="copyMove.item"
+      @close="copyMove = null"
+      @saved="onCopyMoveSaved"
+    />
   </div>
 </template>
 
@@ -237,18 +261,31 @@ import type { DecisionTable, MatchingType, DecisionType } from '~/types/decision
 import type { Category } from '~/types/category'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
+import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 
 definePageMeta({ path: '/tables/:id/info', middleware: 'auth' })
 
 const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
+const projectsStore = useProjectsStore()
 // Export Excel par variante (boutons de la carte "Variants")
 const excel = useTableExcel()
 
 const tableId = route.params.id as string
 const table = ref<DecisionTable | null>(null)
 const loading = ref(true)
+
+// Copier/déplacer vers un autre projet — admin uniquement.
+const isAdmin = computed(() => projectsStore.isAdmin)
+const copyMove = ref<{ mode: 'copy' | 'move'; item: DecisionTable } | null>(null)
+
+function onCopyMoveSaved() {
+  // Un déplacement retire la table du projet courant : revenir à la liste.
+  if (copyMove.value?.mode === 'move') {
+    navigateTo('/tables')
+  }
+}
 
 // Catégories de l'application (pour l'affichage et le sélecteur).
 const categories = ref<Category[]>([])
@@ -278,6 +315,10 @@ onMounted(async () => {
   }
   finally {
     loading.value = false
+  }
+  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
+  if (projectsStore.currentUserRole === null) {
+    projectsStore.fetchCurrentUserRole()
   }
 })
 
