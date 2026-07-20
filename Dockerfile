@@ -15,13 +15,13 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=5177
 
 WORKDIR /app
 
 # Copier uniquement le build Nuxt standalone
 COPY --from=builder /app/.output /app/.output
 
-EXPOSE 3000
+EXPOSE 5177
 
 CMD ["node", ".output/server/index.mjs"]
