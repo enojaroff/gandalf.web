@@ -435,7 +435,7 @@ function toggleDelete(rule: DecisionRule) {
   position: sticky;
   right: 4rem;         /* après la colonne actions (64px) */
   z-index: 2;
-  min-width: 120px;
+  min-width: 80px;
   background: color-mix(in srgb, var(--ui-primary) 5%, var(--ui-bg));
   /* ombre à gauche pour marquer la limite */
   box-shadow: -2px 0 4px -2px var(--ui-border);
