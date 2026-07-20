@@ -391,8 +391,22 @@ const activeRules = computed(() =>
 const draggableRules = ref<DecisionRule[]>([])
 const isDragging = ref(false)
 
-watch(activeRules, (rules) => {
-  if (!isDragging.value) draggableRules.value = [...rules]
+// Signature de l'ensemble des règles visibles (ids triés) : change quand une
+// règle est ajoutée / supprimée / restaurée, pas quand on réordonne.
+const visibleIdSet = computed(() =>
+  activeRules.value.map(r => r._id).slice().sort().join(','),
+)
+
+// Resync `draggableRules` depuis la source quand elle change hors drag. Garde
+// de sécurité : si l'ENSEMBLE des visibles a changé (ajout/suppression), on
+// resync même si isDragging est resté true par erreur (event 'end' manqué),
+// pour ne jamais figer le tableau dans un état périmé.
+watch([activeRules, visibleIdSet], ([rules], [, prevIdSet]) => {
+  const setChanged = visibleIdSet.value !== prevIdSet
+  if (!isDragging.value || setChanged) {
+    isDragging.value = false
+    draggableRules.value = [...rules]
+  }
 }, { immediate: true })
 
 // Après un réordonnancement, `draggableRules` porte le nouvel ordre des règles
@@ -407,9 +421,19 @@ function applyReorder() {
     .map(r => byId.get(r._id))
     .filter((r): r is DecisionRule => !!r && !r.isDeleted)
 
+  const currentVisible = props.variant.rules.filter(r => !r.isDeleted)
+
+  // Invariant : les deux listes doivent décrire le MÊME ensemble de visibles.
+  // Si elles divergent (course transitoire), on abandonne — le watch resync.
+  if (orderedVisible.length !== currentVisible.length) return
+
+  // No-op : si l'ordre des visibles est inchangé, ne pas salir la table.
+  const unchanged = orderedVisible.every((r, i) => r._id === currentVisible[i]._id)
+  if (unchanged) return
+
   let v = 0
   const rebuilt = props.variant.rules.map(r =>
-    r.isDeleted ? r : orderedVisible[v++] ?? r,
+    r.isDeleted ? r : orderedVisible[v++]!,
   )
 
   props.variant.rules.splice(0, props.variant.rules.length, ...rebuilt)
