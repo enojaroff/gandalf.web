@@ -84,6 +84,7 @@
     "delete": "Delete",
     "confirmDelete": "Are you sure you want to delete this table?",
     "deleteTable": "Delete Table",
+    "deleteFieldConfirm": "Delete the field \"{field}\"? This column will be removed from all variants and every one of their rules.",
     "reorderRule": "Drag to reorder",
     "onlyActiveRules": "Only rules with decisions (> 0%)",
     "matchingTypeDescriptions": {

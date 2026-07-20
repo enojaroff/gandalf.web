@@ -84,6 +84,7 @@
     "delete": "Supprimer",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette table ?",
     "deleteTable": "Supprimer la table",
+    "deleteFieldConfirm": "Supprimer le champ « {field} » ? Cette colonne sera retirée de toutes les variantes et de toutes leurs règles.",
     "reorderRule": "Glisser pour réordonner",
     "onlyActiveRules": "Uniquement les décisions prises",
     "matchingTypeDescriptions": {

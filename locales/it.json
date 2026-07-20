@@ -83,6 +83,7 @@
     "delete": "Elimina",
     "confirmDelete": "Sei sicuro di voler eliminare questa tabella?",
     "deleteTable": "Elimina tabella",
+    "deleteFieldConfirm": "Eliminare il campo \"{field}\"? Questa colonna verrà rimossa da tutte le varianti e da tutte le loro regole.",
     "reorderRule": "Trascina per riordinare",
     "onlyActiveRules": "Solo regole con decisioni (> 0%)",
     "matchingTypeDescriptions": {

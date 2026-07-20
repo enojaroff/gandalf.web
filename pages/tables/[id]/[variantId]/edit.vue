@@ -151,6 +151,7 @@ import { CONDITION_TYPES } from '~/utils/transforms'
 
 definePageMeta({ middleware: 'auth' })
 
+const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
@@ -195,7 +196,18 @@ function deleteEditField() {
   if (!table.value) return
   const field = table.value.fields.find(f => f.key === editFieldForm.key)
   if (!field) return
+  // A field (column) is shared by every variant, so removing it must remove the
+  // matching condition from EVERY rule of EVERY variant. Confirm first, since it
+  // affects all variants at once.
+  if (!confirm(t('tables.deleteFieldConfirm', { field: field.title || field.key }))) return
   field.isDeleted = true
+  // Drop the corresponding condition everywhere so conditions stay aligned with
+  // the (filtered) field list — the table renders conditions by column position.
+  for (const v of table.value.variants) {
+    for (const rule of v.rules) {
+      rule.conditions = rule.conditions.filter(c => c.field_key !== field.key)
+    }
+  }
   showEditFieldModal.value = false
 }
 
@@ -306,10 +318,23 @@ function submitAddField() {
   showAddFieldModal.value = false
 }
 
+// Align a rule's conditions to the active field set: exactly one condition per
+// field, in field order. Keep the existing condition (matched by field_key),
+// synthesise a neutral one for a missing field, drop orphans. Mirrors the
+// backend normalisation so the payload is already consistent (defence in depth)
+// and the table's shared-columns invariant always holds.
+function alignConditions(rule: DecisionRule, activeFieldKeys: string[]): RuleCondition[] {
+  const byKey = new Map(rule.conditions.map(c => [c.field_key, c]))
+  return activeFieldKeys.map(key =>
+    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.IS_SET, value: true } as RuleCondition,
+  )
+}
+
 async function save() {
   if (!table.value) return
   saving.value = true
   try {
+    const activeFieldKeys = table.value.fields.filter(f => !f.isDeleted).map(f => f.key)
     // Strip frontend-only `isDeleted` flag before sending to API
     const payload = {
       ...table.value,
@@ -320,7 +345,7 @@ async function save() {
         ...v,
         rules: v.rules
           .filter(r => !r.isDeleted)
-          .map(({ isDeleted: _d, ...r }) => r),
+          .map(({ isDeleted: _d, ...r }) => ({ ...r, conditions: alignConditions(r, activeFieldKeys) })),
       })),
     }
     const response = await gandalf.tables.update(tableId, payload as never)
