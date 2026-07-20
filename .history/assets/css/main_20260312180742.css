@@ -1,6 +1,0 @@
-@import "tailwindcss";
-@import "@nuxt/ui";
-
-@theme {
-  --color-orange: #ffcc00;
-}
