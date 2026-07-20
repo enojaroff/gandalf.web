@@ -83,6 +83,7 @@
     "delete": "Elimina",
     "confirmDelete": "Sei sicuro di voler eliminare questa tabella?",
     "deleteTable": "Elimina tabella",
+    "reorderRule": "Trascina per riordinare",
     "onlyActiveRules": "Solo regole con decisioni (> 0%)",
     "matchingTypeDescriptions": {
       "first": "Restituisce il risultato della prima regola corrispondente.",

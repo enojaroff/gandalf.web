@@ -83,6 +83,7 @@
     "delete": "Eliminar",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esta tabla?",
     "deleteTable": "Eliminar tabla",
+    "reorderRule": "Arrastrar para reordenar",
     "onlyActiveRules": "Solo reglas con decisiones (> 0%)",
     "matchingTypeDescriptions": {
       "first": "Devuelve el resultado de la primera regla coincidente.",
