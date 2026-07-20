@@ -4,6 +4,9 @@
       <!-- En-tête des colonnes -->
       <thead>
         <tr>
+          <!-- Poignée de réordonnancement -->
+          <th class="dt-cell dt-cell--drag" />
+
           <!-- Numéro de règle -->
           <th class="dt-cell dt-cell--num">#</th>
 
@@ -47,14 +50,29 @@
         </tr>
       </thead>
 
-      <!-- Règles -->
-      <tbody>
+      <!-- Règles (réordonnables par glisser-déposer via la poignée) -->
+      <VueDraggable
+        v-model="draggableRules"
+        tag="tbody"
+        handle=".dt-drag-handle"
+        :animation="150"
+        ghost-class="dt-row--ghost"
+        @start="isDragging = true"
+        @end="onDragEnd"
+      >
         <tr
-          v-for="(rule, ruleIdx) in activeRules"
+          v-for="(rule, ruleIdx) in draggableRules"
           :key="rule._id"
           class="dt-row"
           :class="{ 'dt-row--deleted': rule.isDeleted }"
         >
+          <!-- Poignée de drag -->
+          <td class="dt-cell dt-cell--drag">
+            <button type="button" class="dt-drag-handle" :title="$t('tables.reorderRule')">
+              <UIcon name="i-lucide-grip-vertical" />
+            </button>
+          </td>
+
           <!-- Numéro -->
           <td class="dt-cell dt-cell--num">
             <span class="text-muted text-xs">{{ ruleIdx + 1 }}</span>
@@ -198,13 +216,14 @@
             </div>
           </td>
         </tr>
-      </tbody>
+      </VueDraggable>
     </table>
   </div>
 
 </template>
 
 <script setup lang="ts">
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
 import { CONDITION_OPTIONS } from '~/utils/transforms'
@@ -365,6 +384,67 @@ const activeRules = computed(() =>
   props.variant.rules.filter(r => !r.isDeleted),
 )
 
+// ── Réordonnancement par drag & drop ────────────────────────────────────────
+// Le tbody est rendu depuis `draggableRules`, une copie mutable des règles
+// visibles (non supprimées) que VueDraggable réordonne en place. On garde cette
+// copie synchronisée avec la source tant qu'aucun drag n'est en cours.
+const draggableRules = ref<DecisionRule[]>([])
+const isDragging = ref(false)
+
+// Signature de l'ensemble des règles visibles (ids triés) : change quand une
+// règle est ajoutée / supprimée / restaurée, pas quand on réordonne.
+const visibleIdSet = computed(() =>
+  activeRules.value.map(r => r._id).slice().sort().join(','),
+)
+
+// Resync `draggableRules` depuis la source quand elle change hors drag. Garde
+// de sécurité : si l'ENSEMBLE des visibles a changé (ajout/suppression), on
+// resync même si isDragging est resté true par erreur (event 'end' manqué),
+// pour ne jamais figer le tableau dans un état périmé.
+watch([activeRules, visibleIdSet], ([rules], [, prevIdSet]) => {
+  const setChanged = visibleIdSet.value !== prevIdSet
+  if (!isDragging.value || setChanged) {
+    isDragging.value = false
+    draggableRules.value = [...rules]
+  }
+}, { immediate: true })
+
+// Après un réordonnancement, `draggableRules` porte le nouvel ordre des règles
+// visibles. On l'applique au vrai `variant.rules` (qui contient aussi les
+// règles supprimées, masquées) : les positions occupées par des règles
+// VISIBLES reçoivent les visibles dans leur nouvel ordre ; les règles
+// supprimées restent à leur index absolu (elles ne bougent pas — comportement
+// prévisible pour un état transitoire « en attente de suppression »).
+function applyReorder() {
+  const byId = new Map(props.variant.rules.map(r => [r._id, r]))
+  const orderedVisible = draggableRules.value
+    .map(r => byId.get(r._id))
+    .filter((r): r is DecisionRule => !!r && !r.isDeleted)
+
+  const currentVisible = props.variant.rules.filter(r => !r.isDeleted)
+
+  // Invariant : les deux listes doivent décrire le MÊME ensemble de visibles.
+  // Si elles divergent (course transitoire), on abandonne — le watch resync.
+  if (orderedVisible.length !== currentVisible.length) return
+
+  // No-op : si l'ordre des visibles est inchangé, ne pas salir la table.
+  const unchanged = orderedVisible.every((r, i) => r._id === currentVisible[i]._id)
+  if (unchanged) return
+
+  let v = 0
+  const rebuilt = props.variant.rules.map(r =>
+    r.isDeleted ? r : orderedVisible[v++]!,
+  )
+
+  props.variant.rules.splice(0, props.variant.rules.length, ...rebuilt)
+  emitUpdate()
+}
+
+function onDragEnd() {
+  isDragging.value = false
+  applyReorder()
+}
+
 function emitUpdate() {
   emit('update:table', { ...props.table })
 }
@@ -403,9 +483,43 @@ function toggleDelete(rule: DecisionRule) {
 }
 
 /* ── Colonnes fixes gauche ─────────────────────────────── */
-.dt-cell--num {
+.dt-cell--drag {
   position: sticky;
   left: 0;
+  z-index: 2;
+  width: 1.5rem;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  background: var(--ui-bg-muted);
+}
+
+.dt-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-muted);
+  cursor: grab;
+  opacity: 0.35;
+  transition: opacity 0.1s ease;
+}
+
+.dt-row:hover .dt-drag-handle {
+  opacity: 1;
+}
+
+.dt-drag-handle:active {
+  cursor: grabbing;
+}
+
+.dt-row--ghost {
+  opacity: 0.5;
+  background: color-mix(in srgb, var(--ui-primary) 12%, var(--ui-bg));
+}
+
+.dt-cell--num {
+  position: sticky;
+  left: 1.5rem;        /* après la poignée (24px) */
   z-index: 2;
   width: 2.5rem;
   text-align: center;
@@ -414,7 +528,7 @@ function toggleDelete(rule: DecisionRule) {
 
 .dt-cell--title {
   position: sticky;
-  left: 2.5rem;        /* après la colonne # (40px) */
+  left: 4rem;          /* après poignée (24px) + # (40px) */
   z-index: 2;
   min-width: 160px;
   background: var(--ui-bg);
@@ -473,6 +587,7 @@ thead .dt-cell {
 }
 
 /* Les cellules en-tête qui sont aussi sticky horizontalement */
+thead .dt-cell--drag,
 thead .dt-cell--num,
 thead .dt-cell--title,
 thead .dt-cell--decision,
@@ -580,6 +695,7 @@ thead .dt-cell--actions {
 }
 
 /* Maintien du fond des colonnes fixes au hover */
+.dt-row:hover .dt-cell--drag,
 .dt-row:hover .dt-cell--num,
 .dt-row:hover .dt-cell--title {
   background: var(--ui-bg-elevated);

@@ -84,6 +84,7 @@
     "delete": "Supprimer",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette table ?",
     "deleteTable": "Supprimer la table",
+    "reorderRule": "Glisser pour réordonner",
     "onlyActiveRules": "Uniquement les décisions prises",
     "matchingTypeDescriptions": {
       "first": "Retourne le résultat de la première règle correspondante.",
