@@ -7,6 +7,10 @@ dist
 node_modules
 npm-debug.log*
 
+# Bower (legacy AngularJS deps, reinstallable — not versioned)
+bower_components
+www/bower_components
+
 # Environnement
 .env
 .env.*

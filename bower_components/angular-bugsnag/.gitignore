@@ -1,7 +1,0 @@
-.sass-cache
-.idea
-node_modules
-test/.tmp
-test/app/bower_components
-reports
-npm-debug.log
