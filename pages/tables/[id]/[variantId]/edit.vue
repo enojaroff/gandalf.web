@@ -305,10 +305,13 @@ function submitAddField() {
     preset: null,
   }
 
+  // Adding a column adds a NEUTRAL '$any' condition (always true) to every rule
+  // of every variant, so an existing rule's outcome is unchanged. Same default
+  // as the save/backend normalisation — one consistent behaviour everywhere.
   table.value.fields.push(field)
   for (const v of table.value.variants) {
     for (const rule of v.rules) {
-      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.IS_SET, value: true } as RuleCondition)
+      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition)
     }
   }
 
@@ -320,13 +323,14 @@ function submitAddField() {
 
 // Align a rule's conditions to the active field set: exactly one condition per
 // field, in field order. Keep the existing condition (matched by field_key),
-// synthesise a neutral one for a missing field, drop orphans. Mirrors the
-// backend normalisation so the payload is already consistent (defence in depth)
-// and the table's shared-columns invariant always holds.
+// synthesise a NEUTRAL '$any' condition for a missing field, drop orphans.
+// '$any' (always true) matches the backend normalisation exactly, so a field
+// added to a rule that lacked it never changes that rule's outcome — regardless
+// of whether the frontend or the backend does the aligning.
 function alignConditions(rule: DecisionRule, activeFieldKeys: string[]): RuleCondition[] {
   const byKey = new Map(rule.conditions.map(c => [c.field_key, c]))
   return activeFieldKeys.map(key =>
-    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.IS_SET, value: true } as RuleCondition,
+    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition,
   )
 }
 

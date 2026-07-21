@@ -47,6 +47,7 @@ export const CONDITION_OPTIONS = {
 }
 
 export const CONDITION_TYPES = {
+  ANY: '$any' as const,
   IS_SET: '$is_set' as const,
   IS_NULL: '$is_null' as const,
   EQ: '$eq' as const,
