@@ -148,10 +148,12 @@
 import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, FieldType, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
 import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
+import { apiValidationMessages } from '~/utils/apiErrors'
 
 definePageMeta({ middleware: 'auth' })
 
 const { t } = useI18n()
+const toast = useToast()
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
@@ -192,15 +194,16 @@ function submitEditField() {
     // A field is shared by every variant: the conditions the API would reject
     // under the new type (e.g. "> 10" on a date) fall back to the neutral '$any'
     // everywhere, after confirmation — otherwise the next save would fail.
+    const hasPreset = !!(field.preset as { condition?: string } | null | undefined)?.condition
     const incompatible = table.value.variants
       .flatMap(v => v.rules)
       .flatMap(r => r.conditions)
-      .filter(c => c.field_key === field.key && !isConditionValidForType(editFieldForm.type, c))
+      .filter(c => c.field_key === field.key && !isConditionValidForType(editFieldForm.type, c, hasPreset))
     if (incompatible.length
       && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
     for (const condition of incompatible) {
       condition.condition = CONDITION_TYPES.ANY
-      condition.value = null
+      condition.value = NEUTRAL_VALUE
     }
   }
   field.title = editFieldForm.title
@@ -327,7 +330,7 @@ function submitAddField() {
   table.value.fields.push(field)
   for (const v of table.value.variants) {
     for (const rule of v.rules) {
-      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition)
+      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.ANY, value: NEUTRAL_VALUE } as RuleCondition)
     }
   }
 
@@ -343,10 +346,16 @@ function submitAddField() {
 // '$any' (always true) matches the backend normalisation exactly, so a field
 // added to a rule that lacked it never changes that rule's outcome — regardless
 // of whether the frontend or the backend does the aligning.
+// Value of a neutral '$any' condition: the API requires a value even for
+// valueless operators (`required|conditionType`), and `true` is what the
+// condition editor and the Excel codec store for them. A null value made the
+// whole save fail with a 422.
+const NEUTRAL_VALUE = true as const
+
 function alignConditions(rule: DecisionRule, activeFieldKeys: string[]): RuleCondition[] {
   const byKey = new Map(rule.conditions.map(c => [c.field_key, c]))
   return activeFieldKeys.map(key =>
-    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition,
+    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.ANY, value: NEUTRAL_VALUE } as RuleCondition,
   )
 }
 
@@ -371,8 +380,13 @@ async function save() {
     const response = await gandalf.tables.update(tableId, payload as never)
     table.value = response.data
   }
-  catch {
-    // TODO: toast error
+  catch (err: unknown) {
+    // Show why the API refused the table (422 details) instead of failing silently.
+    toast.add({
+      title: t('errors.failedToSave'),
+      description: apiValidationMessages(err).join(' ') || undefined,
+      color: 'error',
+    })
   }
   finally {
     saving.value = false

@@ -176,7 +176,7 @@
                   />
                   <div class="condition-popover-actions">
                     <UButton size="xs" variant="outline" @click="onCancelClick(rule._id, condIdx)">Cancel</UButton>
-                    <UButton size="xs" @click="onSaveClick(rule._id, condIdx)">Save</UButton>
+                    <UButton size="xs" :disabled="!isEditedConditionValid(condIdx)" @click="onSaveClick(rule._id, condIdx)">Save</UButton>
                   </div>
                 </div>
               </template>
@@ -227,7 +227,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, FieldType, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
 import { CONDITION_OPTIONS } from '~/utils/transforms'
-import { dateExprLabel } from '~/utils/dateExpr'
+import { dateExprLabel, isValidDateCondition } from '~/utils/dateExpr'
 
 const props = defineProps<{
   table: DecisionTable
@@ -294,6 +294,15 @@ function cancelEdit() {
 function onCancelClick(_ruleId: string, _condIdx: number) {
   cancelEdit()
   closeKey.value++
+}
+
+// A date condition the API would reject cannot be committed (the editor shows why).
+function isEditedConditionValid(condIdx: number): boolean {
+  const field = activeFields.value[condIdx]
+  const copy = editingConditionCopy.value
+  if (!field || !copy || field.type !== 'date') return true
+  if ((field.preset as { condition?: string } | null | undefined)?.condition) return true
+  return isValidDateCondition(copy.condition, copy.value)
 }
 
 function onSaveClick(_ruleId: string, _condIdx: number) {

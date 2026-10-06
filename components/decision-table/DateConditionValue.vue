@@ -36,6 +36,7 @@
         size="sm"
         class="w-16"
         @update:model-value="emitValue"
+        @blur="normalizeAmount"
       />
       <USelect
         v-model="local.unit"
@@ -97,6 +98,11 @@ watch(
 
 function emitValue() {
   emit('update:modelValue', serialize())
+}
+
+// A negative or fractional amount is stored as its whole positive part: show it.
+function normalizeAmount() {
+  local.amount = Math.max(0, Math.trunc(Number(local.amount) || 0))
 }
 
 function onModeChange(mode: 'absolute' | 'relative') {

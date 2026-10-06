@@ -31,13 +31,20 @@ const RELATIVE_RE = /^today(?:\s*([+-])\s*(\d{1,4})\s*([dwmy]))?$/i
 
 const DAY_MS = 86_400_000
 
+// Date.UTC maps years 0-99 to 1900-1999: build the date with setUTCFullYear.
+function utcTime(year: number, month0: number, day: number): number {
+  const date = new Date(0)
+  date.setUTCFullYear(year, month0, day)
+  return date.getTime()
+}
+
 // Jour calendaire d'une date ISO, sous forme de numéro de jour (depuis 1970-01-01)
 function isoDayNumber(value: unknown): number | null {
   if (typeof value !== 'string') return null
   const m = ISO_RE.exec(value.trim())
   if (!m) return null
   const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
-  const time = Date.UTC(y, mo - 1, d)
+  const time = utcTime(y, mo - 1, d)
   const check = new Date(time)
   // Rejette les dates impossibles (2026-02-30…)
   if (check.getUTCFullYear() !== y || check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d) return null
@@ -69,13 +76,13 @@ function addMonths(day: number, months: number): number {
   const index = date.getUTCFullYear() * 12 + date.getUTCMonth() + months
   const year = Math.floor(index / 12)
   const month = index - year * 12
-  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
-  return Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay)) / DAY_MS
+  const lastDay = new Date(utcTime(year, month + 1, 0)).getUTCDate()
+  return utcTime(year, month, Math.min(date.getUTCDate(), lastDay)) / DAY_MS
 }
 
 // Jour d'aujourd'hui (date locale du navigateur), en numéro de jour
 function todayDayNumber(now: Date): number {
-  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / DAY_MS
+  return utcTime(now.getFullYear(), now.getMonth(), now.getDate()) / DAY_MS
 }
 
 // Résout une date absolue ou relative en numéro de jour ; null si invalide
@@ -120,10 +127,11 @@ export function dateExprLabel(value: unknown, t: (key: string) => string): strin
 // Famille d'unités d'une date relative : 'days' (d, w), 'months' (m, y), 'any'
 // pour "today" seul ; null si la valeur n'est pas relative.
 function relativeFamily(value: string): 'days' | 'months' | 'any' | null {
-  const rel = parseRelative(value)
-  if (!rel) return null
-  if (!rel.offset) return 'any'
-  return rel.unit === 'd' || rel.unit === 'w' ? 'days' : 'months'
+  // Comme DateValue::relativeFamily : "today+0m" garde son unité, seul "today" vaut 'any'
+  const m = RELATIVE_RE.exec(value.trim())
+  if (!m) return null
+  if (!m[1]) return 'any'
+  return m[3]!.toLowerCase() === 'd' || m[3]!.toLowerCase() === 'w' ? 'days' : 'months'
 }
 
 // L'ordre de deux bornes ne change pas avec le temps : deux dates fixes, ou deux

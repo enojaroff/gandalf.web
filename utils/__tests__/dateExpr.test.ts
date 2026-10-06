@@ -21,6 +21,7 @@ describe('isIsoDate', () => {
     ['2026-03-15T23:30:00+02:00', true],
     ['2026-03-15 08:00', true],
     ['2024-02-29', true],
+    ['0050-01-01', true],
     ['2026-02-29', false],
     ['2026-03-15T24:00', false],
     ['15/03/2026', false],
@@ -78,6 +79,8 @@ describe('isValidDateCondition', () => {
     ['$between', 'today-1m;today-1y', false],
     ['$between', 'today-30d;today-1m', true],
     ['$between', 'today;2026-12-31', true],
+    // Comme l'API : "today+0m" garde son unité (mois), non comparable à des jours
+    ['$between', 'today+0m;today-5d', true],
     ['$gt', '42', false],
     ['$contains', '2026', false],
     ['$any', null, true],
@@ -102,6 +105,20 @@ describe('dateExprLabel', () => {
 })
 
 describe('isConditionValidForType', () => {
+  it('suit la règle numeric de l\'API (is_numeric) pour > < >= <=', () => {
+    expect(isConditionValidForType('numeric', { field_key: 'd', condition: '$gt', value: '1.5' })).toBe(true)
+    expect(isConditionValidForType('numeric', { field_key: 'd', condition: '$gt', value: ' 42 ' })).toBe(true)
+    expect(isConditionValidForType('numeric', { field_key: 'd', condition: '$gt', value: '1,5' })).toBe(false)
+    expect(isConditionValidForType('numeric', { field_key: 'd', condition: '$gt', value: '0x10' })).toBe(false)
+    // Intervalle : la virgule décimale est acceptée (betweenString)
+    expect(isConditionValidForType('numeric', { field_key: 'd', condition: '$between', value: '0,5;1,5' })).toBe(true)
+  })
+
+  it('ne valide pas la grammaire date d\'un champ avec preset', () => {
+    expect(isConditionValidForType('date', { field_key: 'd', condition: '$eq', value: true }, true)).toBe(true)
+    expect(isConditionValidForType('date', { field_key: 'd', condition: '$eq', value: true })).toBe(false)
+  })
+
   it('suit les règles de l\'API pour chaque type', () => {
     expect(isConditionValidForType('date', { field_key: 'd', condition: '$gt', value: 10 })).toBe(false)
     expect(isConditionValidForType('date', { field_key: 'd', condition: '$gte', value: 'today-30d' })).toBe(true)
