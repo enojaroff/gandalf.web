@@ -68,6 +68,7 @@
     "debugger": "Debug",
     "noTables": "Nessuna tabella.",
     "noTablesCreate": "Crea la tua prima tabella decisionale.",
+    "noMatch": "Nessuna tabella corrisponde ai filtri.",
     "searchPlaceholder": "Cerca tabelle…",
     "tableType": "Tipo tabella",
     "scoringType": "Tipo scoring",
@@ -111,6 +112,7 @@
     "new": "Nuovo flow",
     "create": "Crea un flow",
     "noFlows": "Ancora nessun flow. Crea il tuo primo grafo decisionale.",
+    "noMatch": "Nessun flow corrisponde ai filtri.",
     "searchPlaceholder": "Cerca flow…",
     "countSingular": "flow",
     "countPlural": "flow",
@@ -265,6 +267,7 @@
     }
   },
   "common": {
+    "clearFilters": "Cancella i filtri",
     "save": "Salva",
     "cancel": "Annulla",
     "delete": "Elimina",

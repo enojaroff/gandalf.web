@@ -68,6 +68,7 @@
     "debugger": "Depurador",
     "noTables": "Sin tablas.",
     "noTablesCreate": "Crea tu primera tabla de decisión.",
+    "noMatch": "Ninguna tabla coincide con los filtros.",
     "searchPlaceholder": "Buscar tablas…",
     "tableType": "Tipo de tabla",
     "scoringType": "Tipo de puntuación",
@@ -111,6 +112,7 @@
     "new": "Nuevo flujo",
     "create": "Crear un flujo",
     "noFlows": "Aún no hay flujos. Crea tu primer grafo de decisión.",
+    "noMatch": "Ningún flow coincide con los filtros.",
     "searchPlaceholder": "Buscar flujos…",
     "countSingular": "flujo",
     "countPlural": "flujos",
@@ -265,6 +267,7 @@
     }
   },
   "common": {
+    "clearFilters": "Borrar los filtros",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
