@@ -74,12 +74,20 @@ describe('isValidDateCondition', () => {
     ['$between', 'today-1y;today', true],
     ['$between', '2026-12-31;2026-01-01', false],
     ['$between', '2026-01-01;2026-01-01', false],
+    ['$between', 'today;today-30d', false],
+    ['$between', 'today-1m;today-1y', false],
+    ['$between', 'today-30d;today-1m', true],
+    ['$between', 'today;2026-12-31', true],
     ['$gt', '42', false],
     ['$contains', '2026', false],
     ['$any', null, true],
   ])('%s %s → %s', (op, value, expected) => {
     expect(isValidDateCondition(op, value, NOW)).toBe(expected)
   })
+})
+
+it('un intervalle mixte reste valide une fois dépassé (pas de blocage à l\'enregistrement)', () => {
+  expect(isValidDateCondition('$between', 'today;2026-12-31', new Date(2027, 0, 1))).toBe(true)
 })
 
 describe('dateExprLabel', () => {

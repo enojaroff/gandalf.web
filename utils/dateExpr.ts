@@ -117,8 +117,29 @@ export function dateExprLabel(value: unknown, t: (key: string) => string): strin
   return value === null || value === undefined || value === '' ? '—' : String(value)
 }
 
-// Même règle que l'API : opérateur permis et valeur conforme ; les bornes d'un
-// intervalle doivent être dans l'ordre strict.
+// Famille d'unités d'une date relative : 'days' (d, w), 'months' (m, y), 'any'
+// pour "today" seul ; null si la valeur n'est pas relative.
+function relativeFamily(value: string): 'days' | 'months' | 'any' | null {
+  const rel = parseRelative(value)
+  if (!rel) return null
+  if (!rel.offset) return 'any'
+  return rel.unit === 'd' || rel.unit === 'w' ? 'days' : 'months'
+}
+
+// L'ordre de deux bornes ne change pas avec le temps : deux dates fixes, ou deux
+// décalages depuis aujourd'hui dans des unités comparables.
+function hasFixedOrder(a: string, b: string): boolean {
+  if (isIsoDate(a) && isIsoDate(b)) return true
+  const fa = relativeFamily(a)
+  const fb = relativeFamily(b)
+  if (!fa || !fb) return false
+  return fa === 'any' || fb === 'any' || fa === fb
+}
+
+// Même règle que l'API (DateValue::isValidConditionValue) : opérateur permis et
+// valeur conforme ; les bornes d'un intervalle doivent être dans l'ordre strict
+// quand cet ordre ne peut pas changer avec le temps. Un intervalle mixte comme
+// [today..2026-12-31] reste valide (il sera simplement vide plus tard).
 export function isValidDateCondition(operator: string | null | undefined, value: unknown, now: Date = new Date()): boolean {
   if (!operator || !DATE_OPERATORS.includes(operator)) return false
   if (VALUELESS_OPERATORS.includes(operator)) return true
@@ -127,7 +148,8 @@ export function isValidDateCondition(operator: string | null | undefined, value:
     const bounds = value.split(';')
     if (bounds.length !== 2) return false
     const [min, max] = bounds.map(b => toDayNumber(b, now))
-    return min != null && max != null && min < max
+    if (min == null || max == null) return false
+    return hasFixedOrder(bounds[0]!, bounds[1]!) ? min < max : true
   }
   return toDayNumber(value, now) !== null
 }
