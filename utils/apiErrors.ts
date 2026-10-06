@@ -1,4 +1,13 @@
-// Messages d'une réponse 422 de l'API (FetchError.data porte le corps de la réponse) :
+// Lecture des erreurs de l'API. FetchError.data porte le corps de la réponse,
+// toujours enveloppé : { meta, data }.
+
+// Message simple, { meta, data: { message } } (ex. CopyMoveGuard).
+export function apiErrorMessage(e: unknown): string | null {
+  const body = (e as { data?: { message?: string; data?: { message?: string } } })?.data
+  return body?.data?.message || body?.message || null
+}
+
+// Messages d'une réponse 422 :
 // - validation Lumen : { meta, data: { "<champ>": ["message", …] } }
 // - flows (DRG)      : { meta, data: { errors: ["message", …], flow_run_id? } }
 export function apiValidationMessages(e: unknown): string[] {

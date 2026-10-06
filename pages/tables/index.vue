@@ -229,6 +229,13 @@ async function loadTables() {
     })
     tables.value = response.data
     meta.value = response.meta as { total: number }
+    // Page emptied (e.g. every row moved or deleted on the last page): go back
+    // to the last page that still exists.
+    const lastPage = Math.max(1, Math.ceil(meta.value.total / pageSize))
+    if (!tables.value.length && currentPage.value > lastPage) {
+      currentPage.value = lastPage
+      return loadTables()
+    }
   }
   catch {
     tables.value = []

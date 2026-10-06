@@ -61,6 +61,7 @@
  * refuse (403) le cas échéant.
  */
 import { computed, ref } from 'vue'
+import { apiErrorMessage } from '~/utils/apiErrors'
 
 interface Target { _id: string; title: string }
 
@@ -137,12 +138,6 @@ const projectItems = computed(() =>
     .map(p => ({ value: p._id, label: p.title })),
 )
 
-// L'API répond { meta, data: { message } } (cf. CopyMoveGuard) ; FetchError.data
-// porte ce corps.
-function errorMessage(err: unknown): string {
-  const body = (err as { data?: { message?: string; data?: { message?: string } } })?.data
-  return body?.data?.message || body?.message || 'Opération impossible.'
-}
 
 async function onSubmit() {
   if (!targetProjectId.value) return
@@ -162,7 +157,7 @@ async function onSubmit() {
       await action(target._id, targetProjectId.value)
     }
     catch (err: unknown) {
-      failures.value.push({ id: target._id, title: target.title, message: errorMessage(err) })
+      failures.value.push({ id: target._id, title: target.title, message: apiErrorMessage(err) || 'Opération impossible.' })
     }
     progress.value++
   }

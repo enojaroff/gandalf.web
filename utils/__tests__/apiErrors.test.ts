@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { apiValidationMessages } from '~/utils/apiErrors'
+import { apiErrorMessage, apiValidationMessages } from '~/utils/apiErrors'
 
 // FetchError d'ofetch : le corps de la réponse est dans `data`
 const fetchError = (body: unknown) => Object.assign(new Error('422'), { data: body })
+
+describe('apiErrorMessage', () => {
+  it('lit le message enveloppé dans data', () => {
+    const e = fetchError({ meta: { code: 403 }, data: { message: 'Only a project admin can copy or move tables and flows.' } })
+    expect(apiErrorMessage(e)).toBe('Only a project admin can copy or move tables and flows.')
+    expect(apiErrorMessage(new Error('network'))).toBeNull()
+  })
+})
 
 describe('apiValidationMessages', () => {
   it('aplatit les erreurs de validation Lumen par champ', () => {
