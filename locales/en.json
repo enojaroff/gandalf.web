@@ -348,6 +348,7 @@
     "minLength": "Minimum {min} characters.",
     "generic": "An error occurred. Please try again.",
     "tableNameRequired": "Table name is required.",
+    "tableNameLength": "The table name must be between {min} and {max} characters long.",
     "failedToCreate": "Failed to create table.",
     "failedToLoad": "Failed to load data.",
     "failedToSave": "Failed to save."

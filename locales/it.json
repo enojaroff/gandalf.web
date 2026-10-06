@@ -314,6 +314,7 @@
     "minLength": "Minimo {min} caratteri.",
     "generic": "Si è verificato un errore. Riprova.",
     "tableNameRequired": "Il nome della tabella è obbligatorio.",
+    "tableNameLength": "Il nome della tabella deve contenere tra {min} e {max} caratteri.",
     "failedToCreate": "Creazione tabella fallita.",
     "failedToLoad": "Caricamento dei dati fallito.",
     "failedToSave": "Salvataggio fallito."

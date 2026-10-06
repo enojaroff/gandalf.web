@@ -314,6 +314,7 @@
     "minLength": "Mínimo {min} caracteres.",
     "generic": "Se ha producido un error. Inténtalo de nuevo.",
     "tableNameRequired": "El nombre de la tabla es obligatorio.",
+    "tableNameLength": "El nombre de la tabla debe tener entre {min} y {max} caracteres.",
     "failedToCreate": "Error al crear la tabla.",
     "failedToLoad": "Error al cargar los datos.",
     "failedToSave": "Error al guardar."
