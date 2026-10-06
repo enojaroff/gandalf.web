@@ -24,6 +24,8 @@ export interface TableUpdateMeta {
   field_renames?: Record<string, string>
   flows_updated?: string[]
   flows_failed?: string[]
+  // Updated, but their graph no longer validates (fix before their next save)
+  flows_invalid?: string[]
 }
 
 export function useGandalf() {

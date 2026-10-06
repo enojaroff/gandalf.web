@@ -106,11 +106,12 @@
     "importConflictFile": "Archivo exportado el",
     "importForce": "Sobrescribir de todos modos",
     "typeChangeConfirm": "Cambiar \"{field}\" a este tipo restablece {count} condición(es) incompatible(s) a \"cualquiera\", en todas las variantes. ¿Continuar?",
-    "renameFieldConfirm": "¿Renombrar la clave \"{from}\" a \"{to}\"?\n\n• Las condiciones de todas las variantes seguirán.\n• Flows actualizados al guardar la tabla: {flows}.\n• Los sistemas que llaman a esta tabla por la API deberán enviar \"{to}\".",
+    "renameFieldConfirm": "¿Renombrar la clave \"{from}\" a \"{to}\"?\n\n• Las condiciones de todas las variantes seguirán.\n• Flows que usan esta tabla (sus conexiones a este campo seguirán al guardar): {flows}.\n• Los sistemas que llaman a esta tabla por la API deberán enviar \"{to}\".",
     "renameFieldNoFlow": "ninguno",
     "renameFieldSaved": "Clave renombrada.",
     "renameFieldFlowsUpdated": "Flows actualizados: {flows}.",
-    "renameFieldFlowsFailed": "Flows no actualizados, a corregir a mano: {flows}."
+    "renameFieldFlowsFailed": "Flows no actualizados, a corregir a mano: {flows}.",
+    "renameFieldFlowsInvalid": "Flows actualizados, pero a revisar: su grafo ya no pasa la validación (por ejemplo, una entrada de un tipo incompatible con el campo renombrado). Se ejecutan como antes, pero su próximo guardado será rechazado hasta que se corrijan: {flows}."
   },
   "flows": {
     "title": "Flujos",
@@ -181,7 +182,8 @@
   },
   "fields": {
     "key": "Clave",
-    "keyHint": "Se usa en las peticiones API. Minúsculas, sin espacios.",
+    "keyHint": "Se usa en las peticiones API. Se guarda en minúsculas, con los espacios sustituidos por \"_\".",
+    "keyStoredAs": "Clave guardada: {key}",
     "keyRequired": "La clave del campo es obligatoria.",
     "keyInvalid": "La clave solo puede contener letras, números, guiones bajos o guiones.",
     "keyDuplicate": "Ya existe un campo con esta clave.",

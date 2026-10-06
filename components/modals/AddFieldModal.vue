@@ -39,8 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable, DecisionField } from '~/types/decision-table'
+import type { DecisionTable, DecisionField, FieldType } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
+import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
 
 const props = defineProps<{
   table: DecisionTable
@@ -56,7 +57,7 @@ const isOpen = defineModel<boolean>('open', { default: false })
 const form = reactive({
   key: '',
   title: '',
-  type: 'string' as 'string' | 'numeric' | 'boolean',
+  type: 'string' as FieldType,
 })
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -65,28 +66,24 @@ const fieldTypes = computed(() => [
   { value: 'string', label: t('fields.types.string') },
   { value: 'numeric', label: t('fields.types.numeric') },
   { value: 'boolean', label: t('fields.types.boolean') },
+  { value: 'date', label: t('fields.types.date') },
 ])
 
 function onAdd() {
   error.value = null
 
-  if (!form.key.trim()) {
-    error.value = t('fields.keyRequired')
-    return
-  }
-  if (!/^[a-zA-Z0-9_-]+$/.test(form.key)) {
-    error.value = t('fields.keyInvalid')
-    return
-  }
-  if (props.table.fields.some(f => f.key === form.key)) {
-    error.value = t('fields.keyDuplicate')
+  // Same rules as the table editor, on the key as the API stores it.
+  const key = normalizeFieldKey(form.key)
+  const keyError = fieldKeyError(key, props.table.fields.filter(f => !f.isDeleted).map(f => f.key))
+  if (keyError) {
+    error.value = t(keyError)
     return
   }
 
   const newField: DecisionField = {
     _id: objectId(),
-    key: form.key,
-    title: form.title || form.key,
+    key,
+    title: form.title || form.key.trim(),
     type: form.type,
     source: 'request',
     preset: null,

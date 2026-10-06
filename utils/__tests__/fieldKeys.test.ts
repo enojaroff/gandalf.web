@@ -5,6 +5,11 @@ describe('normalizeFieldKey', () => {
   it('suit Field::normalizeKey', () => {
     expect(normalizeFieldKey(' Card BIN ')).toBe('card_bin')
   })
+
+  it('accepte une clé absente', () => {
+    expect(normalizeFieldKey(undefined)).toBe('')
+    expect(fieldKeyError('age', [null, undefined])).toBeNull()
+  })
 })
 
 describe('fieldKeyError', () => {

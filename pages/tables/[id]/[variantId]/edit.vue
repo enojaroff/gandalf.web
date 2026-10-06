@@ -90,7 +90,10 @@
         <div class="space-y-4">
           <UFormField label="Key" name="key" required class="w-full">
             <UInput v-model="addFieldForm.key" placeholder="e.g. age, income_type" class="w-full" />
-            <p class="text-xs text-muted mt-1">Lowercase, no spaces.</p>
+            <p class="text-xs text-muted mt-1">{{ $t('fields.keyHint') }}</p>
+            <p v-if="storedKeyPreview(addFieldForm.key)" class="text-xs text-muted mt-1">
+              {{ $t('fields.keyStoredAs', { key: storedKeyPreview(addFieldForm.key) }) }}
+            </p>
           </UFormField>
           <UFormField label="Title" name="title" class="w-full">
             <UInput v-model="addFieldForm.title" placeholder="Human-readable label" class="w-full" />
@@ -120,20 +123,26 @@
       </template>
       <template #body>
         <div class="space-y-4">
-          <UFormField label="Key" :hint="$t('fields.keyHint')" :error="editFieldError ?? undefined" class="w-full">
-            <UInput v-model="editFieldForm.key" class="w-full font-mono" />
+          <UFormField
+            label="Key"
+            :hint="$t('fields.keyHint')"
+            :help="storedKeyPreview(editFieldForm.key) ? $t('fields.keyStoredAs', { key: storedKeyPreview(editFieldForm.key) }) : undefined"
+            :error="editFieldError ?? undefined"
+            class="w-full"
+          >
+            <UInput v-model="editFieldForm.key" :disabled="editFieldBusy" class="w-full font-mono" />
           </UFormField>
           <UFormField label="Title" class="w-full">
-            <UInput v-model="editFieldForm.title" placeholder="Human-readable label" class="w-full" />
+            <UInput v-model="editFieldForm.title" :disabled="editFieldBusy" placeholder="Human-readable label" class="w-full" />
           </UFormField>
           <UFormField label="Type" class="w-full">
-            <USelect v-model="editFieldForm.type" :items="fieldTypeOptions" class="w-full" />
+            <USelect v-model="editFieldForm.type" :disabled="editFieldBusy" :items="fieldTypeOptions" class="w-full" />
           </UFormField>
         </div>
       </template>
       <template #footer>
         <div class="flex gap-2 justify-between">
-          <UButton color="error" variant="outline" @click="deleteEditField">Delete Field</UButton>
+          <UButton color="error" variant="outline" :disabled="editFieldBusy" @click="deleteEditField">Delete Field</UButton>
           <div class="flex gap-2">
             <UButton variant="outline" @click="showEditFieldModal = false">Cancel</UButton>
             <UButton :loading="editFieldBusy" @click="submitEditField">Save</UButton>
@@ -178,13 +187,31 @@ const fieldTypeOptions = [
   { label: 'Date (YYYY-MM-DD)', value: 'date' },
 ]
 
-// Edit Field form (`originalKey` identifies the field while its key is edited)
-const editFieldForm = reactive({ originalKey: '', key: '', title: '', type: 'string' as FieldType })
+// Edit Field form. The field is held by reference (its key may change, and is
+// not unique while edited); each opening of the modal is a new session, so an
+// answer that arrives for an earlier one is dropped.
+const editingField = shallowRef<DecisionField | null>(null)
+let editFieldSession = 0
+const editFieldForm = reactive({ key: '', title: '', type: 'string' as FieldType })
 const editFieldError = ref<string | null>(null)
 const editFieldBusy = ref(false)
 
+// Field _ids as stored by the API: only those can be renamed there (and make flows follow).
+const storedFieldIds = ref(new Set<string>())
+function setTable(data: DecisionTable) {
+  table.value = data
+  storedFieldIds.value = new Set(data.fields.map(f => f._id).filter((id): id is string => !!id))
+}
+
+// The key as the API will store it, when it differs from what was typed.
+function storedKeyPreview(key: string): string | null {
+  const stored = normalizeFieldKey(key)
+  return stored && stored !== key.trim() ? stored : null
+}
+
 function openEditField(field: DecisionField) {
-  editFieldForm.originalKey = field.key
+  editingField.value = field
+  editFieldSession++
   editFieldForm.key = field.key
   editFieldForm.title = field.title
   editFieldForm.type = field.type
@@ -192,27 +219,30 @@ function openEditField(field: DecisionField) {
   showEditFieldModal.value = true
 }
 
-// Keys of the table's other active fields.
+// Keys of the table's other fields.
 function otherFieldKeys(field?: DecisionField): string[] {
-  return (table.value?.fields ?? []).filter(f => f !== field && !f.isDeleted).map(f => f.key)
+  return (table.value?.fields ?? []).filter(f => f !== field).map(f => f.key)
 }
 
-// Titles of the project's flows that use this table (null if they cannot be listed).
-async function flowsUsingTable(): Promise<string[] | null> {
+// The project's flows that use this table, as a list for the confirmation
+// ('?' if they cannot be listed; "… (+N)" beyond the first page).
+async function flowsUsingTable(): Promise<string> {
   try {
     const response = await gandalf.flows.list(200, 1, { table_id: tableId })
-    return response.data.map(flow => flow.title)
+    const titles = response.data.map(flow => flow.title)
+    if (!titles.length) return t('tables.renameFieldNoFlow')
+    const total = (response.meta as { total?: number } | null)?.total ?? titles.length
+    return titles.join(', ') + (total > titles.length ? `, … (+${total - titles.length})` : '')
   }
   catch {
-    return null
+    return '?'
   }
 }
 
 async function submitEditField() {
-  if (!table.value || editFieldBusy.value) return
-  const field = table.value.fields.find(f => f.key === editFieldForm.originalKey)
-  if (!field) return
-  // The form may change while the flows are being listed: work on a snapshot.
+  const field = editingField.value
+  if (!table.value || !field || editFieldBusy.value || !table.value.fields.includes(field)) return
+  const session = editFieldSession
   const form = { ...editFieldForm }
   editFieldError.value = null
 
@@ -236,15 +266,15 @@ async function submitEditField() {
     ? conditions.filter(c => !isConditionValidForType(form.type, c, hasPreset))
     : []
 
-  // Every confirmation first: nothing changes if one is declined.
-  if (renamed) {
+  // Every confirmation first: nothing changes if one is declined. A field not
+  // saved yet is only renamed here: nothing else uses its key.
+  if (renamed && field._id && storedFieldIds.value.has(field._id)) {
     editFieldBusy.value = true
     const flows = await flowsUsingTable()
     editFieldBusy.value = false
-    // Modal closed, or reopened on another field, meanwhile
-    if (!showEditFieldModal.value || editFieldForm.originalKey !== form.originalKey) return
-    const flowList = flows === null ? '?' : (flows.length ? flows.join(', ') : t('tables.renameFieldNoFlow'))
-    if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows: flowList }))) return
+    // Modal closed or reopened meanwhile (its inputs are locked while busy)
+    if (!showEditFieldModal.value || session !== editFieldSession) return
+    if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows }))) return
   }
   if (incompatible.length
     && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
@@ -277,19 +307,23 @@ function reportFieldRenames(meta?: TableUpdateMeta) {
   if (meta.flows_failed?.length) {
     toast.add({ title: t('tables.renameFieldFlowsFailed', { flows: meta.flows_failed.join(', ') }), color: 'error' })
   }
+  if (meta.flows_invalid?.length) {
+    toast.add({ title: t('tables.renameFieldFlowsInvalid', { flows: meta.flows_invalid.join(', ') }), color: 'warning' })
+  }
 }
 
 function deleteEditField() {
-  if (!table.value) return
-  const field = table.value.fields.find(f => f.key === editFieldForm.originalKey)
-  if (!field) return
+  const field = editingField.value
+  if (!table.value || !field || editFieldBusy.value || !table.value.fields.includes(field)) return
   // A field (column) is shared by every variant, so removing it must remove the
   // matching condition from EVERY rule of EVERY variant. Confirm first, since it
   // affects all variants at once.
   if (!confirm(t('tables.deleteFieldConfirm', { field: field.title || field.key }))) return
-  field.isDeleted = true
+  // Removed outright (there is no undo for a field): a field added later may
+  // take its key, and keys stay unique in the list.
+  table.value.fields = table.value.fields.filter(f => f !== field)
   // Drop the corresponding condition everywhere so conditions stay aligned with
-  // the (filtered) field list — the table renders conditions by column position.
+  // the field list — the table renders conditions by column position.
   for (const v of table.value.variants) {
     for (const rule of v.rules) {
       rule.conditions = rule.conditions.filter(c => c.field_key !== field.key)
@@ -330,7 +364,7 @@ const isDecisionType = computed(() => table.value?.matching_type === 'first')
 onMounted(async () => {
   try {
     const response = await gandalf.tables.getById(tableId)
-    table.value = response.data
+    setTable(response.data)
   }
   finally {
     loading.value = false
@@ -342,7 +376,7 @@ function onImported(imported: DecisionTable) {
   // L'import round-trip met à jour la table courante ; un import mode=create
   // renverrait une autre table — dans ce cas on ne remplace pas l'éditeur.
   if (imported._id === tableId) {
-    table.value = imported
+    setTable(imported)
   }
 }
 
@@ -387,7 +421,7 @@ function submitAddField() {
   const field: DecisionField = {
     _id: objectId(),
     key,
-    title: addFieldForm.title || key,
+    title: addFieldForm.title || addFieldForm.key.trim(),
     type: addFieldForm.type,
     source: 'request',
     preset: null,
@@ -447,7 +481,7 @@ async function save() {
       })),
     }
     const response = await gandalf.tables.update(tableId, payload as never)
-    table.value = response.data
+    setTable(response.data)
     reportFieldRenames(response.meta)
   }
   catch (err: unknown) {

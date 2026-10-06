@@ -107,11 +107,12 @@
     "importConflictFile": "Fichier exporté le",
     "importForce": "Écraser quand même",
     "typeChangeConfirm": "Passer « {field} » dans ce type remet {count} condition(s) incompatible(s) à « peu importe », dans toutes les variantes. Continuer ?",
-    "renameFieldConfirm": "Renommer la clé « {from} » en « {to} » ?\n\n• Les conditions de toutes les variantes suivront.\n• Flows mis à jour à l'enregistrement de la table : {flows}.\n• Les systèmes qui appellent cette table via l'API devront envoyer « {to} ».",
+    "renameFieldConfirm": "Renommer la clé « {from} » en « {to} » ?\n\n• Les conditions de toutes les variantes suivront.\n• Flows qui utilisent cette table (leurs liaisons vers ce champ suivront à l'enregistrement) : {flows}.\n• Les systèmes qui appellent cette table via l'API devront envoyer « {to} ».",
     "renameFieldNoFlow": "aucun",
     "renameFieldSaved": "Clé renommée.",
     "renameFieldFlowsUpdated": "Flows mis à jour : {flows}.",
-    "renameFieldFlowsFailed": "Flows non mis à jour, à corriger à la main : {flows}."
+    "renameFieldFlowsFailed": "Flows non mis à jour, à corriger à la main : {flows}.",
+    "renameFieldFlowsInvalid": "Flows mis à jour, mais à vérifier : leur graphe ne passe plus la validation (par exemple une entrée d'un type incompatible avec le champ renommé). Ils s'exécutent comme avant, mais leur prochain enregistrement sera refusé tant qu'ils ne sont pas corrigés : {flows}."
   },
   "flows": {
     "title": "Flows",
@@ -182,7 +183,8 @@
   },
   "fields": {
     "key": "Clé",
-    "keyHint": "Utilisé dans les requêtes API. Minuscules, sans espaces.",
+    "keyHint": "Utilisée dans les requêtes API. Enregistrée en minuscules, espaces remplacés par « _ ».",
+    "keyStoredAs": "Clé enregistrée : {key}",
     "keyRequired": "La clé du champ est requise.",
     "keyInvalid": "La clé ne peut contenir que des lettres, chiffres, tirets bas ou tirets.",
     "keyDuplicate": "Un champ avec cette clé existe déjà.",
