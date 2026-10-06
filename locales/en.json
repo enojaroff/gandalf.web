@@ -106,7 +106,11 @@
     "importConflictServer": "Server last modified",
     "importConflictFile": "File exported at",
     "importForce": "Overwrite anyway",
-    "typeChangeConfirm": "Switching \"{field}\" to this type resets {count} incompatible condition(s) to \"any\", in every variant. Continue?"
+    "typeChangeConfirm": "Switching \"{field}\" to this type resets {count} incompatible condition(s) to \"any\", in every variant. Continue?",
+    "renameFieldConfirm": "Rename the key \"{from}\" to \"{to}\"?\n\n• The conditions of every variant will follow.\n• Flows updated when the table is saved: {flows}.\n• Systems calling this table through the API will have to send \"{to}\".",
+    "renameFieldNoFlow": "none",
+    "renameFieldSaved": "Key renamed.",
+    "renameFieldFlowsUpdated": "Flows updated: {flows}."
   },
   "flows": {
     "title": "Flows",

@@ -105,7 +105,11 @@
     "importConflictServer": "Ultima modifica sul server",
     "importConflictFile": "File esportato il",
     "importForce": "Sovrascrivi comunque",
-    "typeChangeConfirm": "Passare \"{field}\" a questo tipo reimposta {count} condizione/i incompatibile/i su \"qualsiasi\", in tutte le varianti. Continuare?"
+    "typeChangeConfirm": "Passare \"{field}\" a questo tipo reimposta {count} condizione/i incompatibile/i su \"qualsiasi\", in tutte le varianti. Continuare?",
+    "renameFieldConfirm": "Rinominare la chiave \"{from}\" in \"{to}\"?\n\n• Le condizioni di tutte le varianti seguiranno.\n• Flow aggiornati al salvataggio della tabella: {flows}.\n• I sistemi che chiamano questa tabella tramite l'API dovranno inviare \"{to}\".",
+    "renameFieldNoFlow": "nessuno",
+    "renameFieldSaved": "Chiave rinominata.",
+    "renameFieldFlowsUpdated": "Flow aggiornati: {flows}."
   },
   "flows": {
     "title": "Flow",

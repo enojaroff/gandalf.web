@@ -106,7 +106,11 @@
     "importConflictServer": "Dernière modification serveur",
     "importConflictFile": "Fichier exporté le",
     "importForce": "Écraser quand même",
-    "typeChangeConfirm": "Passer « {field} » dans ce type remet {count} condition(s) incompatible(s) à « peu importe », dans toutes les variantes. Continuer ?"
+    "typeChangeConfirm": "Passer « {field} » dans ce type remet {count} condition(s) incompatible(s) à « peu importe », dans toutes les variantes. Continuer ?",
+    "renameFieldConfirm": "Renommer la clé « {from} » en « {to} » ?\n\n• Les conditions de toutes les variantes suivront.\n• Flows mis à jour à l'enregistrement de la table : {flows}.\n• Les systèmes qui appellent cette table via l'API devront envoyer « {to} ».",
+    "renameFieldNoFlow": "aucun",
+    "renameFieldSaved": "Clé renommée.",
+    "renameFieldFlowsUpdated": "Flows mis à jour : {flows}."
   },
   "flows": {
     "title": "Flows",

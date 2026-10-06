@@ -105,7 +105,11 @@
     "importConflictServer": "Остання зміна на сервері",
     "importConflictFile": "Файл експортовано",
     "importForce": "Все одно перезаписати",
-    "typeChangeConfirm": "Зміна типу поля «{field}» скине {count} несумісних умов до «будь-яке» в усіх варіантах. Продовжити?"
+    "typeChangeConfirm": "Зміна типу поля «{field}» скине {count} несумісних умов до «будь-яке» в усіх варіантах. Продовжити?",
+    "renameFieldConfirm": "Перейменувати ключ «{from}» на «{to}»?\n\n• Умови всіх варіантів буде оновлено.\n• Flow, оновлені під час збереження таблиці: {flows}.\n• Системи, що викликають цю таблицю через API, мають надсилати «{to}».",
+    "renameFieldNoFlow": "немає",
+    "renameFieldSaved": "Ключ перейменовано.",
+    "renameFieldFlowsUpdated": "Оновлені flow: {flows}."
   },
   "flows": {
     "title": "Потоки",
