@@ -483,13 +483,17 @@ watch(structureKey, () => {
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
 }
 
+/* Pill shape for flow inputs/outputs, to set them apart from table nodes.
+   9999px clamps to half the node height, so it stays a pill whatever the
+   height; the extra horizontal padding keeps content clear of the curve. */
 .vf-node--input,
 .vf-node--output {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   min-width: 130px;
+  border-radius: 9999px;
 }
 
 .vf-node--input {
