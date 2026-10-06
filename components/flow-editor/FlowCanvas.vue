@@ -27,6 +27,7 @@
       :zoom-on-scroll="interaction.zoomOnScroll"
       :zoom-on-pinch="interaction.zoomOnPinch"
       :zoom-on-double-click="false"
+      :is-valid-connection="isValidConnection"
       fit-view-on-init
       @connect="onConnect"
       @edges-change="onEdgesChange"
@@ -73,7 +74,12 @@
           </div>
           <div v-if="data.missing" class="vf-node__warn">{{ $t('flows.tableMissing') }}</div>
           <div class="vf-node__fields">
-            <div v-for="field in data.fields" :key="field.key" class="vf-node__field">
+            <div
+              v-for="field in data.fields"
+              :key="field.key"
+              class="vf-node__field"
+              :class="{ 'vf-node__field--incompatible': isFieldIncompatible(field.type) }"
+            >
               <Handle
                 :id="`field:${field.key}`"
                 type="target"
@@ -135,6 +141,7 @@ interface VFNode {
 }
 import type { Flow, FlowEdge, CanvasPosition } from '~/types/flow'
 import type { DecisionTable } from '~/types/decision-table'
+import { tableOutputType, typesCompatible } from '~/utils/flowTypes'
 
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
@@ -152,7 +159,7 @@ const emit = defineEmits<{
   'remove-output': [name: string]
 }>()
 
-const { updateNodeInternals, findNode } = useVueFlow()
+const { updateNodeInternals, findNode, connectionStartHandle, connectionClickStartHandle } = useVueFlow()
 
 // ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
 // A per-USER preference (edited on the profile page, persisted with the
@@ -309,6 +316,58 @@ const vfEdges = computed<Edge[]>(() => {
 
   return edges
 })
+
+// ── Wire type checking (same rule as the API, see utils/flowTypes) ──────────
+function nodeTable(nodeId: string): DecisionTable | undefined {
+  const node = props.flow.nodes.find((n) => n.node_id === nodeId)
+  return node ? tablesById.value.get(node.table_id) : undefined
+}
+
+// Type carried by a wire source: a flow input's declared type, or a table
+// node's final_decision type. Null for any handle that is not a wire source.
+function sourceType(nodeId?: string | null, handleId?: string | null): string | null {
+  if (nodeId?.startsWith('input:')) {
+    const key = nodeId.slice('input:'.length)
+    return props.flow.inputs.find((i) => i.key === key)?.type ?? null
+  }
+  if (nodeId?.startsWith('table:') && handleId?.startsWith('out:')) {
+    const table = nodeTable(nodeId.slice('table:'.length))
+    return table ? tableOutputType(table) : null
+  }
+  return null
+}
+
+// Type of a table field handle ("field:<key>" on a "table:<node>" node).
+function fieldType(nodeId?: string | null, handleId?: string | null): string | null {
+  if (!nodeId?.startsWith('table:') || !handleId?.startsWith('field:')) return null
+  const key = handleId.slice('field:'.length)
+  return nodeTable(nodeId.slice('table:'.length))?.fields?.find((f) => f.key === key)?.type ?? null
+}
+
+// Vue Flow asks this while a wire is drawn (drag or click mode) and drops the
+// wire when false: a table field only accepts a source of its own type family,
+// as the API does on save (FlowRepository::typesCompatible). It also rules out
+// what onConnect cannot translate (field → field, a node feeding itself).
+function isValidConnection(conn: Connection): boolean {
+  if (conn.target?.startsWith('output:')) {
+    // A flow output takes any table's final_decision.
+    return conn.source?.startsWith('table:') === true && conn.sourceHandle?.startsWith('out:') === true
+  }
+  if (conn.source === conn.target) return false
+  return typesCompatible(sourceType(conn.source, conn.sourceHandle), fieldType(conn.target, conn.targetHandle))
+}
+
+// Type of the wire being drawn from a source handle (null otherwise), so the
+// fields it cannot feed are greyed out while drawing.
+const pendingSourceType = computed(() => {
+  const start = connectionStartHandle.value ?? connectionClickStartHandle.value
+  if (!start || start.type !== 'source') return null
+  return sourceType(start.nodeId, start.id)
+})
+
+function isFieldIncompatible(type: string): boolean {
+  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, type)
+}
 
 // ── Handle a new connection: translate the Vue Flow Connection back into a
 //    backend edge (or wire an output) and emit an updated flow. ─────────────
@@ -566,6 +625,16 @@ watch(structureKey, () => {
   justify-content: space-between;
   gap: 12px;
   padding: 4px 10px 4px 14px;
+  transition: opacity 0.1s ease;
+}
+
+/* While a wire is drawn: fields of another type cannot take it (see isValidConnection). */
+.vf-node__field--incompatible {
+  opacity: 0.3;
+}
+
+.vf-node__field--incompatible :deep(.vue-flow__handle) {
+  cursor: not-allowed;
 }
 
 .vf-node__field-key {
