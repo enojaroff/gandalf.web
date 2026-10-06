@@ -35,6 +35,16 @@
       />
     </div>
 
+    <!-- Commandes en masse (admin) : visibles dès qu'une ligne est sélectionnée -->
+    <BulkActionsBar
+      v-if="isAdmin"
+      resource="table"
+      :count="selectedTables.length"
+      @copy="openBulk('copy')"
+      @move="openBulk('move')"
+      @clear="clearSelection"
+    />
+
     <!-- Tableau -->
     <UCard class="shadow-md">
       <div v-if="loading" class="flex justify-center py-12">
@@ -54,6 +64,22 @@
         :data="tables"
         :columns="columns"
       >
+        <template #select-header>
+          <UCheckbox
+            :model-value="allSelectedState"
+            aria-label="Sélectionner toutes les tables"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleAll(v === true)"
+          />
+        </template>
+
+        <template #select-cell="{ row }">
+          <UCheckbox
+            :model-value="isSelected(row.original._id)"
+            :aria-label="`Sélectionner « ${row.original.title} »`"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.original._id, v === true)"
+          />
+        </template>
+
         <template #title-cell="{ row }">
           <div>
             <div class="flex items-center gap-2">
@@ -105,7 +131,7 @@
       v-if="copyMove"
       resource="table"
       :mode="copyMove.mode"
-      :item="copyMove.item"
+      :items="copyMove.items"
       @close="copyMove = null"
       @saved="onCopyMoveSaved"
     />
@@ -117,6 +143,7 @@ import type { DecisionTable } from '~/types/decision-table'
 import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
+import BulkActionsBar from '~/components/BulkActionsBar.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -126,11 +153,28 @@ const gandalf = useGandalf()
 const router = useRouter()
 const projectsStore = useProjectsStore()
 
-// Copier/déplacer vers un autre projet — admin uniquement.
+// Copier/déplacer vers un autre projet — admin uniquement. `items` : une table
+// (menu de la ligne) ou la sélection (commandes en masse).
 const isAdmin = computed(() => projectsStore.isAdmin)
-const copyMove = ref<{ mode: 'copy' | 'move'; item: DecisionTable } | null>(null)
+const copyMove = ref<{ mode: 'copy' | 'move'; items: DecisionTable[] } | null>(null)
 
 const tables = ref<DecisionTable[]>([])
+
+// Sélection pour les commandes en masse (vidée par loadTables)
+const {
+  selected: selectedTables,
+  allState: allSelectedState,
+  isSelected,
+  toggleRow,
+  toggleAll,
+  clear: clearSelection,
+} = useRowSelection(tables)
+
+function openBulk(mode: 'copy' | 'move') {
+  // Copie figée de la sélection : la liste peut être rechargée pendant l'opération.
+  copyMove.value = { mode, items: [...selectedTables.value] }
+}
+
 const meta = ref<{ total: number } | null>(null)
 const loading = ref(false)
 const search = ref('')
@@ -168,6 +212,8 @@ function onCategoryFilterChange() {
 }
 
 const columns = computed(() => [
+  // Cases de sélection : seules les commandes admin (copier/déplacer) s'en servent
+  ...(isAdmin.value ? [{ id: 'select', header: '' }] : []),
   { accessorKey: 'title', header: t('common.name') },
   { accessorKey: 'matching_type', header: t('tables.matchingType') },
   { id: 'actions', header: '' },
@@ -175,6 +221,7 @@ const columns = computed(() => [
 
 async function loadTables() {
   loading.value = true
+  clearSelection()
   try {
     const response = await gandalf.tables.list(pageSize, currentPage.value, {
       title: search.value || undefined,
@@ -224,12 +271,12 @@ function tableActions(table: DecisionTable): MenuItem[][] {
       {
         label: 'Copier vers…',
         icon: 'i-lucide-copy',
-        onSelect: () => { copyMove.value = { mode: 'copy', item: table } },
+        onSelect: () => { copyMove.value = { mode: 'copy', items: [table] } },
       },
       {
         label: 'Déplacer vers…',
         icon: 'i-lucide-corner-up-right',
-        onSelect: () => { copyMove.value = { mode: 'move', item: table } },
+        onSelect: () => { copyMove.value = { mode: 'move', items: [table] } },
       },
     ])
   }
