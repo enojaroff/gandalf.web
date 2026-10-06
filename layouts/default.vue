@@ -45,7 +45,7 @@
 
     <!-- Contenu principal (pleine largeur si la page déclare `fullWidth: true` dans definePageMeta) -->
     <main class="app-content">
-      <UContainer class="py-6" :class="{ 'max-w-none': route.meta.fullWidth }">
+      <UContainer :key="pageRemountKey" class="py-6" :class="{ 'max-w-none': route.meta.fullWidth }">
         <slot />
       </UContainer>
     </main>
@@ -108,8 +108,11 @@ const navItems = computed(() => [
   { label: t('nav.settings'), to: '/settings/project' },
 ])
 
+const localePath = useLocalePath()
+
 function isActive(path: string): boolean {
-  return route.path.startsWith(path)
+  // Comparer au chemin localisé : en fr la route est /fr/flows/…, pas /flows/…
+  return route.path.startsWith(localePath(path))
 }
 
 const projectItems = computed(() =>
@@ -119,9 +122,22 @@ const projectItems = computed(() =>
   })),
 )
 
-function onProjectChange(val: string) {
+// Les pages chargent leurs données dans onMounted sans observer le projet :
+// incrémenter cette clé remonte la page courante sans changer d'URL.
+const pageRemountKey = ref(0)
+
+// Changer de projet garde l'onglet courant (Tables, Flows…) mais revient à sa
+// liste : une table ou un flow ouvert appartient à l'ancien projet.
+async function onProjectChange(val: string) {
+  const tab = navItems.value.find(item => isActive(item.to))
+  const target = localePath(tab?.to ?? '/')
   projectsStore.selectProject(val)
-  router.push('/')
+  if (route.path === target) {
+    pageRemountKey.value++
+  }
+  else {
+    await router.push(target)
+  }
 }
 
 // Menu utilisateur
