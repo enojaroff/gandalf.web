@@ -3,7 +3,7 @@
 // d'entrée d'une autre. Miroir du backend (voir DRG.md côté API).
 
 // Type d'une entrée/sortie de flow. Aligné sur FieldType côté table.
-export type FlowIOType = 'numeric' | 'boolean' | 'string'
+export type FlowIOType = 'numeric' | 'boolean' | 'string' | 'date'
 
 // Discriminant de l'enveloppe de réponse unifiée. Une table renvoie
 // table_simple / table_advanced ; un flow renvoie drg.

@@ -1,4 +1,5 @@
-import type { MatchingType, DecisionType } from '~/types/decision-table'
+import type { MatchingType, DecisionType, FieldType, RuleCondition } from '~/types/decision-table'
+import { isValidDateCondition } from '~/utils/dateExpr'
 
 function anyToString(val: unknown): string {
   return typeof val !== 'undefined' ? String(val) : ''
@@ -44,6 +45,31 @@ export const GANDALF_TRANSFORMS: {
 
 export const CONDITION_OPTIONS = {
   hasNotValue: ['$is_set', '$is_null', '$any'],
+}
+
+const NUMERIC_VALUE_OPS = ['$gt', '$gte', '$lt', '$lte']
+const RANGE_OPS = ['$between', '$between_excl', '$between_lexcl', '$between_rexcl', '$not_between']
+
+function isNumericValue(value: unknown): boolean {
+  if (typeof value === 'number') return Number.isFinite(value)
+  return typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value.replace(',', '.')))
+}
+
+// Même règle que l'API (TableValidator::conditionType) : la condition serait-elle
+// acceptée sur un champ de ce type ? Sert à nettoyer les conditions quand le type
+// d'un champ change, sinon l'enregistrement de la table échouerait.
+export function isConditionValidForType(type: FieldType, condition: RuleCondition): boolean {
+  const op = condition.condition ?? '$any'
+  if (type === 'date') return isValidDateCondition(op, condition.value)
+  if (CONDITION_OPTIONS.hasNotValue.includes(op)) return true
+  if (NUMERIC_VALUE_OPS.includes(op)) return isNumericValue(condition.value)
+  if (RANGE_OPS.includes(op)) {
+    const bounds = typeof condition.value === 'string' ? condition.value.split(';') : []
+    if (bounds.length !== 2 || !bounds.every(isNumericValue)) return false
+    const [min, max] = bounds.map(b => Number(b.replace(',', '.')))
+    return min! < max!
+  }
+  return true
 }
 
 export const CONDITION_TYPES = {

@@ -104,7 +104,8 @@
     "importConflictBody": "Questa tabella è stata modificata sul server dopo l'esportazione del file. Sovrascrivere eliminerà quelle modifiche.",
     "importConflictServer": "Ultima modifica sul server",
     "importConflictFile": "File esportato il",
-    "importForce": "Sovrascrivi comunque"
+    "importForce": "Sovrascrivi comunque",
+    "typeChangeConfirm": "Passare \"{field}\" a questo tipo reimposta {count} condizione/i incompatibile/i su \"qualsiasi\", in tutte le varianti. Continuare?"
   },
   "flows": {
     "title": "Flow",
@@ -184,7 +185,8 @@
     "types": {
       "string": "Testo (string)",
       "numeric": "Numerico (number)",
-      "boolean": "Booleano (true/false)"
+      "boolean": "Booleano (true/false)",
+      "date": "Data (AAAA-MM-GG)"
     }
   },
   "conditions": {
@@ -204,6 +206,27 @@
     "nin": "non nella lista",
     "between": "tra",
     "notBetween": "non tra"
+  },
+  "dates": {
+    "absolute": "Data",
+    "today": "Oggi",
+    "units": {
+      "d": "giorni",
+      "w": "settimane",
+      "m": "mesi",
+      "y": "anni"
+    },
+    "short": {
+      "today": "oggi",
+      "d": "g",
+      "w": "sett.",
+      "m": "mesi",
+      "y": "anni"
+    },
+    "from": "dal",
+    "to": "al",
+    "invalid": "Data non valida",
+    "rangeOrder": "La prima data deve precedere la seconda."
   },
   "matchingTypes": {
     "first": "Prima corrispondenza",

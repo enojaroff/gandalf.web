@@ -302,6 +302,7 @@ const ioTypeOptions = [
   { label: 'string', value: 'string' },
   { label: 'numeric', value: 'numeric' },
   { label: 'boolean', value: 'boolean' },
+  { label: 'date', value: 'date' },
 ]
 
 const tableOptions = computed(() =>

@@ -1,5 +1,5 @@
 // Types de champ
-export type FieldType = 'numeric' | 'string' | 'boolean'
+export type FieldType = 'numeric' | 'string' | 'boolean' | 'date'
 
 // Source d'un champ
 export type FieldSource = 'request' | 'tables' | 'decisions' | 'external'

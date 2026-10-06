@@ -26,7 +26,7 @@
               <UInput
                 v-else
                 v-model="inputValues[inp.key]"
-                :type="inp.type === 'numeric' ? 'number' : 'text'"
+                :type="inp.type === 'numeric' ? 'number' : inp.type === 'date' ? 'date' : 'text'"
                 class="w-full"
               />
             </UFormField>

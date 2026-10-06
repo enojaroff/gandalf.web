@@ -105,7 +105,8 @@
     "importConflictBody": "This table was modified on the server after this file was exported. Overwriting will discard those changes.",
     "importConflictServer": "Server last modified",
     "importConflictFile": "File exported at",
-    "importForce": "Overwrite anyway"
+    "importForce": "Overwrite anyway",
+    "typeChangeConfirm": "Switching \"{field}\" to this type resets {count} incompatible condition(s) to \"any\", in every variant. Continue?"
   },
   "flows": {
     "title": "Flows",
@@ -185,7 +186,8 @@
     "types": {
       "string": "String (text)",
       "numeric": "Numeric (number)",
-      "boolean": "Boolean (true/false)"
+      "boolean": "Boolean (true/false)",
+      "date": "Date (YYYY-MM-DD)"
     }
   },
   "conditions": {
@@ -205,6 +207,27 @@
     "nin": "not in list",
     "between": "between",
     "notBetween": "not between"
+  },
+  "dates": {
+    "absolute": "Date",
+    "today": "Today",
+    "units": {
+      "d": "days",
+      "w": "weeks",
+      "m": "months",
+      "y": "years"
+    },
+    "short": {
+      "today": "today",
+      "d": "d",
+      "w": "wk",
+      "m": "mo",
+      "y": "yr"
+    },
+    "from": "from",
+    "to": "to",
+    "invalid": "Invalid date",
+    "rangeOrder": "The first date must be before the second one."
   },
   "matchingTypes": {
     "first": "First match",

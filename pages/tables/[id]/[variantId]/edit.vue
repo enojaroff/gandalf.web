@@ -145,9 +145,9 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition } from '~/types/decision-table'
+import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, FieldType, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
-import { CONDITION_TYPES } from '~/utils/transforms'
+import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -165,21 +165,22 @@ const showAddFieldModal = ref(false)
 const showEditFieldModal = ref(false)
 
 // Add Field form
-const addFieldForm = reactive({ key: '', title: '', type: 'string' as 'string' | 'numeric' | 'boolean' })
+const addFieldForm = reactive({ key: '', title: '', type: 'string' as FieldType })
 const addFieldError = ref<string | null>(null)
 const fieldTypeOptions = [
   { label: 'String (text)', value: 'string' },
   { label: 'Numeric (number)', value: 'numeric' },
   { label: 'Boolean (true/false)', value: 'boolean' },
+  { label: 'Date (YYYY-MM-DD)', value: 'date' },
 ]
 
 // Edit Field form
-const editFieldForm = reactive({ key: '', title: '', type: 'string' as 'string' | 'numeric' | 'boolean' })
+const editFieldForm = reactive({ key: '', title: '', type: 'string' as FieldType })
 
 function openEditField(field: DecisionField) {
   editFieldForm.key = field.key
   editFieldForm.title = field.title
-  editFieldForm.type = field.type as 'string' | 'numeric' | 'boolean'
+  editFieldForm.type = field.type
   showEditFieldModal.value = true
 }
 
@@ -187,6 +188,21 @@ function submitEditField() {
   if (!table.value) return
   const field = table.value.fields.find(f => f.key === editFieldForm.key)
   if (!field) return
+  if (editFieldForm.type !== field.type) {
+    // A field is shared by every variant: the conditions the API would reject
+    // under the new type (e.g. "> 10" on a date) fall back to the neutral '$any'
+    // everywhere, after confirmation — otherwise the next save would fail.
+    const incompatible = table.value.variants
+      .flatMap(v => v.rules)
+      .flatMap(r => r.conditions)
+      .filter(c => c.field_key === field.key && !isConditionValidForType(editFieldForm.type, c))
+    if (incompatible.length
+      && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
+    for (const condition of incompatible) {
+      condition.condition = CONDITION_TYPES.ANY
+      condition.value = null
+    }
+  }
   field.title = editFieldForm.title
   field.type = editFieldForm.type
   showEditFieldModal.value = false

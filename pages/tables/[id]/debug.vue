@@ -39,6 +39,12 @@
                   label-key="label"
                   class="w-full"
                 />
+                <UInput
+                  v-else-if="field.type === 'date'"
+                  v-model="testInput[field.key]"
+                  type="date"
+                  class="w-full"
+                />
               </UFormField>
             </div>
 

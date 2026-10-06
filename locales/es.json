@@ -104,7 +104,8 @@
     "importConflictBody": "Esta tabla se modificó en el servidor después de exportar este archivo. Sobrescribir descartará esos cambios.",
     "importConflictServer": "Última modificación en el servidor",
     "importConflictFile": "Archivo exportado el",
-    "importForce": "Sobrescribir de todos modos"
+    "importForce": "Sobrescribir de todos modos",
+    "typeChangeConfirm": "Cambiar \"{field}\" a este tipo restablece {count} condición(es) incompatible(s) a \"cualquiera\", en todas las variantes. ¿Continuar?"
   },
   "flows": {
     "title": "Flujos",
@@ -184,7 +185,8 @@
     "types": {
       "string": "Texto (string)",
       "numeric": "Numérico (number)",
-      "boolean": "Booleano (true/false)"
+      "boolean": "Booleano (true/false)",
+      "date": "Fecha (AAAA-MM-DD)"
     }
   },
   "conditions": {
@@ -204,6 +206,27 @@
     "nin": "no en la lista",
     "between": "entre",
     "notBetween": "no entre"
+  },
+  "dates": {
+    "absolute": "Fecha",
+    "today": "Hoy",
+    "units": {
+      "d": "días",
+      "w": "semanas",
+      "m": "meses",
+      "y": "años"
+    },
+    "short": {
+      "today": "hoy",
+      "d": "d",
+      "w": "sem.",
+      "m": "meses",
+      "y": "años"
+    },
+    "from": "del",
+    "to": "al",
+    "invalid": "Fecha no válida",
+    "rangeOrder": "La primera fecha debe ser anterior a la segunda."
   },
   "matchingTypes": {
     "first": "Primera coincidencia",

@@ -105,7 +105,8 @@
     "importConflictBody": "Cette table a été modifiée sur le serveur après l'export de ce fichier. Écraser fera perdre ces modifications.",
     "importConflictServer": "Dernière modification serveur",
     "importConflictFile": "Fichier exporté le",
-    "importForce": "Écraser quand même"
+    "importForce": "Écraser quand même",
+    "typeChangeConfirm": "Passer « {field} » dans ce type remet {count} condition(s) incompatible(s) à « peu importe », dans toutes les variantes. Continuer ?"
   },
   "flows": {
     "title": "Flows",
@@ -185,7 +186,8 @@
     "types": {
       "string": "Texte (string)",
       "numeric": "Numérique (number)",
-      "boolean": "Booléen (true/false)"
+      "boolean": "Booléen (true/false)",
+      "date": "Date (AAAA-MM-JJ)"
     }
   },
   "conditions": {
@@ -205,6 +207,27 @@
     "nin": "pas parmi",
     "between": "entre",
     "notBetween": "en dehors de"
+  },
+  "dates": {
+    "absolute": "Date",
+    "today": "Aujourd'hui",
+    "units": {
+      "d": "jours",
+      "w": "semaines",
+      "m": "mois",
+      "y": "ans"
+    },
+    "short": {
+      "today": "auj.",
+      "d": "j",
+      "w": "sem.",
+      "m": "mois",
+      "y": "an(s)"
+    },
+    "from": "du",
+    "to": "au",
+    "invalid": "Date invalide",
+    "rangeOrder": "La première date doit précéder la seconde."
   },
   "matchingTypes": {
     "first": "Première correspondance",
