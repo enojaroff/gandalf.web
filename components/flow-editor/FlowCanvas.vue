@@ -30,6 +30,7 @@
       :is-valid-connection="isValidConnection"
       fit-view-on-init
       @connect="onConnect"
+      @pane-click="cancelClickConnection"
       @edges-change="onEdgesChange"
       @nodes-change="onNodesChange"
     >
@@ -328,11 +329,15 @@ function nodeTable(nodeId: string): DecisionTable | undefined {
 function sourceType(nodeId?: string | null, handleId?: string | null): string | null {
   if (nodeId?.startsWith('input:')) {
     const key = nodeId.slice('input:'.length)
-    return props.flow.inputs.find((i) => i.key === key)?.type ?? null
+    const input = props.flow.inputs.find((i) => i.key === key)
+    // The API defaults a missing input type to 'string' (FlowRepository::validateGraph).
+    return input ? (input.type || 'string') : null
   }
   if (nodeId?.startsWith('table:') && handleId?.startsWith('out:')) {
     const table = nodeTable(nodeId.slice('table:'.length))
-    return table ? tableOutputType(table) : null
+    // The list endpoint has no decision_type: unknown until the table detail loads.
+    if (!table || (table.matching_type === 'first' && !table.decision_type)) return null
+    return tableOutputType(table)
   }
   return null
 }
@@ -341,7 +346,8 @@ function sourceType(nodeId?: string | null, handleId?: string | null): string | 
 function fieldType(nodeId?: string | null, handleId?: string | null): string | null {
   if (!nodeId?.startsWith('table:') || !handleId?.startsWith('field:')) return null
   const key = handleId.slice('field:'.length)
-  return nodeTable(nodeId.slice('table:'.length))?.fields?.find((f) => f.key === key)?.type ?? null
+  const field = nodeTable(nodeId.slice('table:'.length))?.fields?.find((f) => f.key === key)
+  return field ? (field.type || 'string') : null
 }
 
 // Vue Flow asks this while a wire is drawn (drag or click mode) and drops the
@@ -364,6 +370,12 @@ const pendingSourceType = computed(() => {
   if (!start || start.type !== 'source') return null
   return sourceType(start.nodeId, start.id)
 })
+
+// Vue Flow only ends a click-started wire on another handle click: clicking the
+// background cancels it too, so the incompatible fields are no longer greyed.
+function cancelClickConnection() {
+  connectionClickStartHandle.value = null
+}
 
 function isFieldIncompatible(type: string): boolean {
   return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, type)
