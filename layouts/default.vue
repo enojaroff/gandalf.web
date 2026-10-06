@@ -43,9 +43,9 @@
       </UContainer>
     </header>
 
-    <!-- Contenu principal -->
+    <!-- Contenu principal (pleine largeur si la page déclare `fullWidth: true` dans definePageMeta) -->
     <main class="app-content">
-      <UContainer class="py-6">
+      <UContainer class="py-6" :class="{ 'max-w-none': route.meta.fullWidth }">
         <slot />
       </UContainer>
     </main>
