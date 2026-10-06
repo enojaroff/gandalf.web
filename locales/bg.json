@@ -109,7 +109,8 @@
     "renameFieldConfirm": "Преименуване на ключа „{from}“ на „{to}“?\n\n• Условията във всички варианти ще бъдат обновени.\n• Flow, обновени при запазване на таблицата: {flows}.\n• Системите, които извикват тази таблица през API, трябва да изпращат „{to}“.",
     "renameFieldNoFlow": "няма",
     "renameFieldSaved": "Ключът е преименуван.",
-    "renameFieldFlowsUpdated": "Обновени flow: {flows}."
+    "renameFieldFlowsUpdated": "Обновени flow: {flows}.",
+    "renameFieldFlowsFailed": "Flow, които не са обновени и трябва да се коригират ръчно: {flows}."
   },
   "flows": {
     "title": "Потоци",
@@ -184,6 +185,7 @@
     "keyRequired": "Ключът на полето е задължителен.",
     "keyInvalid": "Ключът може да съдържа само букви, цифри, долни черти или тирета.",
     "keyDuplicate": "Вече съществува поле с този ключ.",
+    "keyReserved": "Това име е запазено (variant_id).",
     "title": "Заглавие",
     "type": "Тип",
     "types": {

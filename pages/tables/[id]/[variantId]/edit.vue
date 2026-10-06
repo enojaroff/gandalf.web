@@ -136,7 +136,7 @@
           <UButton color="error" variant="outline" @click="deleteEditField">Delete Field</UButton>
           <div class="flex gap-2">
             <UButton variant="outline" @click="showEditFieldModal = false">Cancel</UButton>
-            <UButton @click="submitEditField">Save</UButton>
+            <UButton :loading="editFieldBusy" @click="submitEditField">Save</UButton>
           </div>
         </div>
       </template>
@@ -149,6 +149,8 @@ import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, Field
 import { objectId } from '~/utils/filters'
 import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
 import { apiValidationMessages } from '~/utils/apiErrors'
+import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
+import type { TableUpdateMeta } from '~/composables/useGandalf'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -179,10 +181,7 @@ const fieldTypeOptions = [
 // Edit Field form (`originalKey` identifies the field while its key is edited)
 const editFieldForm = reactive({ originalKey: '', key: '', title: '', type: 'string' as FieldType })
 const editFieldError = ref<string | null>(null)
-
-// Key renames applied locally since the last save, reported once the table is
-// saved: that is when the API makes the project's flows follow them.
-const pendingRenames = ref<{ from: string, to: string, flows: string[] }[]>([])
+const editFieldBusy = ref(false)
 
 function openEditField(field: DecisionField) {
   editFieldForm.originalKey = field.key
@@ -193,75 +192,91 @@ function openEditField(field: DecisionField) {
   showEditFieldModal.value = true
 }
 
-// Stored form of a key, as the API normalizes it (Field::normalizeKey).
-function normalizeFieldKey(key: string): string {
-  return key.trim().replace(/ /g, '_').toLowerCase()
+// Keys of the table's other active fields.
+function otherFieldKeys(field?: DecisionField): string[] {
+  return (table.value?.fields ?? []).filter(f => f !== field && !f.isDeleted).map(f => f.key)
 }
 
 // Titles of the project's flows that use this table (null if they cannot be listed).
 async function flowsUsingTable(): Promise<string[] | null> {
   try {
-    const response = await gandalf.flows.list(200, 1)
-    return response.data
-      .filter(flow => (flow.nodes ?? []).some(node => node.table_id === tableId))
-      .map(flow => flow.title)
+    const response = await gandalf.flows.list(200, 1, { table_id: tableId })
+    return response.data.map(flow => flow.title)
   }
   catch {
     return null
   }
 }
 
-// Rename a field key: the field and its condition in every rule of every
-// variant. The API recognizes the rename on save (same field _id, new key) and
-// updates the project's flows that use the table.
-async function renameField(field: DecisionField, newKey: string): Promise<boolean> {
-  if (!table.value) return false
-  if (!newKey) { editFieldError.value = t('fields.keyRequired'); return false }
-  if (!/^[a-z0-9_-]+$/.test(newKey) || newKey === 'variant_id') { editFieldError.value = t('fields.keyInvalid'); return false }
-  if (table.value.fields.some(f => f !== field && f.key === newKey)) { editFieldError.value = t('fields.keyDuplicate'); return false }
-
-  const flows = await flowsUsingTable()
-  const flowList = flows === null ? '?' : (flows.length ? flows.join(', ') : t('tables.renameFieldNoFlow'))
-  if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows: flowList }))) return false
-
-  for (const variant of table.value.variants) {
-    for (const rule of variant.rules) {
-      for (const condition of rule.conditions) {
-        if (condition.field_key === field.key) condition.field_key = newKey
-      }
-    }
-  }
-  pendingRenames.value.push({ from: field.key, to: newKey, flows: flows ?? [] })
-  field.key = newKey
-  return true
-}
-
 async function submitEditField() {
-  if (!table.value) return
+  if (!table.value || editFieldBusy.value) return
   const field = table.value.fields.find(f => f.key === editFieldForm.originalKey)
   if (!field) return
+  // The form may change while the flows are being listed: work on a snapshot.
+  const form = { ...editFieldForm }
   editFieldError.value = null
-  const newKey = normalizeFieldKey(editFieldForm.key)
-  if (newKey !== field.key && !(await renameField(field, newKey))) return
-  if (editFieldForm.type !== field.type) {
-    // A field is shared by every variant: the conditions the API would reject
-    // under the new type (e.g. "> 10" on a date) fall back to the neutral '$any'
-    // everywhere, after confirmation — otherwise the next save would fail.
-    const hasPreset = !!(field.preset as { condition?: string } | null | undefined)?.condition
-    const incompatible = table.value.variants
-      .flatMap(v => v.rules)
-      .flatMap(r => r.conditions)
-      .filter(c => c.field_key === field.key && !isConditionValidForType(editFieldForm.type, c, hasPreset))
-    if (incompatible.length
-      && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
-    for (const condition of incompatible) {
-      condition.condition = CONDITION_TYPES.ANY
-      condition.value = NEUTRAL_VALUE
+
+  // Renaming is about the stored form: a key added as "Age" is stored "age".
+  const newKey = normalizeFieldKey(form.key)
+  const renamed = newKey !== normalizeFieldKey(field.key)
+  if (renamed) {
+    const error = fieldKeyError(newKey, otherFieldKeys(field))
+    if (error) {
+      editFieldError.value = t(error)
+      return
     }
   }
-  field.title = editFieldForm.title
-  field.type = editFieldForm.type
+
+  // A field is shared by every variant: the conditions the API would reject
+  // under the new type (e.g. "> 10" on a date) fall back to the neutral '$any'
+  // everywhere, otherwise the next save would fail.
+  const conditions = table.value.variants.flatMap(v => v.rules).flatMap(r => r.conditions).filter(c => c.field_key === field.key)
+  const hasPreset = !!(field.preset as { condition?: string } | null | undefined)?.condition
+  const incompatible = form.type !== field.type
+    ? conditions.filter(c => !isConditionValidForType(form.type, c, hasPreset))
+    : []
+
+  // Every confirmation first: nothing changes if one is declined.
+  if (renamed) {
+    editFieldBusy.value = true
+    const flows = await flowsUsingTable()
+    editFieldBusy.value = false
+    // Modal closed, or reopened on another field, meanwhile
+    if (!showEditFieldModal.value || editFieldForm.originalKey !== form.originalKey) return
+    const flowList = flows === null ? '?' : (flows.length ? flows.join(', ') : t('tables.renameFieldNoFlow'))
+    if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows: flowList }))) return
+  }
+  if (incompatible.length
+    && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
+
+  // The API recognizes a rename on save (same field _id, new key) and makes the
+  // project's flows follow it; locally, the field and its condition in every
+  // rule of every variant are renamed.
+  if (renamed) {
+    for (const condition of conditions) condition.field_key = newKey
+    field.key = newKey
+  }
+  for (const condition of incompatible) {
+    condition.condition = CONDITION_TYPES.ANY
+    condition.value = NEUTRAL_VALUE
+  }
+  field.title = form.title
+  field.type = form.type
   showEditFieldModal.value = false
+}
+
+// Report what the API did with field renames on save (response meta).
+function reportFieldRenames(meta?: TableUpdateMeta) {
+  if (!meta?.field_renames || !Object.keys(meta.field_renames).length) return
+  const updated = meta.flows_updated ?? []
+  toast.add({
+    title: t('tables.renameFieldSaved'),
+    description: updated.length ? t('tables.renameFieldFlowsUpdated', { flows: updated.join(', ') }) : undefined,
+    color: 'success',
+  })
+  if (meta.flows_failed?.length) {
+    toast.add({ title: t('tables.renameFieldFlowsFailed', { flows: meta.flows_failed.join(', ') }), color: 'error' })
+  }
 }
 
 function deleteEditField() {
@@ -363,15 +378,16 @@ function addRule() {
 
 function submitAddField() {
   addFieldError.value = null
-  if (!addFieldForm.key.trim()) { addFieldError.value = 'Field key is required.'; return }
-  if (!/^[a-zA-Z0-9_-]+$/.test(addFieldForm.key)) { addFieldError.value = 'Key must only contain letters, numbers, underscores, or hyphens.'; return }
-  if (table.value?.fields.some(f => f.key === addFieldForm.key)) { addFieldError.value = 'A field with this key already exists.'; return }
   if (!table.value) return
+  // Same rules as a rename, on the key as the API stores it ("Age" -> "age").
+  const key = normalizeFieldKey(addFieldForm.key)
+  const error = fieldKeyError(key, otherFieldKeys())
+  if (error) { addFieldError.value = t(error); return }
 
   const field: DecisionField = {
     _id: objectId(),
-    key: addFieldForm.key,
-    title: addFieldForm.title || addFieldForm.key,
+    key,
+    title: addFieldForm.title || key,
     type: addFieldForm.type,
     source: 'request',
     preset: null,
@@ -432,15 +448,7 @@ async function save() {
     }
     const response = await gandalf.tables.update(tableId, payload as never)
     table.value = response.data
-    if (pendingRenames.value.length) {
-      const flows = [...new Set(pendingRenames.value.flatMap(r => r.flows))]
-      toast.add({
-        title: t('tables.renameFieldSaved'),
-        description: flows.length ? t('tables.renameFieldFlowsUpdated', { flows: flows.join(', ') }) : undefined,
-        color: 'success',
-      })
-      pendingRenames.value = []
-    }
+    reportFieldRenames(response.meta)
   }
   catch (err: unknown) {
     // Show why the API refused the table (422 details) instead of failing silently.

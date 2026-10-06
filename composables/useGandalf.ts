@@ -17,6 +17,15 @@ interface RequestOptions {
   body?: unknown
 }
 
+
+// Meta of a table update: what a field rename changed (TablesController::update)
+export interface TableUpdateMeta {
+  code?: number
+  field_renames?: Record<string, string>
+  flows_updated?: string[]
+  flows_failed?: string[]
+}
+
 export function useGandalf() {
   const config = useRuntimeConfig()
 
@@ -304,7 +313,7 @@ export function useGandalf() {
       }),
 
     update: (id: string, table: Partial<DecisionTable>) =>
-      request<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/${id}`, {
+      request<{ data: DecisionTable; meta?: TableUpdateMeta }>(`${apiBase}/v1/admin/tables/${id}`, {
         method: 'PUT',
         body: table,
       }),
@@ -411,7 +420,7 @@ export function useGandalf() {
   // ─── Flows (Decision Requirement Graph) ───────────────────────────────────
 
   const flows = {
-    list: (size?: number, page?: number, filter?: { title?: string; category_id?: string }) =>
+    list: (size?: number, page?: number, filter?: { title?: string; category_id?: string; table_id?: string }) =>
       request<{ data: Flow[]; meta: unknown }>(`${apiBase}/v1/admin/flows`, {
         params: { size, page, ...filter },
       }),

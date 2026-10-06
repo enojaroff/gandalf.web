@@ -109,7 +109,8 @@
     "renameFieldConfirm": "Перейменувати ключ «{from}» на «{to}»?\n\n• Умови всіх варіантів буде оновлено.\n• Flow, оновлені під час збереження таблиці: {flows}.\n• Системи, що викликають цю таблицю через API, мають надсилати «{to}».",
     "renameFieldNoFlow": "немає",
     "renameFieldSaved": "Ключ перейменовано.",
-    "renameFieldFlowsUpdated": "Оновлені flow: {flows}."
+    "renameFieldFlowsUpdated": "Оновлені flow: {flows}.",
+    "renameFieldFlowsFailed": "Flow не оновлено, виправте вручну: {flows}."
   },
   "flows": {
     "title": "Потоки",
@@ -184,6 +185,7 @@
     "keyRequired": "Ключ поля обов'язковий.",
     "keyInvalid": "Ключ може містити лише літери, цифри, підкреслення або дефіси.",
     "keyDuplicate": "Поле з таким ключем вже існує.",
+    "keyReserved": "Цю назву зарезервовано (variant_id).",
     "title": "Назва",
     "type": "Тип",
     "types": {

@@ -110,7 +110,8 @@
     "renameFieldConfirm": "Rename the key \"{from}\" to \"{to}\"?\n\n• The conditions of every variant will follow.\n• Flows updated when the table is saved: {flows}.\n• Systems calling this table through the API will have to send \"{to}\".",
     "renameFieldNoFlow": "none",
     "renameFieldSaved": "Key renamed.",
-    "renameFieldFlowsUpdated": "Flows updated: {flows}."
+    "renameFieldFlowsUpdated": "Flows updated: {flows}.",
+    "renameFieldFlowsFailed": "Flows not updated, to fix by hand: {flows}."
   },
   "flows": {
     "title": "Flows",
@@ -185,6 +186,7 @@
     "keyRequired": "Field key is required.",
     "keyInvalid": "Key must only contain letters, numbers, underscores, or hyphens.",
     "keyDuplicate": "A field with this key already exists.",
+    "keyReserved": "This name is reserved (variant_id).",
     "title": "Title",
     "type": "Type",
     "types": {

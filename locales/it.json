@@ -109,7 +109,8 @@
     "renameFieldConfirm": "Rinominare la chiave \"{from}\" in \"{to}\"?\n\n• Le condizioni di tutte le varianti seguiranno.\n• Flow aggiornati al salvataggio della tabella: {flows}.\n• I sistemi che chiamano questa tabella tramite l'API dovranno inviare \"{to}\".",
     "renameFieldNoFlow": "nessuno",
     "renameFieldSaved": "Chiave rinominata.",
-    "renameFieldFlowsUpdated": "Flow aggiornati: {flows}."
+    "renameFieldFlowsUpdated": "Flow aggiornati: {flows}.",
+    "renameFieldFlowsFailed": "Flow non aggiornati, da correggere a mano: {flows}."
   },
   "flows": {
     "title": "Flow",
@@ -184,6 +185,7 @@
     "keyRequired": "La chiave del campo è obbligatoria.",
     "keyInvalid": "La chiave può contenere solo lettere, numeri, underscore o trattini.",
     "keyDuplicate": "Esiste già un campo con questa chiave.",
+    "keyReserved": "Questo nome è riservato (variant_id).",
     "title": "Titolo",
     "type": "Tipo",
     "types": {

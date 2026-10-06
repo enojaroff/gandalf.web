@@ -109,7 +109,8 @@
     "renameFieldConfirm": "¿Renombrar la clave \"{from}\" a \"{to}\"?\n\n• Las condiciones de todas las variantes seguirán.\n• Flows actualizados al guardar la tabla: {flows}.\n• Los sistemas que llaman a esta tabla por la API deberán enviar \"{to}\".",
     "renameFieldNoFlow": "ninguno",
     "renameFieldSaved": "Clave renombrada.",
-    "renameFieldFlowsUpdated": "Flows actualizados: {flows}."
+    "renameFieldFlowsUpdated": "Flows actualizados: {flows}.",
+    "renameFieldFlowsFailed": "Flows no actualizados, a corregir a mano: {flows}."
   },
   "flows": {
     "title": "Flujos",
@@ -184,6 +185,7 @@
     "keyRequired": "La clave del campo es obligatoria.",
     "keyInvalid": "La clave solo puede contener letras, números, guiones bajos o guiones.",
     "keyDuplicate": "Ya existe un campo con esta clave.",
+    "keyReserved": "Este nombre está reservado (variant_id).",
     "title": "Título",
     "type": "Tipo",
     "types": {
