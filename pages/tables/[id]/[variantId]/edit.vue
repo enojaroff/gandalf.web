@@ -159,6 +159,7 @@ import { objectId } from '~/utils/filters'
 import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
 import { apiValidationMessages } from '~/utils/apiErrors'
 import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
+import { listTotal } from '~/utils/paging'
 import type { TableUpdateMeta } from '~/composables/useGandalf'
 
 definePageMeta({ middleware: 'auth' })
@@ -231,7 +232,7 @@ async function flowsUsingTable(): Promise<string> {
     const response = await gandalf.flows.list(200, 1, { table_id: tableId })
     const titles = response.data.map(flow => flow.title)
     if (!titles.length) return t('tables.renameFieldNoFlow')
-    const total = (response.meta as { total?: number } | null)?.total ?? titles.length
+    const total = listTotal(response)
     return titles.join(', ') + (total > titles.length ? `, … (+${total - titles.length})` : '')
   }
   catch {

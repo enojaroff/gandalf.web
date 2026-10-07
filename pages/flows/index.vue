@@ -137,7 +137,7 @@
       <UPagination
         v-model:page="currentPage"
         :total="meta.total"
-        :page-count="pageSize"
+        :items-per-page="pageSize"
         @update:page="loadFlows"
       />
     </div>
@@ -160,6 +160,7 @@ import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 import BulkActionsBar from '~/components/BulkActionsBar.vue'
+import { listTotal } from '~/utils/paging'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -267,7 +268,7 @@ async function loadFlows() {
       category_id: categoryFilter.value !== ALL_CATEGORIES ? categoryFilter.value : undefined,
     })
     flows.value = response.data
-    meta.value = response.meta as { total: number }
+    meta.value = { total: listTotal(response) }
     // Page emptied (e.g. every row moved or deleted on the last page): go back
     // to the last page that still exists.
     const lastPage = Math.max(1, Math.ceil(meta.value.total / pageSize))
