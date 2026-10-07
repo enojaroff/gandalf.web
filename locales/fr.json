@@ -68,6 +68,7 @@
     "debugger": "Test",
     "noTables": "Aucune table.",
     "noTablesCreate": "Créez votre première table de décision.",
+    "noMatch": "Aucune table ne correspond aux filtres.",
     "searchPlaceholder": "Rechercher…",
     "tableName": "Nom de la table",
     "tableType": "Type de table",
@@ -119,6 +120,7 @@
     "new": "Nouveau flow",
     "create": "Créer un flow",
     "noFlows": "Aucun flow pour l'instant. Créez votre premier graphe de décision.",
+    "noMatch": "Aucun flow ne correspond aux filtres.",
     "searchPlaceholder": "Rechercher un flow…",
     "countSingular": "flow",
     "countPlural": "flows",
@@ -330,6 +332,7 @@
     }
   },
   "common": {
+    "clearFilters": "Effacer les filtres",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "close": "Fermer",

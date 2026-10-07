@@ -51,6 +51,15 @@
         <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
       </div>
 
+      <!-- Liste vide à cause des filtres (éventuellement réappliqués au retour) -->
+      <div v-else-if="flows.length === 0 && hasActiveFilters" class="text-center py-12">
+        <UIcon name="i-lucide-search-x" class="text-5xl text-muted mb-4" />
+        <p class="text-muted">{{ $t('flows.noMatch') }}</p>
+        <UButton class="mt-4" variant="outline" icon="i-lucide-x" @click="clearFilters">
+          {{ $t('common.clearFilters') }}
+        </UButton>
+      </div>
+
       <div v-else-if="flows.length === 0" class="text-center py-12">
         <UIcon name="i-lucide-workflow" class="text-5xl text-muted mb-4" />
         <p class="text-muted">{{ $t('flows.noFlows') }}</p>
@@ -204,13 +213,34 @@ const categoryFilterOptions = computed(() => [
   ...categories.value.map(c => ({ label: c.name, value: c.id })),
 ])
 
-async function loadCategories() {
+// Recherche, catégorie et page mémorisées dans le navigateur (onglet en cours,
+// par application) et réappliquées au retour sur la liste.
+useRememberedFilters(
+  projectsStore.selectedProjectId ? `flows.${projectsStore.selectedProjectId}` : null,
+  { search, categoryFilter, currentPage },
+)
+
+// Un filtre est actif (tel qu'envoyé à l'API) : une liste vide ne veut alors pas
+// dire que l'application n'a aucun flow.
+const hasActiveFilters = computed(() => search.value !== '' || categoryFilter.value !== ALL_CATEGORIES)
+
+function clearFilters() {
+  search.value = ''
+  categoryFilter.value = ALL_CATEGORIES
+  currentPage.value = 1
+  loadFlows()
+}
+
+// Charge les catégories ; false si elles n'ont pas pu être lues.
+async function loadCategories(): Promise<boolean> {
   try {
     const response = await gandalf.categories.list()
     categories.value = response.data.categories
+    return true
   }
   catch {
     categories.value = []
+    return false
   }
 }
 
@@ -334,11 +364,18 @@ function onCopyMoveSaved() {
   loadFlows()
 }
 
-onMounted(() => {
-  loadCategories()
-  loadFlows()
+onMounted(async () => {
+  const firstLoad = loadFlows()
   if (projectsStore.currentUserRole === null) {
     projectsStore.fetchCurrentUserRole()
+  }
+  // Catégorie mémorisée supprimée depuis : la liste resterait vide, sans
+  // sélecteur pour en sortir s'il n'y a plus de catégorie.
+  if (await loadCategories() && categoryFilter.value !== ALL_CATEGORIES && !categoryById.value.has(categoryFilter.value)) {
+    categoryFilter.value = ALL_CATEGORIES
+    currentPage.value = 1
+    await firstLoad
+    loadFlows()
   }
 })
 </script>

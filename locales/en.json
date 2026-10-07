@@ -69,6 +69,7 @@
     "debugger": "Debugger",
     "noTables": "No tables yet.",
     "noTablesCreate": "Create your first decision table.",
+    "noMatch": "No table matches the filters.",
     "searchPlaceholder": "Search tables…",
     "tableType": "Table Type",
     "scoringType": "Scoring Type",
@@ -119,6 +120,7 @@
     "new": "New flow",
     "create": "Create a flow",
     "noFlows": "No flows yet. Create your first decision graph.",
+    "noMatch": "No flow matches the filters.",
     "searchPlaceholder": "Search flows…",
     "countSingular": "flow",
     "countPlural": "flows",
@@ -330,6 +332,7 @@
     }
   },
   "common": {
+    "clearFilters": "Clear filters",
     "save": "Save",
     "cancel": "Cancel",
     "close": "Close",
