@@ -158,10 +158,10 @@
                     <template v-if="conditionHasValue(condition)">
                       <template v-if="isBetweenOp(condition.condition)">
                         <span class="condition-op">{{ conditionBrackets(condition.condition).left }}</span>
-                        <span class="condition-val">{{ conditionInnerValue(condition) }}</span>
+                        <span class="condition-val">{{ conditionInnerValue(condition, activeFields[condIdx]?.type) }}</span>
                         <span class="condition-op">{{ conditionBrackets(condition.condition).right }}</span>
                       </template>
-                      <span v-else class="condition-val">{{ conditionValueLabel(condition) }}</span>
+                      <span v-else class="condition-val">{{ conditionValueLabel(condition, activeFields[condIdx]?.type) }}</span>
                     </template>
                   </template>
                 </template>
@@ -176,7 +176,7 @@
                   />
                   <div class="condition-popover-actions">
                     <UButton size="xs" variant="outline" @click="onCancelClick(rule._id, condIdx)">Cancel</UButton>
-                    <UButton size="xs" @click="onSaveClick(rule._id, condIdx)">Save</UButton>
+                    <UButton size="xs" :disabled="!isEditedConditionValid(condIdx)" @click="onSaveClick(rule._id, condIdx)">Save</UButton>
                   </div>
                 </div>
               </template>
@@ -224,9 +224,10 @@
 
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
-import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition } from '~/types/decision-table'
+import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, FieldType, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
 import { CONDITION_OPTIONS } from '~/utils/transforms'
+import { dateExprLabel, isValidDateCondition } from '~/utils/dateExpr'
 
 const props = defineProps<{
   table: DecisionTable
@@ -295,6 +296,15 @@ function onCancelClick(_ruleId: string, _condIdx: number) {
   closeKey.value++
 }
 
+// A date condition the API would reject cannot be committed (the editor shows why).
+function isEditedConditionValid(condIdx: number): boolean {
+  const field = activeFields.value[condIdx]
+  const copy = editingConditionCopy.value
+  if (!field || !copy || field.type !== 'date') return true
+  if ((field.preset as { condition?: string } | null | undefined)?.condition) return true
+  return isValidDateCondition(copy.condition, copy.value)
+}
+
 function onSaveClick(_ruleId: string, _condIdx: number) {
   if (!editingCell.value || !editingConditionCopy.value) return
   const { ruleId, condIdx } = editingCell.value
@@ -356,19 +366,22 @@ function conditionBrackets(op: string | null | undefined) {
   return BETWEEN_BRACKETS[op ?? ''] ?? { left: '[', right: ']' }
 }
 
-function conditionInnerValue(condition: { value?: unknown }): string {
+const { t } = useI18n()
+
+function conditionInnerValue(condition: { value?: unknown }, fieldType?: FieldType): string {
   const v = condition.value
   if (Array.isArray(v)) return `${v[0]} - ${v[1]}`
   if (typeof v === 'string' && v.includes(';')) {
     const [x, y] = v.split(';')
-    return `${x} - ${y}`
+    return fieldType === 'date' ? `${dateExprLabel(x, t)} - ${dateExprLabel(y, t)}` : `${x} - ${y}`
   }
   return v === null || v === undefined || v === '' ? '—' : String(v)
 }
 
-function conditionValueLabel(condition: { condition?: string | null, value?: unknown }) {
+function conditionValueLabel(condition: { condition?: string | null, value?: unknown }, fieldType?: FieldType) {
   const v = condition.value
 
+  if (fieldType === 'date') return dateExprLabel(v, t)
   if (Array.isArray(v)) return `${v[0]} – ${v[1]}`
   if (v === null || v === undefined || v === '') return '—'
   return String(v)

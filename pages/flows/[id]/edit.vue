@@ -245,7 +245,8 @@ import type { Category } from '~/types/category'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 
-definePageMeta({ middleware: 'auth' })
+// fullWidth : le canvas occupe toute la largeur de la fenêtre (cf. layouts/default.vue)
+definePageMeta({ middleware: 'auth', fullWidth: true })
 
 const { t } = useI18n()
 const gandalf = useGandalf()
@@ -301,6 +302,7 @@ const ioTypeOptions = [
   { label: 'string', value: 'string' },
   { label: 'numeric', value: 'numeric' },
   { label: 'boolean', value: 'boolean' },
+  { label: 'date', value: 'date' },
 ]
 
 const tableOptions = computed(() =>

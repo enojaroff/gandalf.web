@@ -11,6 +11,7 @@
           <UInput
             v-model="form.title"
             placeholder="e.g. Credit Scoring"
+            :maxlength="TITLE_MAX_LENGTH"
             :disabled="loading"
           />
         </UFormField>
@@ -35,7 +36,13 @@
           <p class="text-xs text-muted mt-1">{{ matchingTypeDescription }}</p>
         </UFormField>
 
-        <UAlert v-if="error" color="error" :description="error" class="mb-4" />
+        <UAlert v-if="error" color="error" :title="error" class="mb-4">
+          <template v-if="errorDetails.length" #description>
+            <ul class="list-disc pl-5 space-y-1">
+              <li v-for="(detail, i) in errorDetails" :key="i" class="text-sm">{{ detail }}</li>
+            </ul>
+          </template>
+        </UAlert>
 
         <div class="flex gap-3 justify-end">
           <UButton to="/tables" variant="outline" :disabled="loading">{{ $t('common.cancel') }}</UButton>
@@ -48,6 +55,7 @@
 
 <script setup lang="ts">
 import type { MatchingType, DecisionType } from '~/types/decision-table'
+import { apiValidationMessages } from '~/utils/apiErrors'
 
 definePageMeta({ path: '/tables/create', middleware: 'auth' })
 
@@ -60,8 +68,12 @@ const form = reactive({
   matching_type: 'first' as MatchingType,
 })
 
+const TITLE_MIN_LENGTH = 2
+const TITLE_MAX_LENGTH = 128
+
 const loading = ref(false)
 const error = ref<string | null>(null)
+const errorDetails = ref<string[]>([])
 
 const matchingTypeOptions = computed(() => [
   { value: 'first', label: t('matchingTypes.first') },
@@ -77,8 +89,17 @@ const matchingTypeDescription = computed(() => {
 })
 
 async function onSubmit() {
-  if (!form.title.trim()) {
+  errorDetails.value = []
+  const title = form.title.trim()
+  if (!title) {
     error.value = t('errors.tableNameRequired')
+    return
+  }
+  // Le titre de la première variante reprend celui de la table, et l'API le
+  // borne (variants.*.title : between:2,128). Compté en caractères, comme mb_strlen.
+  const titleLength = [...title].length
+  if (titleLength < TITLE_MIN_LENGTH || titleLength > TITLE_MAX_LENGTH) {
+    error.value = t('errors.tableNameLength', { min: TITLE_MIN_LENGTH, max: TITLE_MAX_LENGTH })
     return
   }
 
@@ -91,19 +112,23 @@ async function onSubmit() {
     : form.matching_type) as MatchingType
 
   const decisionType: DecisionType = matchingType === 'first' ? 'alpha_num' : 'numeric'
-  const defaultDecision = matchingType === 'first' ? '' : 0
+  // L'API exige des décisions non vides et conformes au decision_type : un mot
+  // alphanumérique (sans espace ni "_") en première correspondance, un nombre en
+  // scoring. Valeurs de départ, à remplacer dans l'éditeur.
+  const defaultDecision = matchingType === 'first' ? 'default' : 0
+  const firstRuleDecision = matchingType === 'first' ? 'decision' : 0
 
   const initialField = { key: 'field_1', type: 'string', title: 'Field 1', source: 'request', preset: null }
   const initialCondition = { field_key: 'field_1', condition: '$eq', value: '1' }
-  const initialRule = { priority: 0, than: defaultDecision, title: null, description: null, conditions: [initialCondition] }
+  const initialRule = { priority: 0, than: firstRuleDecision, title: null, description: null, conditions: [initialCondition] }
 
   const body: Record<string, unknown> = {
-    title: form.title,
+    title,
     matching_type: matchingType,
     decision_type: decisionType,
     fields: [initialField],
     variants: [{
-      title: form.title,
+      title,
       probability: 100,
       default_decision: defaultDecision,
       rules: [initialRule],
@@ -119,6 +144,8 @@ async function onSubmit() {
     const fetchError = err as { status?: number; data?: unknown; message?: string }
     const data = fetchError?.data as { message?: string; error?: string } | undefined
     error.value = data?.message || data?.error || t('errors.failedToCreate')
+    // Détail d'une 422 : les valeurs refusées par l'API, sous le message
+    errorDetails.value = apiValidationMessages(err)
   }
   finally {
     loading.value = false

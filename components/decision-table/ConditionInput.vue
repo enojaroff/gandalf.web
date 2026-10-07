@@ -13,6 +13,37 @@
       />
     </template>
 
+    <!-- Champ date : date fixe ou relative à aujourd'hui, bornes empilées pour un intervalle -->
+    <template v-else-if="field.type === 'date'">
+      <USelect
+        v-model="condition.condition"
+        :items="operatorOptions"
+        value-key="value"
+        label-key="label"
+        size="sm"
+        class="w-32 self-start"
+        @update:model-value="onOperatorChange"
+      />
+      <div v-if="!hasNoValue" class="flex flex-col gap-1">
+        <template v-if="isBetween">
+          <div class="flex items-center gap-1">
+            <span class="text-muted text-xs w-6">{{ $t('dates.from') }}</span>
+            <DecisionTableDateConditionValue v-model="dateFrom" />
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-muted text-xs w-6">{{ $t('dates.to') }}</span>
+            <DecisionTableDateConditionValue v-model="dateTo" />
+          </div>
+        </template>
+        <DecisionTableDateConditionValue
+          v-else
+          :model-value="condition.value"
+          @update:model-value="(v: string) => { condition.value = v; emit('change') }"
+        />
+        <p v-if="dateError" class="text-error text-xs">{{ dateError }}</p>
+      </div>
+    </template>
+
     <template v-else>
     <!-- Sélecteur d'opérateur -->
     <USelect
@@ -64,6 +95,7 @@
 <script setup lang="ts">
 import type { DecisionField, RuleCondition } from '~/types/decision-table'
 import { CONDITION_OPTIONS } from '~/utils/transforms'
+import { dayNumberToIso, isDateExpr, isValidDateCondition, toDayNumber, todayIso } from '~/utils/dateExpr'
 
 const props = defineProps<{
   field: DecisionField
@@ -143,8 +175,40 @@ function onOperatorChange() {
   if (hasNoValue.value) {
     props.condition.value = true
   }
+  else if (props.field.type === 'date' && !isValidDateCondition(props.condition.condition, props.condition.value)) {
+    // Valeur par défaut valide : aujourd'hui, ou les 30 derniers jours pour un intervalle
+    props.condition.value = isBetween.value
+      ? `${dayNumberToIso(toDayNumber('today-30d')!)};${todayIso()}`
+      : todayIso()
+  }
   emit('change')
 }
+
+// ── Champ date ───────────────────────────────────────────────────────────────
+function dateBound(index: 0 | 1) {
+  return computed({
+    get: () => (typeof props.condition.value === 'string' ? props.condition.value.split(';')[index] ?? '' : ''),
+    set: (bound: string) => {
+      const bounds = typeof props.condition.value === 'string' ? props.condition.value.split(';') : []
+      bounds[index] = bound
+      props.condition.value = `${bounds[0] ?? ''};${bounds[1] ?? ''}`
+      emit('change')
+    },
+  })
+}
+const dateFrom = dateBound(0)
+const dateTo = dateBound(1)
+
+const { t } = useI18n()
+
+const dateError = computed(() => {
+  const { condition, value } = props.condition
+  if (isValidDateCondition(condition, value)) return ''
+  if (isBetween.value && typeof value === 'string' && value.split(';').every(isDateExpr)) {
+    return t('dates.rangeOrder')
+  }
+  return t('dates.invalid')
+})
 
 // Options d'opérateurs adaptées au type de champ
 const operatorOptions = computed(() => {
@@ -156,7 +220,8 @@ const operatorOptions = computed(() => {
     { value: '$ne', label: '≠' },
   ]
 
-  if (props.field.type === 'numeric') {
+  // Les dates se comparent comme des nombres (avant / après, intervalles)
+  if (props.field.type === 'numeric' || props.field.type === 'date') {
     all.push(
       { value: '$gt', label: '>' },
       { value: '$gte', label: '≥' },

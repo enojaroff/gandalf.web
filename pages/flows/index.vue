@@ -35,6 +35,16 @@
       />
     </div>
 
+    <!-- Commandes en masse (admin) : visibles dès qu'une ligne est sélectionnée -->
+    <BulkActionsBar
+      v-if="isAdmin"
+      resource="flow"
+      :count="selectedFlows.length"
+      @copy="openBulk('copy')"
+      @move="openBulk('move')"
+      @clear="clearSelection"
+    />
+
     <!-- Tableau -->
     <UCard class="shadow-md">
       <div v-if="loading" class="flex justify-center py-12">
@@ -55,6 +65,22 @@
         :data="flows"
         :columns="columns"
       >
+        <template #select-header>
+          <UCheckbox
+            :model-value="allSelectedState"
+            aria-label="Sélectionner tous les flows"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleAll(v === true)"
+          />
+        </template>
+
+        <template #select-cell="{ row }">
+          <UCheckbox
+            :model-value="isSelected(row.original._id)"
+            :aria-label="`Sélectionner « ${row.original.title} »`"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.original._id, v === true)"
+          />
+        </template>
+
         <template #title-cell="{ row }">
           <div>
             <div class="flex items-center gap-2">
@@ -112,7 +138,7 @@
       v-if="copyMove"
       resource="flow"
       :mode="copyMove.mode"
-      :item="copyMove.item"
+      :items="copyMove.items"
       @close="copyMove = null"
       @saved="onCopyMoveSaved"
     />
@@ -124,6 +150,7 @@ import type { Flow } from '~/types/flow'
 import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
+import BulkActionsBar from '~/components/BulkActionsBar.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -134,11 +161,27 @@ const router = useRouter()
 const toast = useToast()
 const projectsStore = useProjectsStore()
 
-// Copier/déplacer vers un autre projet — admin uniquement.
+// Copier/déplacer vers un autre projet — admin uniquement. `items` : un flow
+// (menu de la ligne) ou la sélection (commandes en masse).
 const isAdmin = computed(() => projectsStore.isAdmin)
-const copyMove = ref<{ mode: 'copy' | 'move'; item: Flow } | null>(null)
+const copyMove = ref<{ mode: 'copy' | 'move'; items: Flow[] } | null>(null)
 
 const flows = ref<Flow[]>([])
+
+// Sélection pour les commandes en masse (vidée par loadFlows)
+const {
+  selected: selectedFlows,
+  allState: allSelectedState,
+  isSelected,
+  toggleRow,
+  toggleAll,
+  clear: clearSelection,
+} = useRowSelection(flows)
+
+function openBulk(mode: 'copy' | 'move') {
+  // Copie figée de la sélection : la liste peut être rechargée pendant l'opération.
+  copyMove.value = { mode, items: [...selectedFlows.value] }
+}
 const meta = ref<{ total: number } | null>(null)
 const loading = ref(false)
 const creating = ref(false)
@@ -177,6 +220,8 @@ function onCategoryFilterChange() {
 }
 
 const columns = computed(() => [
+  // Cases de sélection : seules les commandes admin (copier/déplacer) s'en servent
+  ...(isAdmin.value ? [{ id: 'select', header: '' }] : []),
   { accessorKey: 'title', header: t('common.name') },
   { accessorKey: 'nodes', header: t('flows.nodesColumn') },
   { accessorKey: 'outputs', header: t('flows.outputsColumn') },
@@ -185,6 +230,7 @@ const columns = computed(() => [
 
 async function loadFlows() {
   loading.value = true
+  clearSelection()
   try {
     const response = await gandalf.flows.list(pageSize, currentPage.value, {
       title: search.value || undefined,
@@ -192,6 +238,13 @@ async function loadFlows() {
     })
     flows.value = response.data
     meta.value = response.meta as { total: number }
+    // Page emptied (e.g. every row moved or deleted on the last page): go back
+    // to the last page that still exists.
+    const lastPage = Math.max(1, Math.ceil(meta.value.total / pageSize))
+    if (!flows.value.length && currentPage.value > lastPage) {
+      currentPage.value = lastPage
+      return loadFlows()
+    }
   }
   catch {
     flows.value = []
@@ -243,12 +296,12 @@ function flowActions(flow: Flow): MenuItem[][] {
       {
         label: 'Copier vers…',
         icon: 'i-lucide-copy',
-        onSelect: () => { copyMove.value = { mode: 'copy', item: flow } },
+        onSelect: () => { copyMove.value = { mode: 'copy', items: [flow] } },
       },
       {
         label: 'Déplacer vers…',
         icon: 'i-lucide-corner-up-right',
-        onSelect: () => { copyMove.value = { mode: 'move', item: flow } },
+        onSelect: () => { copyMove.value = { mode: 'move', items: [flow] } },
       },
     ])
   }

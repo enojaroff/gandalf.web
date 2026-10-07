@@ -90,7 +90,10 @@
         <div class="space-y-4">
           <UFormField label="Key" name="key" required class="w-full">
             <UInput v-model="addFieldForm.key" placeholder="e.g. age, income_type" class="w-full" />
-            <p class="text-xs text-muted mt-1">Lowercase, no spaces.</p>
+            <p class="text-xs text-muted mt-1">{{ $t('fields.keyHint') }}</p>
+            <p v-if="storedKeyPreview(addFieldForm.key)" class="text-xs text-muted mt-1">
+              {{ $t('fields.keyStoredAs', { key: storedKeyPreview(addFieldForm.key) }) }}
+            </p>
           </UFormField>
           <UFormField label="Title" name="title" class="w-full">
             <UInput v-model="addFieldForm.title" placeholder="Human-readable label" class="w-full" />
@@ -120,23 +123,29 @@
       </template>
       <template #body>
         <div class="space-y-4">
-          <UFormField label="Key" class="w-full">
-            <UInput :model-value="editFieldForm.key" disabled class="w-full" />
+          <UFormField
+            label="Key"
+            :hint="$t('fields.keyHint')"
+            :help="storedKeyPreview(editFieldForm.key) ? $t('fields.keyStoredAs', { key: storedKeyPreview(editFieldForm.key) }) : undefined"
+            :error="editFieldError ?? undefined"
+            class="w-full"
+          >
+            <UInput v-model="editFieldForm.key" :disabled="editFieldBusy" class="w-full font-mono" />
           </UFormField>
           <UFormField label="Title" class="w-full">
-            <UInput v-model="editFieldForm.title" placeholder="Human-readable label" class="w-full" />
+            <UInput v-model="editFieldForm.title" :disabled="editFieldBusy" placeholder="Human-readable label" class="w-full" />
           </UFormField>
           <UFormField label="Type" class="w-full">
-            <USelect v-model="editFieldForm.type" :items="fieldTypeOptions" class="w-full" />
+            <USelect v-model="editFieldForm.type" :disabled="editFieldBusy" :items="fieldTypeOptions" class="w-full" />
           </UFormField>
         </div>
       </template>
       <template #footer>
         <div class="flex gap-2 justify-between">
-          <UButton color="error" variant="outline" @click="deleteEditField">Delete Field</UButton>
+          <UButton color="error" variant="outline" :disabled="editFieldBusy" @click="deleteEditField">Delete Field</UButton>
           <div class="flex gap-2">
             <UButton variant="outline" @click="showEditFieldModal = false">Cancel</UButton>
-            <UButton @click="submitEditField">Save</UButton>
+            <UButton :loading="editFieldBusy" @click="submitEditField">Save</UButton>
           </div>
         </div>
       </template>
@@ -145,13 +154,17 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, RuleCondition } from '~/types/decision-table'
+import type { DecisionTable, DecisionVariant, DecisionRule, DecisionField, FieldType, RuleCondition } from '~/types/decision-table'
 import { objectId } from '~/utils/filters'
-import { CONDITION_TYPES } from '~/utils/transforms'
+import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
+import { apiValidationMessages } from '~/utils/apiErrors'
+import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
+import type { TableUpdateMeta } from '~/composables/useGandalf'
 
 definePageMeta({ middleware: 'auth' })
 
 const { t } = useI18n()
+const toast = useToast()
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
@@ -165,44 +178,152 @@ const showAddFieldModal = ref(false)
 const showEditFieldModal = ref(false)
 
 // Add Field form
-const addFieldForm = reactive({ key: '', title: '', type: 'string' as 'string' | 'numeric' | 'boolean' })
+const addFieldForm = reactive({ key: '', title: '', type: 'string' as FieldType })
 const addFieldError = ref<string | null>(null)
 const fieldTypeOptions = [
   { label: 'String (text)', value: 'string' },
   { label: 'Numeric (number)', value: 'numeric' },
   { label: 'Boolean (true/false)', value: 'boolean' },
+  { label: 'Date (YYYY-MM-DD)', value: 'date' },
 ]
 
-// Edit Field form
-const editFieldForm = reactive({ key: '', title: '', type: 'string' as 'string' | 'numeric' | 'boolean' })
+// Edit Field form. The field is held by reference (its key may change, and is
+// not unique while edited); each opening of the modal is a new session, so an
+// answer that arrives for an earlier one is dropped.
+const editingField = shallowRef<DecisionField | null>(null)
+let editFieldSession = 0
+const editFieldForm = reactive({ key: '', title: '', type: 'string' as FieldType })
+const editFieldError = ref<string | null>(null)
+const editFieldBusy = ref(false)
+
+// Field _ids as stored by the API: only those can be renamed there (and make flows follow).
+const storedFieldIds = ref(new Set<string>())
+function setTable(data: DecisionTable) {
+  table.value = data
+  storedFieldIds.value = new Set(data.fields.map(f => f._id).filter((id): id is string => !!id))
+}
+
+// The key as the API will store it, when it differs from what was typed.
+function storedKeyPreview(key: string): string | null {
+  const stored = normalizeFieldKey(key)
+  return stored && stored !== key.trim() ? stored : null
+}
 
 function openEditField(field: DecisionField) {
+  editingField.value = field
+  editFieldSession++
   editFieldForm.key = field.key
   editFieldForm.title = field.title
-  editFieldForm.type = field.type as 'string' | 'numeric' | 'boolean'
+  editFieldForm.type = field.type
+  editFieldError.value = null
   showEditFieldModal.value = true
 }
 
-function submitEditField() {
-  if (!table.value) return
-  const field = table.value.fields.find(f => f.key === editFieldForm.key)
-  if (!field) return
-  field.title = editFieldForm.title
-  field.type = editFieldForm.type
+// Keys of the table's other fields.
+function otherFieldKeys(field?: DecisionField): string[] {
+  return (table.value?.fields ?? []).filter(f => f !== field).map(f => f.key)
+}
+
+// The project's flows that use this table, as a list for the confirmation
+// ('?' if they cannot be listed; "… (+N)" beyond the first page).
+async function flowsUsingTable(): Promise<string> {
+  try {
+    const response = await gandalf.flows.list(200, 1, { table_id: tableId })
+    const titles = response.data.map(flow => flow.title)
+    if (!titles.length) return t('tables.renameFieldNoFlow')
+    const total = (response.meta as { total?: number } | null)?.total ?? titles.length
+    return titles.join(', ') + (total > titles.length ? `, … (+${total - titles.length})` : '')
+  }
+  catch {
+    return '?'
+  }
+}
+
+async function submitEditField() {
+  const field = editingField.value
+  if (!table.value || !field || editFieldBusy.value || !table.value.fields.includes(field)) return
+  const session = editFieldSession
+  const form = { ...editFieldForm }
+  editFieldError.value = null
+
+  // Renaming is about the stored form: a key added as "Age" is stored "age".
+  const newKey = normalizeFieldKey(form.key)
+  const renamed = newKey !== normalizeFieldKey(field.key)
+  if (renamed) {
+    const error = fieldKeyError(newKey, otherFieldKeys(field))
+    if (error) {
+      editFieldError.value = t(error)
+      return
+    }
+  }
+
+  // A field is shared by every variant: the conditions the API would reject
+  // under the new type (e.g. "> 10" on a date) fall back to the neutral '$any'
+  // everywhere, otherwise the next save would fail.
+  const conditions = table.value.variants.flatMap(v => v.rules).flatMap(r => r.conditions).filter(c => c.field_key === field.key)
+  const hasPreset = !!(field.preset as { condition?: string } | null | undefined)?.condition
+  const incompatible = form.type !== field.type
+    ? conditions.filter(c => !isConditionValidForType(form.type, c, hasPreset))
+    : []
+
+  // Every confirmation first: nothing changes if one is declined. A field not
+  // saved yet is only renamed here: nothing else uses its key.
+  if (renamed && field._id && storedFieldIds.value.has(field._id)) {
+    editFieldBusy.value = true
+    const flows = await flowsUsingTable()
+    editFieldBusy.value = false
+    // Modal closed or reopened meanwhile (its inputs are locked while busy)
+    if (!showEditFieldModal.value || session !== editFieldSession) return
+    if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows }))) return
+  }
+  if (incompatible.length
+    && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
+
+  // The API recognizes a rename on save (same field _id, new key) and makes the
+  // project's flows follow it; locally, the field and its condition in every
+  // rule of every variant are renamed.
+  if (renamed) {
+    for (const condition of conditions) condition.field_key = newKey
+    field.key = newKey
+  }
+  for (const condition of incompatible) {
+    condition.condition = CONDITION_TYPES.ANY
+    condition.value = NEUTRAL_VALUE
+  }
+  field.title = form.title
+  field.type = form.type
   showEditFieldModal.value = false
 }
 
+// Report what the API did with field renames on save (response meta).
+function reportFieldRenames(meta?: TableUpdateMeta) {
+  if (!meta?.field_renames || !Object.keys(meta.field_renames).length) return
+  const updated = meta.flows_updated ?? []
+  toast.add({
+    title: t('tables.renameFieldSaved'),
+    description: updated.length ? t('tables.renameFieldFlowsUpdated', { flows: updated.join(', ') }) : undefined,
+    color: 'success',
+  })
+  if (meta.flows_failed?.length) {
+    toast.add({ title: t('tables.renameFieldFlowsFailed', { flows: meta.flows_failed.join(', ') }), color: 'error' })
+  }
+  if (meta.flows_invalid?.length) {
+    toast.add({ title: t('tables.renameFieldFlowsInvalid', { flows: meta.flows_invalid.join(', ') }), color: 'warning' })
+  }
+}
+
 function deleteEditField() {
-  if (!table.value) return
-  const field = table.value.fields.find(f => f.key === editFieldForm.key)
-  if (!field) return
+  const field = editingField.value
+  if (!table.value || !field || editFieldBusy.value || !table.value.fields.includes(field)) return
   // A field (column) is shared by every variant, so removing it must remove the
   // matching condition from EVERY rule of EVERY variant. Confirm first, since it
   // affects all variants at once.
   if (!confirm(t('tables.deleteFieldConfirm', { field: field.title || field.key }))) return
-  field.isDeleted = true
+  // Removed outright (there is no undo for a field): a field added later may
+  // take its key, and keys stay unique in the list.
+  table.value.fields = table.value.fields.filter(f => f !== field)
   // Drop the corresponding condition everywhere so conditions stay aligned with
-  // the (filtered) field list — the table renders conditions by column position.
+  // the field list — the table renders conditions by column position.
   for (const v of table.value.variants) {
     for (const rule of v.rules) {
       rule.conditions = rule.conditions.filter(c => c.field_key !== field.key)
@@ -243,7 +364,7 @@ const isDecisionType = computed(() => table.value?.matching_type === 'first')
 onMounted(async () => {
   try {
     const response = await gandalf.tables.getById(tableId)
-    table.value = response.data
+    setTable(response.data)
   }
   finally {
     loading.value = false
@@ -255,7 +376,7 @@ function onImported(imported: DecisionTable) {
   // L'import round-trip met à jour la table courante ; un import mode=create
   // renverrait une autre table — dans ce cas on ne remplace pas l'éditeur.
   if (imported._id === tableId) {
-    table.value = imported
+    setTable(imported)
   }
 }
 
@@ -291,15 +412,16 @@ function addRule() {
 
 function submitAddField() {
   addFieldError.value = null
-  if (!addFieldForm.key.trim()) { addFieldError.value = 'Field key is required.'; return }
-  if (!/^[a-zA-Z0-9_-]+$/.test(addFieldForm.key)) { addFieldError.value = 'Key must only contain letters, numbers, underscores, or hyphens.'; return }
-  if (table.value?.fields.some(f => f.key === addFieldForm.key)) { addFieldError.value = 'A field with this key already exists.'; return }
   if (!table.value) return
+  // Same rules as a rename, on the key as the API stores it ("Age" -> "age").
+  const key = normalizeFieldKey(addFieldForm.key)
+  const error = fieldKeyError(key, otherFieldKeys())
+  if (error) { addFieldError.value = t(error); return }
 
   const field: DecisionField = {
     _id: objectId(),
-    key: addFieldForm.key,
-    title: addFieldForm.title || addFieldForm.key,
+    key,
+    title: addFieldForm.title || addFieldForm.key.trim(),
     type: addFieldForm.type,
     source: 'request',
     preset: null,
@@ -311,7 +433,7 @@ function submitAddField() {
   table.value.fields.push(field)
   for (const v of table.value.variants) {
     for (const rule of v.rules) {
-      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition)
+      rule.conditions.push({ field_key: field.key, condition: CONDITION_TYPES.ANY, value: NEUTRAL_VALUE } as RuleCondition)
     }
   }
 
@@ -327,10 +449,16 @@ function submitAddField() {
 // '$any' (always true) matches the backend normalisation exactly, so a field
 // added to a rule that lacked it never changes that rule's outcome — regardless
 // of whether the frontend or the backend does the aligning.
+// Value of a neutral '$any' condition: the API requires a value even for
+// valueless operators (`required|conditionType`), and `true` is what the
+// condition editor and the Excel codec store for them. A null value made the
+// whole save fail with a 422.
+const NEUTRAL_VALUE = true as const
+
 function alignConditions(rule: DecisionRule, activeFieldKeys: string[]): RuleCondition[] {
   const byKey = new Map(rule.conditions.map(c => [c.field_key, c]))
   return activeFieldKeys.map(key =>
-    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.ANY, value: null } as RuleCondition,
+    byKey.get(key) ?? { field_key: key, condition: CONDITION_TYPES.ANY, value: NEUTRAL_VALUE } as RuleCondition,
   )
 }
 
@@ -353,10 +481,16 @@ async function save() {
       })),
     }
     const response = await gandalf.tables.update(tableId, payload as never)
-    table.value = response.data
+    setTable(response.data)
+    reportFieldRenames(response.meta)
   }
-  catch {
-    // TODO: toast error
+  catch (err: unknown) {
+    // Show why the API refused the table (422 details) instead of failing silently.
+    toast.add({
+      title: t('errors.failedToSave'),
+      description: apiValidationMessages(err).join(' ') || undefined,
+      color: 'error',
+    })
   }
   finally {
     saving.value = false

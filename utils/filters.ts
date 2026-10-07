@@ -1,5 +1,7 @@
 // Équivalents TypeScript des filtres AngularJS
 
+import { todayIso } from '~/utils/dateExpr'
+
 export function formatJson(value: unknown, indent = 2): string {
   return JSON.stringify(value, null, indent)
 }
@@ -40,7 +42,7 @@ export function generateCurlSample(
 ): string {
   const body = fields.reduce(
     (acc, field) => {
-      acc[field.key] = field.type === 'numeric' ? 0 : 'value'
+      acc[field.key] = field.type === 'numeric' ? 0 : field.type === 'date' ? todayIso() : 'value'
       return acc
     },
     {} as Record<string, unknown>,
