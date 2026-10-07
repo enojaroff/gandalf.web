@@ -8,8 +8,10 @@ export interface Paging {
   last_page: number
 }
 
-// Nombre total d'éléments d'une liste paginée ; à défaut, le nombre d'éléments reçus.
-export function listTotal(response: { data?: unknown[]; paging?: Partial<Paging> | null }): number {
-  const total = response.paging?.total
-  return typeof total === 'number' ? total : (response.data?.length ?? 0)
+// Nombre total d'éléments d'une liste paginée. Un total numérique en chaîne est
+// accepté ; sans total exploitable (liste non paginée), le nombre d'éléments reçus.
+export function listTotal(response: { data?: unknown[]; paging?: { total?: unknown } | null }): number {
+  const raw = response.paging?.total
+  const total = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw
+  return typeof total === 'number' && Number.isFinite(total) ? total : (response.data?.length ?? 0)
 }

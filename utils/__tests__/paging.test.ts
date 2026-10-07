@@ -3,7 +3,7 @@ import { listTotal } from '~/utils/paging'
 
 describe('listTotal', () => {
   it('lit le total dans paging, pas dans meta', () => {
-    // Réponse réelle de GET /v1/admin/tables : 22 tables, 20 par page
+    // Forme de la réponse de GET /v1/admin/tables : ici 22 tables, 20 par page
     const response = {
       meta: { code: 200 },
       data: Array.from({ length: 20 }, (_, i) => ({ _id: String(i) })),
@@ -16,9 +16,16 @@ describe('listTotal', () => {
     expect(listTotal({ data: [], paging: { total: 0 } })).toBe(0)
   })
 
-  it('compte les éléments reçus quand paging est absent', () => {
+  it('accepte un total numérique en chaîne', () => {
+    expect(listTotal({ data: [{}], paging: { total: '22' } })).toBe(22)
+  })
+
+  it('compte les éléments reçus sans total exploitable', () => {
     expect(listTotal({ data: [{}, {}, {}] })).toBe(3)
     expect(listTotal({ data: [{}], paging: null })).toBe(1)
+    expect(listTotal({ data: [{}, {}], paging: { total: null } })).toBe(2)
+    expect(listTotal({ data: [{}, {}], paging: { total: 'abc' } })).toBe(2)
+    expect(listTotal({ data: [{}, {}], paging: { total: '' } })).toBe(2)
     expect(listTotal({})).toBe(0)
   })
 })

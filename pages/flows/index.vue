@@ -259,7 +259,12 @@ const columns = computed(() => [
   { id: 'actions', header: '' },
 ])
 
+// Number of the latest list request: a response that arrives after a newer
+// request was sent (quick page changes, search) is ignored.
+let loadRequest = 0
+
 async function loadFlows() {
+  const request = ++loadRequest
   loading.value = true
   clearSelection()
   try {
@@ -267,6 +272,7 @@ async function loadFlows() {
       title: search.value || undefined,
       category_id: categoryFilter.value !== ALL_CATEGORIES ? categoryFilter.value : undefined,
     })
+    if (request !== loadRequest) return
     flows.value = response.data
     meta.value = { total: listTotal(response) }
     // Page emptied (e.g. every row moved or deleted on the last page): go back
@@ -278,11 +284,13 @@ async function loadFlows() {
     }
   }
   catch {
+    if (request !== loadRequest) return
     flows.value = []
+    meta.value = null
     toast.add({ title: t('flows.loadError'), color: 'error' })
   }
   finally {
-    loading.value = false
+    if (request === loadRequest) loading.value = false
   }
 }
 

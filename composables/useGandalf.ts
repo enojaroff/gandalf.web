@@ -302,7 +302,7 @@ export function useGandalf() {
 
   const tables = {
     list: (size?: number, page?: number, filter?: { title?: string; description?: string; category_id?: string }) =>
-      request<{ data: DecisionTable[]; meta: unknown; paging: Paging }>(`${apiBase}/v1/admin/tables`, {
+      request<{ data: DecisionTable[]; meta: unknown; paging?: Paging }>(`${apiBase}/v1/admin/tables`, {
         params: { size, page, ...filter },
       }),
 
@@ -424,7 +424,7 @@ export function useGandalf() {
 
   const flows = {
     list: (size?: number, page?: number, filter?: { title?: string; category_id?: string; table_id?: string }) =>
-      request<{ data: Flow[]; meta: unknown; paging: Paging }>(`${apiBase}/v1/admin/flows`, {
+      request<{ data: Flow[]; meta: unknown; paging?: Paging }>(`${apiBase}/v1/admin/flows`, {
         params: { size, page, ...filter },
       }),
 

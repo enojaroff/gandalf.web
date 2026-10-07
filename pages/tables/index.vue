@@ -250,7 +250,12 @@ const columns = computed(() => [
   { id: 'actions', header: '' },
 ])
 
+// Number of the latest list request: a response that arrives after a newer
+// request was sent (quick page changes, search) is ignored.
+let loadRequest = 0
+
 async function loadTables() {
+  const request = ++loadRequest
   loading.value = true
   clearSelection()
   try {
@@ -258,6 +263,7 @@ async function loadTables() {
       title: search.value || undefined,
       category_id: categoryFilter.value !== ALL_CATEGORIES ? categoryFilter.value : undefined,
     })
+    if (request !== loadRequest) return
     tables.value = response.data
     meta.value = { total: listTotal(response) }
     // Page emptied (e.g. every row moved or deleted on the last page): go back
@@ -269,10 +275,12 @@ async function loadTables() {
     }
   }
   catch {
+    if (request !== loadRequest) return
     tables.value = []
+    meta.value = null
   }
   finally {
-    loading.value = false
+    if (request === loadRequest) loading.value = false
   }
 }
 
