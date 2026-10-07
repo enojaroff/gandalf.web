@@ -4,6 +4,7 @@ import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, Confirm
 import type { Group } from '~/types/group'
 import type { Flow, FlowRun, FlowResult } from '~/types/flow'
 import type { Category } from '~/types/category'
+import type { Paging } from '~/utils/paging'
 
 function btoa64(str: string): string {
   return btoa(str)
@@ -301,7 +302,7 @@ export function useGandalf() {
 
   const tables = {
     list: (size?: number, page?: number, filter?: { title?: string; description?: string; category_id?: string }) =>
-      request<{ data: DecisionTable[]; meta: unknown }>(`${apiBase}/v1/admin/tables`, {
+      request<{ data: DecisionTable[]; meta: unknown; paging?: Paging }>(`${apiBase}/v1/admin/tables`, {
         params: { size, page, ...filter },
       }),
 
@@ -423,7 +424,7 @@ export function useGandalf() {
 
   const flows = {
     list: (size?: number, page?: number, filter?: { title?: string; category_id?: string; table_id?: string }) =>
-      request<{ data: Flow[]; meta: unknown }>(`${apiBase}/v1/admin/flows`, {
+      request<{ data: Flow[]; meta: unknown; paging?: Paging }>(`${apiBase}/v1/admin/flows`, {
         params: { size, page, ...filter },
       }),
 

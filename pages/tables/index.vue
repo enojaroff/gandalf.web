@@ -130,7 +130,7 @@
       <UPagination
         v-model:page="currentPage"
         :total="meta.total"
-        :page-count="pageSize"
+        :items-per-page="pageSize"
         @update:page="loadTables"
       />
     </div>
@@ -153,6 +153,7 @@ import type { Category } from '~/types/category'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 import BulkActionsBar from '~/components/BulkActionsBar.vue'
+import { listTotal } from '~/utils/paging'
 import { useDebounceFn } from '@vueuse/core'
 
 definePageMeta({ middleware: 'auth' })
@@ -249,7 +250,12 @@ const columns = computed(() => [
   { id: 'actions', header: '' },
 ])
 
+// Number of the latest list request: a response that arrives after a newer
+// request was sent (quick page changes, search) is ignored.
+let loadRequest = 0
+
 async function loadTables() {
+  const request = ++loadRequest
   loading.value = true
   clearSelection()
   try {
@@ -257,8 +263,9 @@ async function loadTables() {
       title: search.value || undefined,
       category_id: categoryFilter.value !== ALL_CATEGORIES ? categoryFilter.value : undefined,
     })
+    if (request !== loadRequest) return
     tables.value = response.data
-    meta.value = response.meta as { total: number }
+    meta.value = { total: listTotal(response) }
     // Page emptied (e.g. every row moved or deleted on the last page): go back
     // to the last page that still exists.
     const lastPage = Math.max(1, Math.ceil(meta.value.total / pageSize))
@@ -268,10 +275,12 @@ async function loadTables() {
     }
   }
   catch {
+    if (request !== loadRequest) return
     tables.value = []
+    meta.value = null
   }
   finally {
-    loading.value = false
+    if (request === loadRequest) loading.value = false
   }
 }
 
