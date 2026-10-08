@@ -43,9 +43,11 @@
       </UContainer>
     </header>
 
-    <!-- Contenu principal (pleine largeur si la page déclare `fullWidth: true` dans definePageMeta) -->
+    <!-- Contenu principal. Une page qui déclare `fullWidth: true` dans definePageMeta reçoit
+         toute la largeur, sans gouttières : elle place elle-même ses UContainer. -->
     <main class="app-content">
-      <UContainer :key="pageRemountKey" class="py-6" :class="{ 'max-w-none': route.meta.fullWidth }">
+      <UContainer :key="pageRemountKey" class="py-6"
+        :class="{ 'max-w-none px-0 sm:px-0 lg:px-0': route.meta.fullWidth }">
         <slot />
       </UContainer>
     </main>

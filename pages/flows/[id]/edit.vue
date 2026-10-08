@@ -1,138 +1,143 @@
 <!-- Éditeur visuel d'un flow (DRG) : canvas Vue Flow + panneaux d'édition -->
 <template>
   <div>
-    <UBreadcrumb :items="breadcrumbs" class="mb-4" />
+    <!-- En-tête à la largeur standard ; seule la grille de l'éditeur occupe toute la fenêtre -->
+    <UContainer>
+      <UBreadcrumb :items="breadcrumbs" class="mb-4" />
 
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2 flex-1 mr-4">
-        <UIcon name="i-lucide-pencil" class="text-muted shrink-0" />
-        <UInput
-          v-model="flowTitle"
-          :placeholder="$t('flows.titlePlaceholder')"
-          size="lg"
-          class="text-xl font-bold flex-1 max-w-md"
-        />
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2 flex-1 mr-4">
+          <UIcon name="i-lucide-pencil" class="text-muted shrink-0" />
+          <UInput
+            v-model="flowTitle"
+            :placeholder="$t('flows.titlePlaceholder')"
+            size="lg"
+            class="text-xl font-bold flex-1 max-w-md"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <UButton
+            icon="i-lucide-play"
+            variant="soft"
+            :disabled="isNew"
+            @click="runPanelOpen = true"
+          >
+            {{ $t('flows.run') }}
+          </UButton>
+          <UButton icon="i-lucide-save" :loading="saving" @click="save">
+            {{ $t('common.save') }}
+          </UButton>
+          <UButton
+            v-if="!isNew && isAdmin"
+            icon="i-lucide-copy"
+            variant="ghost"
+            title="Copier vers un autre projet"
+            @click="() => { copyMove = { mode: 'copy', item: flow } }"
+          />
+          <UButton
+            v-if="!isNew && isAdmin"
+            icon="i-lucide-corner-up-right"
+            variant="ghost"
+            title="Déplacer vers un autre projet"
+            @click="() => { copyMove = { mode: 'move', item: flow } }"
+          />
+          <UButton
+            v-if="!isNew"
+            icon="i-lucide-trash-2"
+            color="error"
+            variant="ghost"
+            :title="$t('flows.deleteFlow')"
+            @click="deleteModalOpen = true"
+          />
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <UButton
-          icon="i-lucide-play"
-          variant="soft"
-          :disabled="isNew"
-          @click="runPanelOpen = true"
-        >
-          {{ $t('flows.run') }}
-        </UButton>
-        <UButton icon="i-lucide-save" :loading="saving" @click="save">
-          {{ $t('common.save') }}
-        </UButton>
-        <UButton
-          v-if="!isNew && isAdmin"
-          icon="i-lucide-copy"
-          variant="ghost"
-          title="Copier vers un autre projet"
-          @click="() => { copyMove = { mode: 'copy', item: flow } }"
-        />
-        <UButton
-          v-if="!isNew && isAdmin"
-          icon="i-lucide-corner-up-right"
-          variant="ghost"
-          title="Déplacer vers un autre projet"
-          @click="() => { copyMove = { mode: 'move', item: flow } }"
-        />
-        <UButton
-          v-if="!isNew"
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="ghost"
-          :title="$t('flows.deleteFlow')"
-          @click="deleteModalOpen = true"
-        />
+
+      <!-- Catégorie du flow -->
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-xs font-semibold text-muted uppercase shrink-0">Catégorie</span>
+        <CategorySelect v-model="flow.category_id" :categories="categories" />
       </div>
-    </div>
 
-    <!-- Catégorie du flow -->
-    <div class="flex items-center gap-2 mb-4">
-      <span class="text-xs font-semibold text-muted uppercase shrink-0">Catégorie</span>
-      <CategorySelect v-model="flow.category_id" :categories="categories" />
-    </div>
-
-    <!-- Validation errors (422) -->
-    <UAlert
-      v-if="validationErrors.length"
-      icon="i-lucide-alert-triangle"
-      color="error"
-      variant="soft"
-      class="mb-4"
-      :title="$t('flows.validationFailed')"
-    >
-      <template #description>
-        <ul class="list-disc pl-5 space-y-1">
-          <li v-for="(err, i) in validationErrors" :key="i" class="text-sm">{{ err }}</li>
-        </ul>
-      </template>
-    </UAlert>
+      <!-- Validation errors (422) -->
+      <UAlert
+        v-if="validationErrors.length"
+        icon="i-lucide-alert-triangle"
+        color="error"
+        variant="soft"
+        class="mb-4"
+        :title="$t('flows.validationFailed')"
+      >
+        <template #description>
+          <ul class="list-disc pl-5 space-y-1">
+            <li v-for="(err, i) in validationErrors" :key="i" class="text-sm">{{ err }}</li>
+          </ul>
+        </template>
+      </UAlert>
+    </UContainer>
 
     <div v-if="loading" class="flex justify-center py-16">
       <UIcon name="i-lucide-refresh-cw" class="animate-spin text-3xl text-primary" />
     </div>
 
-    <div v-else class="flow-editor-grid">
-      <!-- Toolbar -->
-      <UCard class="flow-editor-panel">
-        <template #header>
-          <span class="font-semibold text-sm">{{ $t('flows.buildTitle') }}</span>
-        </template>
-        <div class="space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.inputs') }}</span>
-              <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="inputModalOpen = true" />
-            </div>
-            <div v-if="!flow.inputs.length" class="text-xs text-muted">{{ $t('flows.noInputs') }}</div>
-            <div v-for="inp in flow.inputs" :key="inp.key" class="flex items-center justify-between text-sm py-1">
-              <span class="font-mono">{{ inp.key }} <span class="text-muted">: {{ inp.type }}</span></span>
-              <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeInput(inp.key)" />
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.nodes') }}</span>
-              <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="openNodeModal" />
-            </div>
-            <div v-if="!flow.nodes.length" class="text-xs text-muted">{{ $t('flows.noNodes') }}</div>
-            <div v-else class="space-y-1">
-              <div v-for="n in flow.nodes" :key="n.node_id" class="flex items-center justify-between text-sm py-1">
-                <span class="truncate">
-                  {{ nodeDisplayName(n) }}
-                  <span class="text-muted font-mono text-xs">{{ n.node_id }}</span>
-                </span>
-                <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeNode(n.node_id)" />
+    <UContainer v-else class="max-w-none">
+      <div class="flow-editor-grid">
+        <!-- Toolbar -->
+        <UCard class="flow-editor-panel">
+          <template #header>
+            <span class="font-semibold text-sm">{{ $t('flows.buildTitle') }}</span>
+          </template>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.inputs') }}</span>
+                <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="inputModalOpen = true" />
+              </div>
+              <div v-if="!flow.inputs.length" class="text-xs text-muted">{{ $t('flows.noInputs') }}</div>
+              <div v-for="inp in flow.inputs" :key="inp.key" class="flex items-center justify-between text-sm py-1">
+                <span class="font-mono">{{ inp.key }} <span class="text-muted">: {{ inp.type }}</span></span>
+                <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeInput(inp.key)" />
               </div>
             </div>
-          </div>
 
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.outputs') }}</span>
-              <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="outputModalOpen = true" />
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.nodes') }}</span>
+                <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="openNodeModal" />
+              </div>
+              <div v-if="!flow.nodes.length" class="text-xs text-muted">{{ $t('flows.noNodes') }}</div>
+              <div v-else class="space-y-1">
+                <div v-for="n in flow.nodes" :key="n.node_id" class="flex items-center justify-between text-sm py-1">
+                  <span class="truncate">
+                    {{ nodeDisplayName(n) }}
+                    <span class="text-muted font-mono text-xs">{{ n.node_id }}</span>
+                  </span>
+                  <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeNode(n.node_id)" />
+                </div>
+              </div>
             </div>
-            <div v-if="!flow.outputs.length" class="text-xs text-muted">{{ $t('flows.noOutputs') }}</div>
-          </div>
-        </div>
-      </UCard>
 
-      <!-- Canvas -->
-      <UCard class="flow-editor-canvas" :ui="{ body: 'p-0 h-full' }">
-        <FlowEditorFlowCanvas
-          :flow="flow"
-          :tables="tables"
-          @update:flow="onFlowUpdate"
-          @remove-node="removeNode"
-          @remove-output="removeOutput"
-        />
-      </UCard>
-    </div>
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-muted uppercase">{{ $t('flows.outputs') }}</span>
+                <UButton icon="i-lucide-plus" size="xs" variant="ghost" @click="outputModalOpen = true" />
+              </div>
+              <div v-if="!flow.outputs.length" class="text-xs text-muted">{{ $t('flows.noOutputs') }}</div>
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Canvas -->
+        <UCard class="flow-editor-canvas" :ui="{ body: 'p-0 h-full' }">
+          <FlowEditorFlowCanvas
+            :flow="flow"
+            :tables="tables"
+            @update:flow="onFlowUpdate"
+            @remove-node="removeNode"
+            @remove-output="removeOutput"
+          />
+        </UCard>
+      </div>
+    </UContainer>
 
     <!-- Add input modal -->
     <UModal v-model:open="inputModalOpen" :title="$t('flows.addInput')">
@@ -245,7 +250,7 @@ import type { Category } from '~/types/category'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 
-// fullWidth : le canvas occupe toute la largeur de la fenêtre (cf. layouts/default.vue)
+// fullWidth : la page gère elle-même ses conteneurs pour que le canvas occupe toute la largeur de la fenêtre (cf. layouts/default.vue)
 definePageMeta({ middleware: 'auth', fullWidth: true })
 
 const { t } = useI18n()
