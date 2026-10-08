@@ -79,11 +79,13 @@
               v-for="field in data.fields"
               :key="field.key"
               class="vf-node__field"
-              :class="{ 'vf-node__field--incompatible': isFieldIncompatible(field.type) }"
+              :class="{ 'vf-node__field--unavailable': isFieldUnavailable(data.nodeId, field) }"
             >
+              <!-- "single": a wired field takes no other wire, nor starts one -->
               <Handle
                 :id="`field:${field.key}`"
                 type="target"
+                connectable="single"
                 :position="Position.Left"
                 class="vf-handle vf-handle--field"
               />
@@ -106,7 +108,7 @@
       <!-- Output node (custom type name to avoid Vue Flow's reserved 'output') -->
       <template #node-foutput="{ data }">
         <div class="vf-node vf-node--output">
-          <Handle :id="`out:${data.name}`" type="target" :position="Position.Left" class="vf-handle vf-handle--field" />
+          <Handle :id="`out:${data.name}`" type="target" connectable="single" :position="Position.Left" class="vf-handle vf-handle--field" />
           <div class="vf-node__body">
             <div class="vf-node__title">{{ data.name }}</div>
             <div class="vf-node__sub">{{ $t('flows.output') }}</div>
@@ -354,6 +356,9 @@ function fieldType(nodeId?: string | null, handleId?: string | null): string | n
 // wire when false: a table field only accepts a source of its own type family,
 // as the API does on save (FlowRepository::typesCompatible). It also rules out
 // what onConnect cannot translate (field → field, a node feeding itself).
+// Vue Flow ALSO re-runs it on every existing edge each time `edges` is set, and
+// silently drops those it rejects: it must hold for wires already drawn, so the
+// one-wire-per-handle rule lives on the handles (connectable="single") instead.
 function isValidConnection(conn: Connection): boolean {
   if (conn.target?.startsWith('output:')) {
     // A flow output takes any table's final_decision.
@@ -363,22 +368,29 @@ function isValidConnection(conn: Connection): boolean {
   return typesCompatible(sourceType(conn.source, conn.sourceHandle), fieldType(conn.target, conn.targetHandle))
 }
 
-// Type of the wire being drawn from a source handle (null otherwise), so the
-// fields it cannot feed are greyed out while drawing.
-const pendingSourceType = computed(() => {
+// Source handle a wire is being drawn from (null otherwise), and the type it
+// carries, so the fields it cannot feed are greyed out while drawing.
+const pendingSource = computed(() => {
   const start = connectionStartHandle.value ?? connectionClickStartHandle.value
-  if (!start || start.type !== 'source') return null
-  return sourceType(start.nodeId, start.id)
+  return start?.type === 'source' ? start : null
 })
 
+const pendingSourceType = computed(() =>
+  pendingSource.value ? sourceType(pendingSource.value.nodeId, pendingSource.value.id) : null,
+)
+
 // Vue Flow only ends a click-started wire on another handle click: clicking the
-// background cancels it too, so the incompatible fields are no longer greyed.
+// background cancels it too, so the unavailable fields are no longer greyed.
 function cancelClickConnection() {
   connectionClickStartHandle.value = null
 }
 
-function isFieldIncompatible(type: string): boolean {
-  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, type)
+// A field cannot take the wire being drawn when it is already wired (its handle
+// is connectable="single") or of another type family (see isValidConnection).
+function isFieldUnavailable(nodeId: string, field: { key: string; type: string }): boolean {
+  if (!pendingSource.value) return false
+  if (props.flow.edges.some((e) => e.into.node === nodeId && e.into.field === field.key)) return true
+  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, field.type)
 }
 
 // ── Handle a new connection: translate the Vue Flow Connection back into a
@@ -417,8 +429,7 @@ function onConnect(conn: Connection) {
     return
   }
 
-  // Replace any existing edge into the same field (one wire per field).
-  flow.edges = flow.edges.filter((e) => !(e.into.node === intoNode && e.into.field === intoField))
+  // The field is free: its handle (connectable="single") refuses a second wire.
   flow.edges.push({ from, into: { node: intoNode, field: intoField } })
   emit('update:flow', flow)
 }
@@ -640,12 +651,12 @@ watch(structureKey, () => {
   transition: opacity 0.1s ease;
 }
 
-/* While a wire is drawn: fields of another type cannot take it (see isValidConnection). */
-.vf-node__field--incompatible {
+/* While a wire is drawn: fields already wired or of another type cannot take it (see isValidConnection). */
+.vf-node__field--unavailable {
   opacity: 0.3;
 }
 
-.vf-node__field--incompatible :deep(.vue-flow__handle) {
+.vf-node__field--unavailable :deep(.vue-flow__handle) {
   cursor: not-allowed;
 }
 
@@ -688,6 +699,15 @@ watch(structureKey, () => {
      handle on the node edge (translate ±50%). The hover affordance below uses
      box-shadow only, so the handle never shifts. */
   transition: box-shadow 0.1s ease, background 0.1s ease;
+}
+
+/* A wired target handle (connectable="single") takes no other wire. Vue Flow
+   gives non-connectable handles `pointer-events: none`, so a press would fall
+   through and drag the node; catching it here makes it inert (handles are
+   .nodrag) and shows why. */
+:deep(.vue-flow__handle:not(.connectable)) {
+  pointer-events: all;
+  cursor: not-allowed;
 }
 
 /* Colours use !important to beat Vue Flow's theme-default rules, which target
