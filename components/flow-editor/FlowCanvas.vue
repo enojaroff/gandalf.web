@@ -162,7 +162,13 @@ const emit = defineEmits<{
   'remove-output': [name: string]
 }>()
 
-const { updateNodeInternals, findNode, connectionStartHandle, connectionClickStartHandle } = useVueFlow()
+const {
+  updateNodeInternals,
+  findNode,
+  getHandleConnections,
+  connectionStartHandle,
+  connectionClickStartHandle,
+} = useVueFlow()
 
 // ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
 // A per-USER preference (edited on the profile page, persisted with the
@@ -385,12 +391,14 @@ function cancelClickConnection() {
   connectionClickStartHandle.value = null
 }
 
-// A field cannot take the wire being drawn when it is already wired (its handle
-// is connectable="single") or of another type family (see isValidConnection).
+// A field cannot take the wire being drawn when it is already wired or of
+// another type family (see isValidConnection). Wired is read from Vue Flow's
+// own lookup, the one its connectable="single" handles check.
 function isFieldUnavailable(nodeId: string, field: { key: string; type: string }): boolean {
   if (!pendingSource.value) return false
-  if (props.flow.edges.some((e) => e.into.node === nodeId && e.into.field === field.key)) return true
-  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, field.type)
+  const wires = getHandleConnections({ nodeId: `table:${nodeId}`, type: 'target', id: `field:${field.key}` })
+  if (wires.length > 0) return true
+  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, field.type || 'string')
 }
 
 // ── Handle a new connection: translate the Vue Flow Connection back into a
@@ -429,7 +437,9 @@ function onConnect(conn: Connection) {
     return
   }
 
-  // The field is free: its handle (connectable="single") refuses a second wire.
+  // Its handle (connectable="single") refuses a second wire, but an edge Vue
+  // Flow dropped as invalid is still in flow.edges: replace it, never pile up.
+  flow.edges = flow.edges.filter((e) => !(e.into.node === intoNode && e.into.field === intoField))
   flow.edges.push({ from, into: { node: intoNode, field: intoField } })
   emit('update:flow', flow)
 }
@@ -732,7 +742,7 @@ watch(structureKey, () => {
 
 /* Hover affordance via a halo ring (box-shadow), NOT transform — so the handle
    stays centred on the node edge instead of jumping. */
-:deep(.vue-flow__handle:hover) {
+:deep(.vue-flow__handle.connectable:hover) {
   box-shadow: 0 0 0 4px color-mix(in srgb, #3b82f6 35%, transparent);
 }
 
