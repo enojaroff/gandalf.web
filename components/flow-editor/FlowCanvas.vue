@@ -79,11 +79,13 @@
               v-for="field in data.fields"
               :key="field.key"
               class="vf-node__field"
-              :class="{ 'vf-node__field--incompatible': isFieldIncompatible(field.type) }"
+              :class="{ 'vf-node__field--unavailable': isFieldUnavailable(data.nodeId, field) }"
             >
+              <!-- "single": a wired field takes no other wire, nor starts one -->
               <Handle
                 :id="`field:${field.key}`"
                 type="target"
+                connectable="single"
                 :position="Position.Left"
                 class="vf-handle vf-handle--field"
               />
@@ -106,7 +108,7 @@
       <!-- Output node (custom type name to avoid Vue Flow's reserved 'output') -->
       <template #node-foutput="{ data }">
         <div class="vf-node vf-node--output">
-          <Handle :id="`out:${data.name}`" type="target" :position="Position.Left" class="vf-handle vf-handle--field" />
+          <Handle :id="`out:${data.name}`" type="target" connectable="single" :position="Position.Left" class="vf-handle vf-handle--field" />
           <div class="vf-node__body">
             <div class="vf-node__title">{{ data.name }}</div>
             <div class="vf-node__sub">{{ $t('flows.output') }}</div>
@@ -160,7 +162,13 @@ const emit = defineEmits<{
   'remove-output': [name: string]
 }>()
 
-const { updateNodeInternals, findNode, connectionStartHandle, connectionClickStartHandle } = useVueFlow()
+const {
+  updateNodeInternals,
+  findNode,
+  getHandleConnections,
+  connectionStartHandle,
+  connectionClickStartHandle,
+} = useVueFlow()
 
 // ── Input mode (mouse ↔ trackpad) ───────────────────────────────────────────
 // A per-USER preference (edited on the profile page, persisted with the
@@ -354,6 +362,9 @@ function fieldType(nodeId?: string | null, handleId?: string | null): string | n
 // wire when false: a table field only accepts a source of its own type family,
 // as the API does on save (FlowRepository::typesCompatible). It also rules out
 // what onConnect cannot translate (field → field, a node feeding itself).
+// Vue Flow ALSO re-runs it on every existing edge each time `edges` is set, and
+// silently drops those it rejects: it must hold for wires already drawn, so the
+// one-wire-per-handle rule lives on the handles (connectable="single") instead.
 function isValidConnection(conn: Connection): boolean {
   if (conn.target?.startsWith('output:')) {
     // A flow output takes any table's final_decision.
@@ -363,22 +374,31 @@ function isValidConnection(conn: Connection): boolean {
   return typesCompatible(sourceType(conn.source, conn.sourceHandle), fieldType(conn.target, conn.targetHandle))
 }
 
-// Type of the wire being drawn from a source handle (null otherwise), so the
-// fields it cannot feed are greyed out while drawing.
-const pendingSourceType = computed(() => {
+// Source handle a wire is being drawn from (null otherwise), and the type it
+// carries, so the fields it cannot feed are greyed out while drawing.
+const pendingSource = computed(() => {
   const start = connectionStartHandle.value ?? connectionClickStartHandle.value
-  if (!start || start.type !== 'source') return null
-  return sourceType(start.nodeId, start.id)
+  return start?.type === 'source' ? start : null
 })
 
+const pendingSourceType = computed(() =>
+  pendingSource.value ? sourceType(pendingSource.value.nodeId, pendingSource.value.id) : null,
+)
+
 // Vue Flow only ends a click-started wire on another handle click: clicking the
-// background cancels it too, so the incompatible fields are no longer greyed.
+// background cancels it too, so the unavailable fields are no longer greyed.
 function cancelClickConnection() {
   connectionClickStartHandle.value = null
 }
 
-function isFieldIncompatible(type: string): boolean {
-  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, type)
+// A field cannot take the wire being drawn when it is already wired or of
+// another type family (see isValidConnection). Wired is read from Vue Flow's
+// own lookup, the one its connectable="single" handles check.
+function isFieldUnavailable(nodeId: string, field: { key: string; type: string }): boolean {
+  if (!pendingSource.value) return false
+  const wires = getHandleConnections({ nodeId: `table:${nodeId}`, type: 'target', id: `field:${field.key}` })
+  if (wires.length > 0) return true
+  return pendingSourceType.value !== null && !typesCompatible(pendingSourceType.value, field.type || 'string')
 }
 
 // ── Handle a new connection: translate the Vue Flow Connection back into a
@@ -417,7 +437,8 @@ function onConnect(conn: Connection) {
     return
   }
 
-  // Replace any existing edge into the same field (one wire per field).
+  // Its handle (connectable="single") refuses a second wire, but an edge Vue
+  // Flow dropped as invalid is still in flow.edges: replace it, never pile up.
   flow.edges = flow.edges.filter((e) => !(e.into.node === intoNode && e.into.field === intoField))
   flow.edges.push({ from, into: { node: intoNode, field: intoField } })
   emit('update:flow', flow)
@@ -640,12 +661,12 @@ watch(structureKey, () => {
   transition: opacity 0.1s ease;
 }
 
-/* While a wire is drawn: fields of another type cannot take it (see isValidConnection). */
-.vf-node__field--incompatible {
+/* While a wire is drawn: fields already wired or of another type cannot take it (see isValidConnection). */
+.vf-node__field--unavailable {
   opacity: 0.3;
 }
 
-.vf-node__field--incompatible :deep(.vue-flow__handle) {
+.vf-node__field--unavailable :deep(.vue-flow__handle) {
   cursor: not-allowed;
 }
 
@@ -690,6 +711,15 @@ watch(structureKey, () => {
   transition: box-shadow 0.1s ease, background 0.1s ease;
 }
 
+/* A wired target handle (connectable="single") takes no other wire. Vue Flow
+   gives non-connectable handles `pointer-events: none`, so a press would fall
+   through and drag the node; catching it here makes it inert (handles are
+   .nodrag) and shows why. */
+:deep(.vue-flow__handle:not(.connectable)) {
+  pointer-events: all;
+  cursor: not-allowed;
+}
+
 /* Colours use !important to beat Vue Flow's theme-default rules, which target
    handles via a two-class selector (e.g. `.vue-flow__node-input .vue-flow__handle`)
    and would otherwise win on specificity. Our node types are also renamed away
@@ -712,7 +742,7 @@ watch(structureKey, () => {
 
 /* Hover affordance via a halo ring (box-shadow), NOT transform — so the handle
    stays centred on the node edge instead of jumping. */
-:deep(.vue-flow__handle:hover) {
+:deep(.vue-flow__handle.connectable:hover) {
   box-shadow: 0 0 0 4px color-mix(in srgb, #3b82f6 35%, transparent);
 }
 
