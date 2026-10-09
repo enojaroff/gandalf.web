@@ -37,15 +37,22 @@
           </UButton>
         </div>
 
-        <!-- Requête reçue -->
+        <!-- Requête reçue, et métadonnées jointes à la décision s'il y en a -->
         <h3 class="font-semibold mb-2">{{ $t('history.request') }}</h3>
-        <pre class="text-xs overflow-auto max-h-64 rounded-lg border border-default bg-muted/50 p-3 mb-6">{{ JSON.stringify(decision.request, null, 2) }}</pre>
+        <pre class="text-xs overflow-auto max-h-64 rounded-lg border border-default bg-muted/50 p-3 mb-6">{{ formatJson(decision.request) }}</pre>
+        <template v-if="hasMeta">
+          <h3 class="font-semibold mb-2">{{ $t('history.meta') }}</h3>
+          <pre class="text-xs overflow-auto max-h-64 rounded-lg border border-default bg-muted/50 p-3 mb-6">{{ formatJson(decision.meta) }}</pre>
+        </template>
       </template>
+
+      <div v-else class="text-center py-8 text-muted">{{ $t('history.loadError') }}</div>
     </UContainer>
 
     <UContainer v-if="decision" class="max-w-none">
       <!-- Évaluation des règles : vert = condition vérifiée, rouge = non vérifiée ;
-           la colonne Décision est verte quand toute la règle a matché -->
+           la colonne Décision est verte quand toute la règle a matché. Règles
+           numérotées à partir de 1, comme dans l'éditeur de table. -->
       <h3 class="font-semibold mb-2">{{ $t('history.rulesEvaluation') }}</h3>
       <div class="overflow-x-auto rounded-lg border border-default">
         <table class="w-full text-sm border-collapse">
@@ -70,21 +77,36 @@
           </thead>
           <tbody>
             <tr v-for="(row, index) in rows" :key="index" class="border-t border-default">
-              <td class="px-3 py-2 text-center text-muted">{{ index }}</td>
+              <td class="px-3 py-2 text-center text-muted">{{ index + 1 }}</td>
               <td class="px-3 py-2">
-                <div class="font-medium">{{ row.title }}</div>
+                <div class="font-medium">
+                  {{ row.title || '—' }}
+                  <UBadge
+                    v-if="index === decidingIndex"
+                    :label="$t('history.decidingRule')"
+                    size="sm"
+                    variant="subtle"
+                    class="ml-1 align-middle"
+                  />
+                </div>
                 <div v-if="row.description" class="text-xs text-muted">{{ row.description }}</div>
               </td>
+              <!-- Sans condition évaluée sur ce champ, la règle ne le contraint pas -->
               <td
                 v-for="(cell, cellIndex) in row.cells"
                 :key="cellIndex"
                 class="px-3 py-2 text-center"
-                :class="cell && matchClass(cell.matched)"
+                :class="cell ? matchClass(cell.matched) : 'text-muted'"
               >
-                {{ cell?.label }}
+                <template v-if="cell">
+                  {{ cell.label }}
+                  <span class="sr-only">({{ matchLabel(cell.matched) }})</span>
+                </template>
+                <template v-else>---</template>
               </td>
               <td class="px-3 py-2 border-l border-default font-medium" :class="matchClass(row.matched)">
                 {{ formatValue(row.than) }}
+                <span class="sr-only">({{ matchLabel(row.matched) }})</span>
               </td>
             </tr>
           </tbody>
@@ -109,29 +131,34 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldType, RuleCondition } from '~/types/decision-table'
+import type { FieldType, MatchingType, RuleCondition } from '~/types/decision-table'
 import { conditionLabel } from '~/utils/conditionLabel'
+import { formatJson } from '~/utils/filters'
 
 // Décision telle qu'enregistrée par l'API : instantané des champs et des règles
-// de la variante, chaque condition avec son résultat (`matched`) et chaque règle
-// avec ce qu'elle a décidé (`decision` : son `than` si toutes ses conditions
-// ont matché, null sinon).
+// de la variante. Le moteur (Scoring) n'y garde que les conditions qu'il a
+// évaluées, chacune avec son résultat (`matched`).
 interface HistoryCondition extends RuleCondition {
   matched?: boolean
 }
 
 interface HistoryRule {
-  title: string
-  description?: string
+  title: string | null
+  description?: string | null
   than: unknown
-  decision: unknown
   conditions: HistoryCondition[]
 }
 
 interface HistoryDecision {
-  table: { _id: string; title: string; variant?: { _id: string; title: string } }
+  table: {
+    _id: string
+    title: string
+    matching_type?: MatchingType
+    variant?: { _id: string; title: string }
+  }
   fields?: { key: string; title: string; type: FieldType }[]
   request: Record<string, unknown>
+  meta?: unknown
   rules?: HistoryRule[]
   default_decision: unknown
   final_decision: unknown
@@ -159,7 +186,16 @@ onMounted(async () => {
     const response = await gandalf.history.getById(id)
     decision.value = response.data as HistoryDecision
   }
+  catch {
+    // decision reste null : la page affiche history.loadError
+  }
   finally { loading.value = false }
+})
+
+// Métadonnées jointes à la décision : l'API renvoie [] quand il n'y en a pas
+const hasMeta = computed(() => {
+  const meta = decision.value?.meta
+  return !!meta && typeof meta === 'object' && Object.keys(meta).length > 0
 })
 
 // Colonnes : les champs de la table au moment de la décision. Une décision sans
@@ -173,24 +209,40 @@ const fields = computed(() => {
 })
 
 // Une ligne par règle, une cellule par colonne (null si la règle n'a pas de
-// condition sur ce champ). Conditions rapprochées des champs par field_key.
+// condition évaluée sur ce champ). Conditions rapprochées des champs par
+// field_key. Une règle a matché quand toutes ses conditions ont matché, comme
+// $conditions_matched dans Scoring.
 const rows = computed(() =>
-  (decision.value?.rules ?? []).map(rule => ({
-    title: rule.title,
-    description: rule.description,
-    than: rule.than,
-    matched: rule.decision !== null && rule.decision !== undefined,
-    cells: fields.value.map((field) => {
-      const condition = rule.conditions.find(c => c.field_key === field.key)
-      return condition
-        ? { label: conditionLabel(condition, field.type, t), matched: condition.matched === true }
-        : null
-    }),
-  })),
+  (decision.value?.rules ?? []).map((rule) => {
+    const byField = new Map(rule.conditions.map(c => [c.field_key, c]))
+    return {
+      title: rule.title,
+      description: rule.description,
+      than: rule.than,
+      matched: rule.conditions.every(c => c.matched === true),
+      cells: fields.value.map((field) => {
+        const condition = byField.get(field.key)
+        return condition
+          ? { label: conditionLabel(condition, field.type, t), matched: condition.matched === true }
+          : null
+      }),
+    }
+  }),
+)
+
+// En mode « première règle », seule la première règle qui a matché donne la
+// décision finale ; dans les modes scoring, toutes celles qui ont matché y
+// contribuent et aucune n'est mise en avant.
+const decidingIndex = computed(() =>
+  decision.value?.table.matching_type === 'first' ? rows.value.findIndex(r => r.matched) : -1,
 )
 
 function matchClass(matched: boolean): string {
   return matched ? 'bg-success/20' : 'bg-error/20'
+}
+
+function matchLabel(matched: boolean): string {
+  return t(matched ? 'history.matched' : 'history.notMatched')
 }
 
 function formatValue(value: unknown): string {

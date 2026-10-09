@@ -270,6 +270,11 @@
     "rule": "Regola",
     "defaultDecision": "Decisione predefinita",
     "finalDecision": "Decisione finale",
+    "decidingRule": "Regola applicata",
+    "meta": "Metadati",
+    "loadError": "Impossibile caricare questa decisione.",
+    "matched": "soddisfatta",
+    "notMatched": "non soddisfatta",
     "searchPlaceholder": "Cerca…"
   },
   "settings": {

@@ -270,6 +270,11 @@
     "rule": "Правило",
     "defaultDecision": "Решение по подразбиране",
     "finalDecision": "Окончателно решение",
+    "decidingRule": "Приложено правило",
+    "meta": "Метаданни",
+    "loadError": "Решението не може да бъде заредено.",
+    "matched": "изпълнено",
+    "notMatched": "неизпълнено",
     "searchPlaceholder": "Търсене…"
   },
   "settings": {

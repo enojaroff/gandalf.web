@@ -270,6 +270,11 @@
     "rule": "Regla",
     "defaultDecision": "Decisión por defecto",
     "finalDecision": "Decisión final",
+    "decidingRule": "Regla aplicada",
+    "meta": "Metadatos",
+    "loadError": "No se ha podido cargar esta decisión.",
+    "matched": "cumplida",
+    "notMatched": "no cumplida",
     "searchPlaceholder": "Buscar…"
   },
   "settings": {
