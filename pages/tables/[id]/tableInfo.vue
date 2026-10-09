@@ -411,8 +411,8 @@ async function saveTableInfo() {
 }
 
 const fieldColumns = computed(() => [
-  { accessorKey: 'key', header: t('fields.key') },
   { accessorKey: 'title', header: t('fields.title') },
+  { accessorKey: 'key', header: t('fields.key') },
   { accessorKey: 'type', header: t('fields.type') },
 ])
 
