@@ -265,6 +265,16 @@
     "tableVariant": "Варіант",
     "showDetails": "Деталі",
     "detail": "Деталі рішення",
+    "request": "Запит",
+    "rulesEvaluation": "Оцінка правил",
+    "rule": "Правило",
+    "defaultDecision": "Рішення за замовчуванням",
+    "finalDecision": "Остаточне рішення",
+    "decidingRule": "Застосоване правило",
+    "meta": "Метадані",
+    "loadError": "Не вдалося завантажити це рішення.",
+    "matched": "виконано",
+    "notMatched": "не виконано",
     "searchPlaceholder": "Почніть вводити назву таблиці…"
   },
   "settings": {

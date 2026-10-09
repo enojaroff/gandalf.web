@@ -266,6 +266,16 @@
     "tableVariant": "Variante",
     "showDetails": "Voir détails",
     "detail": "Détail de la décision",
+    "request": "Requête",
+    "rulesEvaluation": "Évaluation des règles",
+    "rule": "Règle",
+    "defaultDecision": "Décision par défaut",
+    "finalDecision": "Décision finale",
+    "decidingRule": "Règle retenue",
+    "meta": "Métadonnées",
+    "loadError": "Impossible de charger cette décision.",
+    "matched": "vérifiée",
+    "notMatched": "non vérifiée",
     "searchPlaceholder": "Commencez à saisir un nom de table…"
   },
   "settings": {

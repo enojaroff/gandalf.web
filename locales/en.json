@@ -266,6 +266,16 @@
     "tableVariant": "Table variant",
     "showDetails": "Show Details",
     "detail": "Decision Detail",
+    "request": "Request",
+    "rulesEvaluation": "Rule evaluation",
+    "rule": "Rule",
+    "defaultDecision": "Default decision",
+    "finalDecision": "Final decision",
+    "decidingRule": "Deciding rule",
+    "meta": "Metadata",
+    "loadError": "This decision could not be loaded.",
+    "matched": "matched",
+    "notMatched": "not matched",
     "searchPlaceholder": "Start typing table name…"
   },
   "settings": {
