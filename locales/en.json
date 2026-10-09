@@ -266,6 +266,11 @@
     "tableVariant": "Table variant",
     "showDetails": "Show Details",
     "detail": "Decision Detail",
+    "request": "Request",
+    "rulesEvaluation": "Rule evaluation",
+    "rule": "Rule",
+    "defaultDecision": "Default decision",
+    "finalDecision": "Final decision",
     "searchPlaceholder": "Start typing table name…"
   },
   "settings": {

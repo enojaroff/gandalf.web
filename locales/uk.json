@@ -265,6 +265,11 @@
     "tableVariant": "Варіант",
     "showDetails": "Деталі",
     "detail": "Деталі рішення",
+    "request": "Запит",
+    "rulesEvaluation": "Оцінка правил",
+    "rule": "Правило",
+    "defaultDecision": "Рішення за замовчуванням",
+    "finalDecision": "Остаточне рішення",
     "searchPlaceholder": "Почніть вводити назву таблиці…"
   },
   "settings": {

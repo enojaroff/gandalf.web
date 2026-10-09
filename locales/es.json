@@ -265,6 +265,11 @@
     "tableVariant": "Variante",
     "showDetails": "Detalles",
     "detail": "Detalle de la decisión",
+    "request": "Solicitud",
+    "rulesEvaluation": "Evaluación de las reglas",
+    "rule": "Regla",
+    "defaultDecision": "Decisión por defecto",
+    "finalDecision": "Decisión final",
     "searchPlaceholder": "Buscar…"
   },
   "settings": {

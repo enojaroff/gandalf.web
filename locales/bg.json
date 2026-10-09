@@ -265,6 +265,11 @@
     "tableVariant": "Вариант",
     "showDetails": "Детайли",
     "detail": "Детайл на решението",
+    "request": "Заявка",
+    "rulesEvaluation": "Оценка на правилата",
+    "rule": "Правило",
+    "defaultDecision": "Решение по подразбиране",
+    "finalDecision": "Окончателно решение",
     "searchPlaceholder": "Търсене…"
   },
   "settings": {
