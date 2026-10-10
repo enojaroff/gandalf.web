@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apiErrorMessage, apiValidationMessages } from '~/utils/apiErrors'
+import { apiErrorCode, apiErrorMessage, apiValidationMessages } from '~/utils/apiErrors'
 
 // FetchError d'ofetch : le corps de la réponse est dans `data`
 const fetchError = (body: unknown) => Object.assign(new Error('422'), { data: body })
@@ -35,5 +35,13 @@ describe('apiValidationMessages', () => {
   it('renvoie une liste vide hors réponse de validation', () => {
     expect(apiValidationMessages(new Error('network'))).toEqual([])
     expect(apiValidationMessages(fetchError({ meta: { code: 500 } }))).toEqual([])
+  })
+})
+
+describe('apiErrorCode', () => {
+  it('lit le code et le message de meta', () => {
+    const e = fetchError({ meta: { code: 409, error: 'version_in_use', error_message: 'This version is in use' }, data: [] })
+    expect(apiErrorCode(e)).toEqual({ code: 'version_in_use', message: 'This version is in use' })
+    expect(apiErrorCode(new Error('network'))).toEqual({ code: null, message: null })
   })
 })

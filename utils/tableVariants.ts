@@ -1,6 +1,6 @@
 // Opérations sur les variantes d'une table, appliquées côté client avant
 // d'enregistrer la table entière : l'API remplace l'ensemble des variantes
-// (Table::setVariants) et y gère seule la variante par défaut.
+// (setVariants).
 import type { DecisionRule, DecisionVariant, RuleCondition } from '~/types/decision-table'
 
 export interface VariantInfo {
@@ -18,7 +18,7 @@ export type NewVariant = Omit<DecisionVariant, '_id' | 'rules'> & {
 // (deux variantes ne partagent pas de règles, par ex. pour les analytics).
 // Probabilité 0 : la somme reste à 100 en mode percent (probabilitySum).
 export function copyVariant(source: DecisionVariant, info: VariantInfo): NewVariant {
-  const { _id: _variantId, is_default: _default, rules, ...variant } = source
+  const { _id: _variantId, rules, ...variant } = source
   return {
     ...variant,
     title: info.title,

@@ -11,11 +11,15 @@ export const PROJECT_USER_SCOPES: UserScope[] = [
   'project_update',
   'project_delete',
   'decisions_view',
+  'tables_publish',
+  'tables_activate',
+  'decisions_make_inactive',
 ]
 
 export const PROJECT_CONSUMER_SCOPES: ConsumerScope[] = [
   'decisions_view',
   'decisions_make',
+  'decisions_make_inactive',
 ]
 
 // Project-user scopes grouped for the collaborator form, mirroring the original
@@ -44,6 +48,8 @@ export const PROJECT_USER_SCOPE_GROUPS: ScopeGroup[] = [
       { key: 'tables_view', label: 'View' },
       { key: 'tables_update', label: 'Update' },
       { key: 'tables_delete', label: 'Delete' },
+      { key: 'tables_publish', label: 'Publish' },
+      { key: 'tables_activate', label: 'Activate' },
     ],
   },
   {
@@ -51,6 +57,7 @@ export const PROJECT_USER_SCOPE_GROUPS: ScopeGroup[] = [
     scopes: [
       { key: 'decisions_view', label: 'View' },
       { key: 'decisions_make', label: 'Make' },
+      { key: 'decisions_make_inactive', label: 'Make API call for inactive versions' },
     ],
   },
   {

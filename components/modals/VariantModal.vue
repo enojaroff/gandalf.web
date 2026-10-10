@@ -2,7 +2,7 @@
      table). La page fournit `submit`, qui applique l'opération et enregistre la
      table ; la modale gère la saisie, l'attente et les erreurs. -->
 <template>
-  <UModal :open="true" @close="emit('close')">
+  <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
       <h3 class="text-base font-semibold">{{ heading }}</h3>
     </template>
@@ -11,7 +11,6 @@
       <div class="space-y-4">
         <template v-if="mode === 'delete'">
           <p class="text-sm">{{ $t('tables.variantDeleteConfirm', { title: variant.title }) }}</p>
-          <p v-if="variant.is_default" class="text-sm text-muted">{{ $t('tables.variantDeleteDefault') }}</p>
         </template>
 
         <template v-else>

@@ -4,6 +4,16 @@ import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, Confirm
 import type { Group } from '~/types/group'
 import type { Flow, FlowRun, FlowResult } from '~/types/flow'
 import type { Category } from '~/types/category'
+import type {
+  ActivationMeta,
+  FlowUpdateResult,
+  SplitMode,
+  TableFlowUsage,
+  TableVersion,
+  TableVersionSummary,
+  VersionCall,
+  VersionDivergence,
+} from '~/types/version'
 
 function btoa64(str: string): string {
   return btoa(str)
@@ -26,6 +36,26 @@ export interface TableUpdateMeta {
   flows_failed?: string[]
   // Updated, but their graph no longer validates (fix before their next save)
   flows_invalid?: string[]
+}
+
+// Contenu d'un brouillon envoyé à l'API (les clés absentes ne changent pas)
+export interface VersionContent {
+  name?: string
+  fields?: unknown[]
+  variants?: unknown[]
+  variants_probability?: string
+}
+
+// Corps d'une exécution de test (route v2 sans `version`)
+export interface VersionRunBody {
+  variant_id?: string
+  data: Record<string, unknown>
+}
+
+// Réponse d'un import : la table, ou le brouillon écrit (imported_into = version)
+export interface ImportResponse {
+  data: DecisionTable | TableVersion
+  meta?: { imported_into?: 'table' | 'version' }
 }
 
 export function useGandalf() {
@@ -360,12 +390,77 @@ export function useGandalf() {
     getAnalytics: (tableId: string, variantId: string) =>
       request<{ data: unknown }>(`${apiBase}/v1/admin/tables/${tableId}/${variantId}/analytics`),
 
+    // Versions (gandalf.api, VERSIONS.md) : brouillons, publication, activation,
+    // répartition, exécutions de test, appels des clés, flows qui utilisent la table.
+    versions: {
+      list: (tableId: string) =>
+        request<{ data: TableVersionSummary[] }>(`${apiBase}/v1/admin/tables/${tableId}/versions`),
+
+      get: (tableId: string, versionId: string) =>
+        request<{ data: TableVersion }>(`${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}`),
+
+      // Brouillon tiré de from_version_id (par défaut la version active)
+      create: (tableId: string, body: { from_version_id?: string; name?: string } = {}) =>
+        request<{ data: TableVersion }>(`${apiBase}/v1/admin/tables/${tableId}/versions`, {
+          method: 'POST',
+          body,
+        }),
+
+      update: (tableId: string, versionId: string, content: VersionContent) =>
+        request<{ data: TableVersion }>(`${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}`, {
+          method: 'PUT',
+          body: content,
+        }),
+
+      remove: (tableId: string, versionId: string) =>
+        request(`${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}`, { method: 'DELETE' }),
+
+      publish: (tableId: string, versionId: string, comment = '') =>
+        request<{ data: TableVersion; meta?: VersionDivergence }>(
+          `${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}/publish`,
+          { method: 'POST', body: { comment } },
+        ),
+
+      split: (tableId: string, versionId: string, mode: SplitMode, variants: { _id: string; probability: number }[]) =>
+        request<{ data: TableVersion }>(`${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}/split`, {
+          method: 'PUT',
+          body: { variants_probability: mode, variants },
+        }),
+
+      activate: (tableId: string, versionId: string) =>
+        request<{ data: DecisionTable; meta?: ActivationMeta }>(`${apiBase}/v1/admin/tables/${tableId}/activate`, {
+          method: 'POST',
+          body: { version_id: versionId },
+        }),
+
+      // Exécution de test d'un brouillon ou d'une version (décision marquée « test »)
+      run: (tableId: string, versionId: string, body: VersionRunBody) =>
+        request<{ data: unknown }>(`${apiBase}/v1/admin/tables/${tableId}/versions/${versionId}/decisions`, {
+          method: 'POST',
+          body,
+        }),
+
+      calls: (tableId: string) =>
+        request<{ data: VersionCall[]; meta?: { window_days?: number } }>(`${apiBase}/v1/admin/tables/${tableId}/calls`),
+
+      flows: (tableId: string) =>
+        request<{ data: TableFlowUsage[] }>(`${apiBase}/v1/admin/tables/${tableId}/flows`),
+
+      // Amène les flows à la version active de la table (publish/activate : droits dédiés)
+      updateFlows: (tableId: string, body: { flow_ids?: string[]; publish?: boolean; activate?: boolean }) =>
+        request<{ data: FlowUpdateResult[] }>(`${apiBase}/v1/admin/tables/${tableId}/flows/update`, {
+          method: 'POST',
+          body,
+        }),
+    },
+
     /**
      * Télécharge une variante de la table en classeur Excel round-trip
-     * (gandalf-xlsx-v2). Sans variantId, exporte la variante par défaut.
-     * Retourne le Blob + le nom de fichier suggéré par le serveur.
+     * (gandalf-xlsx-v2). Sans variantId, exporte la première variante ; sans
+     * versionId, la version active. Retourne le Blob + le nom de fichier
+     * suggéré par le serveur.
      */
-    exportExcel: async (id: string, variantId?: string): Promise<{ blob: Blob; filename: string }> => {
+    exportExcel: async (id: string, variantId?: string, versionId?: string): Promise<{ blob: Blob; filename: string }> => {
       const authStore = useAuthStore()
       const projectsStore = useProjectsStore()
       const headers: Record<string, string> = {}
@@ -378,6 +473,7 @@ export function useGandalf() {
       const url = buildUrl(`${apiBase}/v1/admin/tables/${id}/export`, {
         format: 'excel',
         variant_id: variantId,
+        version_id: versionId,
       })
       const response = await $fetch.raw(url, { headers, responseType: 'blob' })
       const disposition = response.headers.get('content-disposition') ?? ''
@@ -389,15 +485,16 @@ export function useGandalf() {
     },
 
     /**
-     * Importe un fichier de table (Excel round-trip → mise à jour de la table
-     * d'origine ; JSON/CSV/legacy → création). Le Content-Type est laissé au
-     * navigateur pour que le boundary multipart soit correct.
+     * Importe un fichier de table (Excel round-trip → mise à jour de son origine :
+     * la table, ou le brouillon d'où il a été exporté, ou un nouveau brouillon
+     * pour une version publiée ; JSON/CSV/legacy → création). Le Content-Type
+     * est laissé au navigateur pour que le boundary multipart soit correct.
      *
      * Réponses d'erreur à gérer côté appelant :
      *  - 409 { error: 'table_conflict', server_updated_at, file_exported_at } → proposer force
      *  - 422 { errors: [{ cell, row, column, field, message }] } → afficher la liste
      */
-    importFile: async (file: File, opts: { force?: boolean; mode?: 'auto' | 'create' | 'update' } = {}): Promise<{ data: DecisionTable }> => {
+    importFile: async (file: File, opts: { force?: boolean; mode?: 'auto' | 'create' | 'update' } = {}): Promise<ImportResponse> => {
       const authStore = useAuthStore()
       const projectsStore = useProjectsStore()
       const headers: Record<string, string> = {}
@@ -411,7 +508,7 @@ export function useGandalf() {
       form.append('file', file)
       if (opts.force) form.append('force', '1')
       if (opts.mode) form.append('mode', opts.mode)
-      return await $fetch<{ data: DecisionTable }>(`${apiBase}/v1/admin/tables/import`, {
+      return await $fetch<ImportResponse>(`${apiBase}/v1/admin/tables/import`, {
         method: 'POST',
         headers,
         body: form,

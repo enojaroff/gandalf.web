@@ -23,6 +23,15 @@
             </dd>
             <dt class="text-muted">{{ $t('history.tableVariant') }}</dt>
             <dd>{{ decision.table.variant?.title }}</dd>
+            <dt class="text-muted">{{ $t('history.version') }}</dt>
+            <dd class="flex items-center gap-2">
+              {{ decision.table.version ? `v${decision.table.version.number ?? '—'}` : '—' }}
+              <UBadge v-if="decision.test" color="warning" variant="subtle" size="sm">{{ $t('history.test') }}</UBadge>
+            </dd>
+            <template v-if="decision.consumer">
+              <dt class="text-muted">{{ $t('history.apiKey') }}</dt>
+              <dd class="font-mono text-xs">{{ decision.consumer }}</dd>
+            </template>
             <dt class="text-muted">{{ $t('history.date') }}</dt>
             <dd>{{ new Date(decision.created_at).toLocaleString() }}</dd>
           </dl>
@@ -155,7 +164,13 @@ interface HistoryDecision {
     title: string
     matching_type?: MatchingType
     variant?: { _id: string; title: string }
+    // Version de table exécutée (null : décision antérieure aux versions ;
+    // number null : un brouillon, en exécution de test)
+    version?: { _id: string; number: number | null } | null
   }
+  // Exécution de test depuis gandalf.web, et clé d'API appelante
+  test?: boolean
+  consumer?: string | null
   fields?: { key: string; title: string; type: FieldType }[]
   request: Record<string, unknown>
   meta?: unknown

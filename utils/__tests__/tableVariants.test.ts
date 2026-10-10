@@ -32,10 +32,9 @@ const variant = (id: string, probability: number, extra: Partial<DecisionVariant
 
 describe('copyVariant', () => {
   it('reprend les règles et conditions sans leurs _id, sous le nom donné', () => {
-    const copy = copyVariant(variant('a', 60, { is_default: true }), { title: 'Copie', description: '' })
+    const copy = copyVariant(variant('a', 60), { title: 'Copie', description: '' })
 
     expect(copy).not.toHaveProperty('_id')
-    expect(copy).not.toHaveProperty('is_default')
     expect(copy.title).toBe('Copie')
     expect(copy.description).toBe('')
     expect(copy.default_decision).toBe('NON')

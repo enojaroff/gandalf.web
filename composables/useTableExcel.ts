@@ -1,13 +1,15 @@
 import type { TableImportConflict, TableImportError } from '~/types/decision-table'
+import type { ImportResponse } from '~/composables/useGandalf'
 
 /**
  * Logique partagée d'export/import Excel round-trip d'une table de décision.
  *
- * Export : télécharge le classeur (une variante par fichier) via un blob +
- * ancre temporaire. Import : envoie le fichier en multipart ; gère les trois
- * issues — succès (200 mise à jour / 201 création), conflit 409 (verrou
- * optimiste, l'appelant affiche une confirmation puis rappelle avec force),
- * erreurs 422 (liste adressée par cellule à afficher).
+ * Export : télécharge le classeur (une variante d'une version par fichier) via
+ * un blob + ancre temporaire. Import : envoie le fichier en multipart ; gère les
+ * trois issues — succès (200 mise à jour / 201 création ; la table, ou le
+ * brouillon écrit quand meta.imported_into vaut « version »), conflit 409
+ * (verrou optimiste, l'appelant affiche une confirmation puis rappelle avec
+ * force), erreurs 422 (liste adressée par cellule à afficher).
  */
 export function useTableExcel() {
   const gandalf = useGandalf()
@@ -23,10 +25,10 @@ export function useTableExcel() {
   /** Fichier retenu pendant la résolution du conflit (pour le retry force). */
   const pendingFile = ref<File | null>(null)
 
-  async function exportExcel(tableId: string, variantId?: string) {
+  async function exportExcel(tableId: string, variantId?: string, versionId?: string) {
     exporting.value = true
     try {
-      const { blob, filename } = await gandalf.tables.exportExcel(tableId, variantId)
+      const { blob, filename } = await gandalf.tables.exportExcel(tableId, variantId, versionId)
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       anchor.href = url
@@ -45,18 +47,23 @@ export function useTableExcel() {
   }
 
   /**
-   * Importe le fichier. Retourne la table mise à jour/créée en cas de succès,
-   * null sinon (conflit ouvert ou erreurs affichées).
+   * Importe le fichier. Retourne la réponse (table, ou brouillon écrit) en cas
+   * de succès, null sinon (conflit ouvert ou erreurs affichées).
    */
-  async function importFile(file: File, opts: { force?: boolean } = {}) {
+  async function importFile(file: File, opts: { force?: boolean } = {}): Promise<ImportResponse | null> {
     importing.value = true
     importErrors.value = []
     conflict.value = null
     try {
       const response = await gandalf.tables.importFile(file, { force: opts.force })
       pendingFile.value = null
-      toast.add({ title: t('tables.importSuccess'), color: 'success' })
-      return response.data
+      toast.add({
+        title: response.meta?.imported_into === 'version'
+          ? t('versions.importedIntoDraft', { name: (response.data as { name?: string }).name || '—' })
+          : t('tables.importSuccess'),
+        color: 'success',
+      })
+      return response
     }
     catch (err: unknown) {
       const fetchError = err as { statusCode?: number; status?: number; data?: unknown }
@@ -94,7 +101,7 @@ export function useTableExcel() {
   }
 
   /** Résolution du conflit : réessaie avec force=1 le fichier en attente. */
-  async function forceImport() {
+  async function forceImport(): Promise<ImportResponse | null> {
     const file = pendingFile.value
     conflict.value = null
     if (!file) return null

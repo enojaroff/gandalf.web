@@ -136,6 +136,8 @@ const curlSample = computed(() => {
   return generateCurlSample(
     tableId,
     table.value.fields.map(f => ({ key: f.key, type: f.type })),
+    '/api',
+    { variantId },
   )
 })
 

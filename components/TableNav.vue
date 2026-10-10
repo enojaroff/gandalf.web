@@ -27,6 +27,7 @@ const localePath = useLocalePath()
 
 const tabs = computed(() => [
   { label: t('tables.info'),      to: `/tables/${props.tableId}/info` },
+  { label: t('versions.title'),   to: `/tables/${props.tableId}/versions` },
   { label: t('tables.revisions'), to: `/tables/${props.tableId}/revisions` },
 /*
   ...(props.variants?.map(v => ({
