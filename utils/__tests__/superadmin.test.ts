@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { applicationAdmins, logEntryLabel, logStatusColor } from '~/utils/superadmin'
-import type { AdminLogEntry } from '~/types/admin'
+import { accountLocked, applicationAdmins, deleteConfirmation, logEntryLabel, logStatusColor } from '~/utils/superadmin'
+import type { AdminAccount, AdminLogEntry } from '~/types/admin'
 
 const entry = (patch: Partial<AdminLogEntry>): AdminLogEntry => ({
   _id: 'e1',
@@ -55,5 +55,51 @@ describe('logStatusColor', () => {
     expect(logStatusColor(500)).toBe('error')
     expect(logStatusColor(null)).toBe('neutral')
     expect(logStatusColor(undefined)).toBe('neutral')
+  })
+})
+
+describe('logEntryLabel, actions sur les comptes', () => {
+  const id = '0123456789abcdef01234567'
+
+  it('nomme le compte supprimé, réinitialisé ou créé', () => {
+    expect(logEntryLabel(entry({ method: 'DELETE', path: `/api/v1/superadmin/users/${id}`, details: { email: 'eve@example.test' } })))
+      .toEqual({ key: 'admin.logAccountDeleted', params: { email: 'eve@example.test' } })
+    expect(logEntryLabel(entry({ method: 'POST', path: `/api/v1/superadmin/users/${id}/password`, details: { username: 'eve' } })))
+      .toEqual({ key: 'admin.logPasswordReset', params: { email: 'eve' } })
+    expect(logEntryLabel(entry({ method: 'POST', path: '/api/v1/projects/collaborators/account', details: { email: 'new@example.test' } })))
+      .toEqual({ key: 'admin.logAccountCreated', params: { email: 'new@example.test' } })
+  })
+
+  it('montre la requête quand le compte n\'est pas noté (requête refusée)', () => {
+    expect(logEntryLabel(entry({ method: 'DELETE', path: `/api/v1/superadmin/users/${id}`, status: 403, details: {} })))
+      .toEqual({ text: `DELETE /api/v1/superadmin/users/${id}` })
+    expect(logEntryLabel(entry({ method: 'GET', path: '/api/v1/superadmin/users', details: {} })))
+      .toEqual({ text: 'GET /api/v1/superadmin/users' })
+  })
+})
+
+const account = (patch: Partial<AdminAccount>): AdminAccount => ({
+  _id: 'a1',
+  username: 'eve',
+  email: 'eve@example.test',
+  active: true,
+  created_at: null,
+  applications: [],
+  ...patch,
+})
+
+describe('accountLocked', () => {
+  it('protège son propre compte et ceux des superadmins', () => {
+    expect(accountLocked(account({}), 'me')).toBe(false)
+    expect(accountLocked(account({ _id: 'me' }), 'me')).toBe(true)
+    expect(accountLocked(account({ superadmin: true }), 'me')).toBe(true)
+  })
+})
+
+describe('deleteConfirmation', () => {
+  it('demande l\'adresse, celle en attente, ou le nom d\'utilisateur', () => {
+    expect(deleteConfirmation(account({}))).toBe('eve@example.test')
+    expect(deleteConfirmation(account({ email: '', temporary_email: 'new@example.test' }))).toBe('new@example.test')
+    expect(deleteConfirmation(account({ email: '', temporary_email: null }))).toBe('eve')
   })
 })

@@ -94,6 +94,10 @@
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
             <div class="flex gap-2">
+              <!-- Créer un compte : admin seulement, comme confirmer un compte -->
+              <UButton v-if="projectsStore.isAdmin" size="sm" icon="i-lucide-user-round-plus" variant="outline" @click="() => { showCreateAccount = true }">
+                {{ $t('settings.createAccount') }}
+              </UButton>
               <UButton size="sm" icon="i-lucide-user-plus" variant="outline" @click="showAddUser = true">
                 {{ $t('settings.addExistingUser') }}
               </UButton>
@@ -195,6 +199,7 @@
 
     <!-- Modales -->
     <AddCollaboratorModal v-if="showAddUser" @close="showAddUser = false" @saved="loadUsers" />
+    <CreateAccountModal v-if="showCreateAccount" @close="showCreateAccount = false" @created="onAccountCreated" />
     <InviteUserModal v-if="showInviteUser" @close="showInviteUser = false" @saved="loadUsers" />
     <AddConsumerModal v-if="showAddConsumer" @close="showAddConsumer = false" @saved="loadConsumers" />
     <EditCollaboratorModal
@@ -204,35 +209,21 @@
       @saved="loadUsers"
     />
 
-    <!-- Mot de passe temporaire (après confirmation d'une invitation) -->
-    <UModal v-model:open="showTempPassword">
-      <template #header>
-        <h3 class="text-base font-semibold">{{ $t('settings.tempPasswordTitle') }}</h3>
-      </template>
-      <template #body>
-        <p class="mb-4 text-sm text-muted">{{ $t('settings.tempPasswordMessage') }}</p>
-        <div class="flex items-center gap-2">
-          <UInput :model-value="tempPassword" readonly class="flex-1 font-mono" />
-          <UButton
-            :icon="tempPasswordCopied ? 'i-lucide-check' : 'i-lucide-copy'"
-            variant="outline"
-            @click="copyTempPassword"
-          >
-            {{ tempPasswordCopied ? $t('settings.tempPasswordCopied') : $t('settings.tempPasswordCopy') }}
-          </UButton>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end w-full">
-          <UButton @click="showTempPassword = false">{{ $t('common.close') }}</UButton>
-        </div>
-      </template>
-    </UModal>
+    <!-- Mot de passe temporaire : confirmation d'une invitation, création d'un compte -->
+    <TemporaryPasswordModal
+      v-if="tempAccount"
+      :title="tempAccount.title"
+      :username="tempAccount.username"
+      :email="tempAccount.email"
+      :password="tempAccount.password"
+      :email-sent="tempAccount.emailSent"
+      @close="tempAccount = null"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Collaborator, CollaboratorStatus, ProjectConsumer } from '~/types/project'
+import type { Collaborator, CollaboratorStatus, CreatedAccount, ProjectConsumer } from '~/types/project'
 import { apiErrorMessage } from '~/utils/apiErrors'
 // Explicit imports: these live under components/modals/, which Nuxt auto-imports
 // as <ModalsInviteUserModal>/<ModalsAddConsumerModal>. The template uses the
@@ -241,6 +232,8 @@ import InviteUserModal from '~/components/modals/InviteUserModal.vue'
 import AddConsumerModal from '~/components/modals/AddConsumerModal.vue'
 import EditCollaboratorModal from '~/components/modals/EditCollaboratorModal.vue'
 import AddCollaboratorModal from '~/components/modals/AddCollaboratorModal.vue'
+import CreateAccountModal from '~/components/accounts/CreateAccountModal.vue'
+import TemporaryPasswordModal from '~/components/accounts/TemporaryPasswordModal.vue'
 import CategoryManager from '~/components/categories/CategoryManager.vue'
 
 definePageMeta({ middleware: 'auth' })
@@ -271,6 +264,7 @@ const projectError = ref<string | null>(null)
 const projectSuccess = ref<string | null>(null)
 const showInviteUser = ref(false)
 const showAddUser = ref(false)
+const showCreateAccount = ref(false)
 const showAddConsumer = ref(false)
 
 const projectForm = reactive({ title: '', description: '', showMeta: false })
@@ -288,10 +282,8 @@ const projectSettings = ref<Record<string, unknown>>({})
 // Snapshot of the form taken when entering edit mode, restored on cancel.
 let projectSnapshot = { title: '', description: '', showMeta: false }
 
-// Temp-password modal shown after confirming an invitation
-const showTempPassword = ref(false)
-const tempPassword = ref('')
-const tempPasswordCopied = ref(false)
+// Mot de passe temporaire à transmettre, montré une seule fois
+const tempAccount = ref<{ title: string; username: string; email: string; password: string; emailSent: boolean } | null>(null)
 // Key of the collaborator whose confirmation is in flight (for per-row loading)
 const confirmingKey = ref<string | null>(null)
 // Key of the invitation whose cancel/resend is in flight
@@ -371,9 +363,13 @@ async function confirmCollaborator(collaborator: Collaborator) {
 
     // An invitation confirmation returns a temporary password to show the admin.
     if (resp.data.temporary_password) {
-      tempPassword.value = resp.data.temporary_password
-      tempPasswordCopied.value = false
-      showTempPassword.value = true
+      tempAccount.value = {
+        title: t('settings.tempPasswordTitle'),
+        username: resp.data.username ?? resp.data.email,
+        email: resp.data.email,
+        password: resp.data.temporary_password,
+        emailSent: resp.data.email_sent === true,
+      }
     }
     else {
       toast.add({ title: t('settings.confirmUserSuccess'), color: 'success' })
@@ -433,12 +429,16 @@ onBeforeUnmount(() => {
   if (applicationIdCopiedTimer) clearTimeout(applicationIdCopiedTimer)
 })
 
-async function copyTempPassword() {
-  try {
-    await navigator.clipboard.writeText(tempPassword.value)
-    tempPasswordCopied.value = true
+function onAccountCreated(account: CreatedAccount) {
+  showCreateAccount.value = false
+  tempAccount.value = {
+    title: t('settings.accountCreated'),
+    username: account.username,
+    email: account.email,
+    password: account.temporary_password,
+    emailSent: account.email_sent,
   }
-  catch { /* clipboard unavailable */ }
+  loadUsers()
 }
 
 async function loadConsumers() {

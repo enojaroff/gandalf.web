@@ -50,6 +50,14 @@
       </UForm>
     </UCard>
 
+    <!-- Mot de passe : le changer demande l'actuel -->
+    <UCard v-if="!loadingUser && userLoaded" class="mt-6">
+      <template #header>
+        <h2 class="font-semibold">{{ $t('auth.changePasswordTitle') }}</h2>
+      </template>
+      <ChangePasswordForm @done="onPasswordChanged" />
+    </UCard>
+
     <!-- UI preferences: no current-password needed, saved on its own. -->
     <UCard v-if="!loadingUser && userLoaded" class="mt-6">
       <template #header>
@@ -93,10 +101,17 @@
 </template>
 
 <script setup lang="ts">
+import ChangePasswordForm from '~/components/accounts/ChangePasswordForm.vue'
+
 definePageMeta({ path: '/settings/profile', middleware: 'auth' })
 
 const { t } = useI18n()
+const toast = useToast()
 const userStore = useUserStore()
+
+function onPasswordChanged() {
+  toast.add({ title: t('auth.passwordChanged'), color: 'success' })
+}
 
 const form = reactive({
   username: '',

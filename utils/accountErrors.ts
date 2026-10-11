@@ -10,6 +10,12 @@ const KNOWN_MESSAGES: Record<string, string> = {
   'validation.required_scopes': 'settings.viewRequired',
   'The scope field is required.': 'settings.viewRequired',
   'The selected role is invalid.': 'settings.adminRoleRefused',
+  // Création directe d'un compte
+  'The email has already been taken.': 'settings.accountExists',
+  'The temporary email has already been taken.': 'settings.accountExists',
+  'The username has already been taken.': 'settings.usernameTaken',
+  'validation.username': 'settings.usernameInvalid',
+  'The username must be between 2 and 32 characters.': 'settings.usernameInvalid',
 }
 
 // Texte d'une erreur de l'API sur un membre (ajout, invitation, modification,

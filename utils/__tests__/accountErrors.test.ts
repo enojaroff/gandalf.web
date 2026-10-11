@@ -21,4 +21,12 @@ describe('accountErrorText', () => {
     expect(accountErrorText({ data: { meta: { error: 'access_denied', error_message: 'Only a project admin can invite an admin.' } } }, t, 'errors.failedToSave')).toBe('Only a project admin can invite an admin.')
     expect(accountErrorText(new Error('network'), t, 'settings.invitationFailed')).toBe('<settings.invitationFailed>')
   })
+
+  it('traduit les refus de la création directe d\'un compte', () => {
+    const e = validation({
+      email: ['The email has already been taken.', 'The temporary email has already been taken.'],
+      username: ['validation.username'],
+    })
+    expect(accountErrorText(e, t, 'settings.createAccountFailed')).toBe('<settings.accountExists> <settings.usernameInvalid>')
+  })
 })

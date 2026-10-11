@@ -58,9 +58,24 @@ export interface Collaborator {
 
 export interface ConfirmCollaboratorResult {
   user_id: string
+  // Compte créé depuis une invitation : son nom d'utilisateur
+  username?: string
   email: string
   status: 'active'
   temporary_password?: string
+  // Le mot de passe temporaire est aussi parti par e-mail
+  email_sent?: boolean
+}
+
+// Compte créé directement dans l'application (admin), avec un mot de passe
+// temporaire montré une seule fois.
+export interface CreatedAccount {
+  user_id: string
+  username: string
+  email: string
+  status: 'active'
+  temporary_password: string
+  email_sent: boolean
 }
 
 // Free-form per-user UI preferences, persisted with the profile. Typed for the
@@ -83,4 +98,7 @@ export interface User {
   // Présent et vrai pour un superadmin (Claims IA) : crée et supprime les
   // applications, agit dans toutes (gandalf.api, ADMIN.md).
   superadmin?: boolean
+  // Mot de passe temporaire à remplacer : l'API refuse tout le reste (403
+  // password_change_required) tant qu'il n'est pas changé.
+  must_change_password?: boolean
 }

@@ -17,6 +17,7 @@ supprimer un compte.
 - [Modifier un compte](#modifier-un-compte)
 - [Retirer un membre ou supprimer un compte](#retirer-un-membre-ou-supprimer-un-compte)
 - [Créer et supprimer une application](#créer-et-supprimer-une-application)
+- [Administration des comptes (superadmin)](#administration-des-comptes-superadmin)
 - [Qui peut faire quoi](#qui-peut-faire-quoi)
 - [Limites actuelles](#limites-actuelles)
 
@@ -60,8 +61,9 @@ Ce que le rôle **admin** ajoute :
   l'application. Un membre qui a le droit
   de gérer les collaborateurs gère les autres membres, mais ne peut pas
   toucher à un admin ;
-- **gérer les comptes** : confirmer un compte à la place de la personne,
-  renvoyer ou annuler une invitation, supprimer un compte ;
+- **gérer les comptes** : créer un compte directement, confirmer un compte à
+  la place de la personne, renvoyer ou annuler une invitation, supprimer un
+  compte ;
 - **copier ou déplacer** des tables et des flows vers une autre application ;
 - **faire fonctionner l'application** : elle n'exécute des décisions que si
   elle a au moins un admin dont le compte est actif.
@@ -73,6 +75,9 @@ Le **superadmin**, réservé à Claims IA :
   n'en est pas membre. Il n'apparaît pas dans la liste des utilisateurs de ces
   applications ;
 - crée les applications et nomme leurs admins, supprime les applications ;
+- voit tous les comptes, y compris ceux qui n'ont plus d'application, leur
+  donne un mot de passe temporaire ou les supprime (voir
+  [Administration des comptes](#administration-des-comptes-superadmin)) ;
 - chacune de ses actions est enregistrée dans un journal, consultable dans
   **Administration**, onglet « Journal ».
 
@@ -80,8 +85,8 @@ Le **superadmin**, réservé à Claims IA :
 
 ## Droits
 
-Les droits se cochent par groupe dans les fenêtres « Inviter », « Ajouter un
-compte » et « Modifier le collaborateur ». Les libellés y sont en anglais ;
+Les droits se cochent par groupe dans les fenêtres « Créer un compte »,
+« Inviter », « Ajouter un compte existant » et « Modifier le collaborateur ». Les libellés y sont en anglais ;
 le tableau les reprend tels qu'ils s'affichent. « View » des tables est coché
 d'office, et ces fenêtres refusent d'enregistrer sans lui.
 
@@ -99,7 +104,7 @@ d'office, et ces fenêtres refusent d'enregistrer sans lui.
 | Decision History | Make API call for inactive versions | Exécuter une version publiée qui n'est pas la version active ; donner ce droit à une clé d'API. |
 | API Consumer Credentials | Read | Voir les clés d'API de l'application. |
 | API Consumer Credentials | Manage | Créer, modifier et supprimer des clés d'API. |
-| Project Collaborators | Manage | Voir et gérer les membres : inviter, ajouter un compte, modifier les droits, retirer de l'application. |
+| Project Collaborators | Manage | Voir et gérer les membres : inviter, ajouter un compte existant, modifier les droits, retirer de l'application. |
 
 Règles qui s'appliquent à toute attribution de droits :
 
@@ -133,6 +138,26 @@ demande de contacter l'admin de son application, ou Claims IA. Le bouton
 Si une invitation attendait déjà cette adresse e-mail, le compte rejoint
 automatiquement l'application concernée à l'inscription.
 
+### Créer un compte directement
+
+Dans **Paramètres**, carte « Utilisateurs », bouton **Créer un compte**
+(admin) :
+
+1. Saisir l'adresse e-mail de la personne et, si besoin, son nom
+   d'utilisateur (par défaut, il est tiré de l'adresse).
+2. Choisir son rôle, **Member** ou **Admin**, et cocher ses droits.
+3. **Créer le compte**.
+
+Le compte est créé actif et rejoint l'application tout de suite, sans
+invitation ni e-mail à ouvrir. Un **mot de passe temporaire** s'affiche une
+seule fois, avec le nom d'utilisateur : les transmettre à la personne. Il lui
+est aussi envoyé par e-mail quand l'envoi fonctionne ; la fenêtre indique si
+c'est le cas. À sa première connexion, elle choisit son propre mot de passe
+(voir [Mot de passe temporaire](#mot-de-passe-temporaire)).
+
+Une adresse déjà utilisée par un compte est refusée : ajouter ce compte avec
+**Ajouter un compte existant**.
+
 ### Être invité
 
 Dans **Paramètres**, carte « Utilisateurs », bouton **Inviter** (droit
@@ -149,7 +174,8 @@ L'invitation apparaît dans la liste avec le statut **Invité**. Ensuite :
 - **la personne n'a pas encore de compte** : elle s'inscrit avec cette
   adresse et rejoint l'application. Un admin peut aussi cliquer sur
   **Confirmer** : le compte est alors créé et activé, et un **mot de passe
-  temporaire** s'affiche, à lui transmettre ;
+  temporaire** s'affiche, à lui transmettre, comme pour
+  [Créer un compte directement](#créer-un-compte-directement) ;
 - **la personne a déjà un compte** : un admin clique sur **Confirmer** pour
   l'ajouter à l'application.
 
@@ -158,9 +184,10 @@ croix **l'annule** (admin).
 
 ### Ajouter un compte existant
 
-Bouton **Ajouter un compte** : rechercher le compte par nom d'utilisateur ou
-par e-mail, choisir son rôle et cocher ses droits, puis **Ajouter**. Le compte
-rejoint l'application tout de suite, sans invitation :
+Bouton **Ajouter un compte existant** : il ne crée pas de compte, il rattache
+à l'application un compte qui existe déjà. Rechercher le compte par nom
+d'utilisateur ou par e-mail, choisir son rôle et cocher ses droits, puis
+**Ajouter**. Le compte rejoint l'application tout de suite, sans invitation :
 
 - **Member** : avec les droits cochés ;
 - **Admin** (proposé aux seuls admins) : comme admin, avec les droits cochés.
@@ -191,6 +218,15 @@ passe.
 Le mot de passe doit faire entre 8 et 32 caractères et contenir au moins une
 majuscule, une minuscule et un chiffre, sans espace.
 
+### Mot de passe temporaire
+
+Un compte reçoit un mot de passe temporaire quand un admin le crée ou le
+confirme, ou quand un superadmin le lui donne. À la connexion avec ce mot de
+passe, la page **Choisissez votre mot de passe** s'ouvre : saisir le mot de
+passe temporaire, puis le nouveau deux fois. Tant que ce n'est pas fait,
+aucune autre page n'est accessible, et l'API refuse toute autre requête du
+compte. Le lien **Se déconnecter** permet de revenir plus tard.
+
 ---
 
 ## Modifier un compte
@@ -208,8 +244,9 @@ Menu du compte (en haut à droite) > **Modifier le profil** :
 La carte **Préférences** (mode de navigation de l'éditeur de flow) s'enregistre
 sans mot de passe.
 
-Pour changer de mot de passe, utiliser **Mot de passe oublié ?** sur la page
-de connexion.
+La carte **Changer le mot de passe** demande le mot de passe actuel, puis le
+nouveau deux fois. Sans le mot de passe actuel, utiliser **Mot de passe
+oublié ?** sur la page de connexion.
 
 ### Les droits d'un membre
 
@@ -234,9 +271,14 @@ Les deux actions se trouvent dans **Modifier le collaborateur**.
 La suppression d'un compte est refusée :
 
 - s'il est encore membre d'une autre application : le retirer d'abord des
-  applications indiquées ;
+  applications indiquées (un superadmin peut aussi le supprimer de partout à
+  la fois) ;
 - pour son propre compte ;
 - pour le compte d'un superadmin.
+
+Un compte retiré de toutes ses applications n'apparaît plus dans aucune liste
+d'utilisateurs : seul un superadmin le retrouve, dans **Administration**,
+onglet « Comptes ».
 
 ---
 
@@ -258,13 +300,40 @@ Une application sans admin actif n'exécute pas de décisions : la page
 
 ---
 
+## Administration des comptes (superadmin)
+
+**Administration**, onglet « Comptes » : tous les comptes, avec les
+applications de chacun (« admin » quand il l'est) et son statut : **Actif**,
+**En attente** (adresse non vérifiée), **Mot de passe temporaire**,
+**Superadmin**. La recherche porte sur le nom d'utilisateur et l'adresse
+e-mail ; **Sans application** ne garde que les comptes rattachés à aucune
+application, qu'aucun autre écran n'atteint.
+
+Sur chaque compte, sauf le sien et ceux des superadmins :
+
+- **Donner un mot de passe temporaire** (icône de clé) : pour une personne
+  qui a perdu son mot de passe quand l'e-mail de **Mot de passe oublié ?** ne
+  part pas. L'ancien mot de passe cesse de fonctionner, les sessions ouvertes
+  du compte sont fermées, et un compte en attente est activé. Le mot de passe
+  temporaire s'affiche une seule fois, à transmettre à la personne ;
+- **Supprimer le compte** (corbeille) : suppression **définitive**. Le compte
+  quitte toutes ses applications et ses invitations en attente sont annulées.
+  Pour confirmer, saisir son adresse e-mail. La fenêtre signale les
+  applications dont il est admin : vérifier qu'il leur en reste un autre.
+
+Ces actions sont enregistrées dans le journal (onglet « Journal »), qui ne
+contient jamais de mot de passe.
+
+---
+
 ## Qui peut faire quoi
 
 | Action | Qui |
 | ------ | --- |
 | S'inscrire | Tout le monde |
-| Modifier son profil | Soi-même |
+| Modifier son profil, changer son mot de passe | Soi-même |
 | Voir les membres d'une application | Droit « Manage » des collaborateurs |
+| Créer un compte directement | Admin, avec le droit « Manage » des collaborateurs |
 | Inviter un membre | Droit « Manage » des collaborateurs |
 | Inviter un admin | Admin, avec le droit « Manage » des collaborateurs |
 | Ajouter un compte existant comme membre | Droit « Manage » des collaborateurs |
@@ -276,6 +345,9 @@ Une application sans admin actif n'exécute pas de décisions : la page
 | Retirer un admin de l'application | Admin, avec le droit « Manage » des collaborateurs |
 | Supprimer un compte | Admin, avec le droit « Manage » des collaborateurs |
 | Créer ou supprimer une application | Superadmin |
+| Voir tous les comptes, y compris sans application | Superadmin |
+| Donner un mot de passe temporaire à un compte | Superadmin, jamais pour le sien ni pour un superadmin |
+| Supprimer un compte de toutes ses applications à la fois | Superadmin, jamais le sien ni un superadmin |
 | Nommer ou retirer un superadmin | Claims IA, sur le serveur |
 
 Dans tous les cas, personne ne donne plus de droits qu'il n'en a.
@@ -290,13 +362,9 @@ Points connus, en attente de correction :
   activés sans vérification, il est immédiat. Sinon, la nouvelle adresse
   attend une confirmation, mais aucun e-mail de confirmation n'est envoyé :
   l'ancienne adresse reste celle du compte.
-- **Mot de passe** : il ne se change pas depuis le profil ; utiliser
-  **Mot de passe oublié ?**. Le mot de passe temporaire donné à la
-  confirmation d'une invitation n'a pas à être changé, contrairement à ce
-  qu'indique le message.
 - **Rôle admin** : un membre existant ne peut pas être nommé admin
   directement. Le retirer de l'application, puis l'ajouter de nouveau avec
-  **Ajouter un compte** et le rôle Admin.
+  **Ajouter un compte existant** et le rôle Admin.
 - **E-mail de vérification** : il ne peut pas être renvoyé. Un admin peut
   activer le compte avec **Confirmer**.
 - **Page Paramètres** : un membre qui n'a pas le droit « Manage » des
