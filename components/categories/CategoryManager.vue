@@ -18,6 +18,9 @@ import ColorPalettePicker from '~/components/categories/ColorPalettePicker.vue'
 
 const gandalf = useGandalf()
 const toast = useToast()
+// L'API demande le droit de modifier les paramètres pour toucher aux catégories
+const projectsStore = useProjectsStore()
+const canEdit = computed(() => projectsStore.can('project_update'))
 
 const categories = ref<Category[]>([])
 const loading = ref(true)
@@ -133,7 +136,7 @@ onMounted(load)
           <h3 class="font-semibold">Catégories</h3>
           <p class="text-xs text-muted mt-0.5">{{ countLabel }}</p>
         </div>
-        <UButton size="sm" icon="i-lucide-plus" variant="outline" @click="openCreate">
+        <UButton v-if="canEdit" size="sm" icon="i-lucide-plus" variant="outline" @click="openCreate">
           Nouvelle catégorie
         </UButton>
       </div>
@@ -158,7 +161,7 @@ onMounted(load)
           <span class="w-4 h-4 rounded-full shrink-0" :style="{ backgroundColor: category.color }" />
           <CategoryBadge :name="category.name" :color="category.color" />
         </div>
-        <div class="flex items-center gap-1 shrink-0">
+        <div v-if="canEdit" class="flex items-center gap-1 shrink-0">
           <UButton
             icon="i-lucide-pencil"
             color="neutral"

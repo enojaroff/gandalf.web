@@ -29,4 +29,10 @@ describe('accountErrorText', () => {
     })
     expect(accountErrorText(e, t, 'settings.createAccountFailed')).toBe('<settings.accountExists> <settings.usernameInvalid>')
   })
+
+  it('nomme d\'abord les droits manquants d\'un refus de l\'ACL', () => {
+    const e = { data: { meta: { code: 403, error: 'access_denied', error_message: 'Bad Scopes', scopes: ['users_manage'] } } }
+    expect(accountErrorText(e, (key: string, params?: Record<string, unknown>) => (params ? `${key}:${params.scopes}` : `<${key}>`), 'errors.failedToSave'))
+      .toBe('errors.missingScopes:<scopes.badge.users_manage>')
+  })
 })

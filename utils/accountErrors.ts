@@ -1,4 +1,5 @@
-import { apiErrorCode, apiErrorMessage, apiValidationMessages } from '~/utils/apiErrors'
+import { apiErrorCode, apiErrorMessage, apiErrorText, apiMissingScopes, apiValidationMessages } from '~/utils/apiErrors'
+import type { Translate } from '~/utils/apiErrors'
 
 // Droit sans lequel un membre ne voit rien de l'application ; l'API l'exige à
 // l'ajout et à la modification d'un membre (required_scopes).
@@ -21,7 +22,8 @@ const KNOWN_MESSAGES: Record<string, string> = {
 // Texte d'une erreur de l'API sur un membre (ajout, invitation, modification,
 // retrait) : les refus connus en clair, sinon le message de l'API, sinon le
 // message par défaut.
-export function accountErrorText(e: unknown, t: (key: string) => string, fallbackKey: string): string {
+export function accountErrorText(e: unknown, t: Translate, fallbackKey: string): string {
+  if (apiMissingScopes(e).length) return apiErrorText(e, t, fallbackKey)
   const validation = apiValidationMessages(e)
   if (validation.length) {
     const texts = validation.map(message => (KNOWN_MESSAGES[message] ? t(KNOWN_MESSAGES[message]) : message))

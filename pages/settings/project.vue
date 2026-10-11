@@ -20,7 +20,7 @@
           </div>
 
           <UButton
-            v-if="!editingProject"
+            v-if="!editingProject && projectsStore.can('project_update')"
             icon="i-lucide-pencil"
             size="sm"
             @click="startEditProject"
@@ -88,8 +88,8 @@
         </div>
       </div>
 
-      <!-- Utilisateurs -->
-      <UCard class="mb-6 shadow-md">
+      <!-- Utilisateurs : la liste demande le droit de gérer les collaborateurs -->
+      <UCard v-if="projectsStore.can('users_manage')" class="mb-6 shadow-md">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.users') }}</h3>
@@ -175,12 +175,12 @@
       <!-- Catégories (labels de tables & flows) -->
       <CategoryManager />
 
-      <!-- Consommateurs API -->
-      <UCard class="shadow-md">
+      <!-- Consommateurs API : les voir, puis les gérer -->
+      <UCard v-if="projectsStore.can('consumers_get')" class="shadow-md">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold">{{ $t('settings.consumers') }}</h3>
-            <UButton size="sm" icon="i-lucide-plus" variant="outline" @click="showAddConsumer = true">
+            <UButton v-if="projectsStore.can('consumers_manage')" size="sm" icon="i-lucide-plus" variant="outline" @click="showAddConsumer = true">
               {{ $t('settings.add') }}
             </UButton>
           </div>
@@ -195,7 +195,7 @@
             </div>
           </template>
           <template #actions-cell="{ row }">
-            <UButton variant="ghost" icon="i-lucide-trash-2" size="sm" color="error" @click="removeConsumer(row.original)" />
+            <UButton v-if="projectsStore.can('consumers_manage')" variant="ghost" icon="i-lucide-trash-2" size="sm" color="error" @click="removeConsumer(row.original)" />
           </template>
         </UTable>
       </UCard>
@@ -228,7 +228,7 @@
 
 <script setup lang="ts">
 import type { Collaborator, CollaboratorStatus, CreatedAccount, ProjectConsumer } from '~/types/project'
-import { apiErrorMessage } from '~/utils/apiErrors'
+import { apiErrorText } from '~/utils/apiErrors'
 import { consumerScopeBadges, userScopeBadges } from '~/utils/scopes'
 // Explicit imports: these live under components/modals/, which Nuxt auto-imports
 // as <ModalsInviteUserModal>/<ModalsAddConsumerModal>. The template uses the
@@ -330,16 +330,21 @@ const consumerColumns = computed(() => [
 
 onMounted(async () => {
   if (!userStore.currentUser) userStore.fetchCurrent().catch(() => null)
-  if (projectsStore.currentUserRole === null) projectsStore.fetchCurrentUserRole()
   loading.value = true
   try {
-    const project = await gandalf.projects.current()
+    // Les droits décident des cartes et des actions affichées
+    const [project] = await Promise.all([gandalf.projects.current(), projectsStore.ensureCurrentUser()])
     applicationId.value = project.data._id
     projectForm.title = project.data.title
     projectForm.description = project.data.description || ''
     projectSettings.value = project.data.settings || {}
     projectForm.showMeta = Boolean(projectSettings.value.show_meta)
-    await Promise.all([loadUsers(), loadConsumers()])
+    // Chaque liste à part : l'échec de l'une n'empêche pas l'autre
+    const lists = await Promise.allSettled([
+      projectsStore.can('users_manage') ? loadUsers() : null,
+      projectsStore.can('consumers_get') ? loadConsumers() : null,
+    ])
+    if (lists.some(list => list.status === 'rejected')) toast.add({ title: t('errors.failedToLoad'), color: 'error' })
   }
   catch {
     toast.add({ title: t('errors.failedToLoad'), color: 'error' })
@@ -492,8 +497,7 @@ async function saveProject() {
     editingProject.value = false
   }
   catch (err: unknown) {
-    const e = err as { data?: { message?: string } }
-    projectError.value = e?.data?.message || t('errors.failedToSave')
+    projectError.value = apiErrorText(err, t, 'errors.failedToSave')
   }
   finally { savingProject.value = false }
 }
@@ -505,7 +509,7 @@ async function removeConsumer(consumer: ProjectConsumer) {
     await loadConsumers()
   }
   catch (err: unknown) {
-    toast.add({ title: apiErrorMessage(err) || t('errors.failedToSave'), color: 'error' })
+    toast.add({ title: apiErrorText(err, t, 'errors.failedToSave'), color: 'error' })
   }
 }
 </script>

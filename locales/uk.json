@@ -390,7 +390,9 @@
     "tableNameLength": "Назва таблиці має містити від {min} до {max} символів.",
     "failedToCreate": "Не вдалося створити таблицю.",
     "failedToLoad": "Не вдалося завантажити дані.",
-    "failedToSave": "Не вдалося зберегти."
+    "failedToSave": "Не вдалося зберегти.",
+    "missingScopes": "Бракує прав у цьому застосунку: {scopes}.",
+    "operationFailed": "Операцію не вдалося виконати."
   },
   "versions": {
     "title": "Версії",
