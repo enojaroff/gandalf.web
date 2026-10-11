@@ -58,6 +58,7 @@ definePageMeta({
 const { t } = useI18n()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
+const userStore = useUserStore()
 const route = useRoute()
 
 const form = reactive({
@@ -95,6 +96,13 @@ async function onSubmit() {
   // still fail (e.g. a 500 from the API), but that is NOT a credentials error,
   // so surface a distinct message instead of "invalid credentials".
   try {
+    // Un mot de passe temporaire se remplace avant tout le reste
+    const user = await userStore.fetchCurrent()
+    if (user?.must_change_password) {
+      await navigateTo('/auth/change-password')
+      return
+    }
+
     await projectsStore.fetchAll()
 
     if (projectsStore.projects.length === 0) {

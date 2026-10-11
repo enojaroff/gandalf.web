@@ -1,6 +1,7 @@
 <!-- Administration des superadmins (gandalf.api, ADMIN.md) : toutes les
-     applications, leurs admins, leur suppression, et le journal des actions des
-     superadmins. L'API reste l'autorité (403 pour un autre utilisateur). -->
+     applications, leurs admins, leur suppression ; tous les comptes ; le journal
+     des actions des superadmins. L'API reste l'autorité (403 pour un autre
+     utilisateur). -->
 <template>
   <div>
     <div v-if="!ready" class="flex justify-center py-12">
@@ -51,6 +52,9 @@
           </template>
         </UTable>
       </UCard>
+
+      <!-- Comptes -->
+      <AccountsTab v-else-if="tab === 'accounts'" @changed="loadApplications" />
 
       <!-- Journal -->
       <UCard v-else>
@@ -106,6 +110,7 @@
 import type { AdminLogEntry } from '~/types/admin'
 import type { Project } from '~/types/project'
 import DeleteApplicationModal from '~/components/admin/DeleteApplicationModal.vue'
+import AccountsTab from '~/components/admin/AccountsTab.vue'
 import { applicationAdmins, logEntryLabel, logStatusColor } from '~/utils/superadmin'
 
 definePageMeta({ middleware: 'auth' })
@@ -117,7 +122,7 @@ const userStore = useUserStore()
 const projectsStore = useProjectsStore()
 
 const ready = ref(false)
-const tab = ref<'applications' | 'log'>('applications')
+const tab = ref<'applications' | 'accounts' | 'log'>('applications')
 const applications = ref<Project[]>([])
 const deleting = ref<Project | null>(null)
 
@@ -131,6 +136,7 @@ const logTotal = ref(0)
 
 const tabItems = computed(() => [
   { label: t('admin.applications'), value: 'applications', icon: 'i-lucide-boxes' },
+  { label: t('admin.accounts'), value: 'accounts', icon: 'i-lucide-users' },
   { label: t('admin.log'), value: 'log', icon: 'i-lucide-scroll-text' },
 ])
 

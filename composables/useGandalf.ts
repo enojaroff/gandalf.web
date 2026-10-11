@@ -1,10 +1,10 @@
 import type { OAuthToken } from '~/types/api'
 import type { DecisionTable } from '~/types/decision-table'
-import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, ConfirmCollaboratorResult } from '~/types/project'
+import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, ConfirmCollaboratorResult, CreatedAccount } from '~/types/project'
 import type { Group } from '~/types/group'
 import type { Flow, FlowRun, FlowResult } from '~/types/flow'
 import type { Category } from '~/types/category'
-import type { AdminLogPage } from '~/types/admin'
+import type { AdminAccountPage, AdminLogPage, PasswordResetResult } from '~/types/admin'
 import type {
   ActivationMeta,
   FlowUpdateResult,
@@ -113,7 +113,13 @@ export function useGandalf() {
       return (typeof result === 'string' ? JSON.parse(result) : result) as T
     }
     catch (error: unknown) {
-      const fetchError = error as { statusCode?: number; data?: { error?: string } }
+      const fetchError = error as { statusCode?: number; data?: { error?: string; meta?: { error?: string } } }
+
+      // Mot de passe temporaire : l'API refuse tout tant qu'il n'est pas changé
+      if (fetchError?.statusCode === 403 && fetchError?.data?.meta?.error === 'password_change_required') {
+        navigateTo('/auth/change-password')
+        throw error
+      }
 
       if (fetchError?.statusCode === 401 && !skipRefreshToken && authStore.refreshToken) {
         try {
@@ -300,6 +306,11 @@ export function useGandalf() {
         method: 'DELETE',
         body: { user_id: userId },
       }),
+
+    // Admin seulement : crée un compte actif dans l'application, avec un mot de
+    // passe temporaire rendu une seule fois (à changer à la première connexion).
+    createAccount: (account: { email: string; username?: string; role: string; scope: string[] }) =>
+      request<{ data: CreatedAccount }>(`${apiBase}/v1/projects/collaborators/account`, { method: 'POST', body: account }),
 
     // Admin-only: permanently delete a user account (blocked by the API if the
     // account still belongs to other projects — 409 with the blocking projects).
@@ -696,6 +707,22 @@ export function useGandalf() {
     // Journal d'administration, le plus récent d'abord
     log: (params: { application_id?: string; user_id?: string; size?: number; page?: number } = {}) =>
       request<AdminLogPage>(`${apiBase}/v1/superadmin/log`, { params }),
+
+    // Tous les comptes, avec leurs applications ; without_application = 1 garde
+    // ceux qu'aucun écran d'application n'atteint
+    users: (params: { search?: string; without_application?: number; size?: number; page?: number } = {}) =>
+      request<AdminAccountPage>(`${apiBase}/v1/superadmin/users`, { params }),
+
+    // Suppression définitive : le compte quitte ses applications
+    deleteUser: (userId: string) =>
+      request<{ data: { _id: string; applications: { _id: string; title: string }[] } }>(
+        `${apiBase}/v1/superadmin/users/${userId}`,
+        { method: 'DELETE' },
+      ),
+
+    // Mot de passe temporaire, rendu une seule fois ; les sessions du compte se ferment
+    resetPassword: (userId: string) =>
+      request<{ data: PasswordResetResult }>(`${apiBase}/v1/superadmin/users/${userId}/password`, { method: 'POST' }),
   }
 
   return { auth, users, projects, categories, tables, flows, groups, history, consumer, superadmin }

@@ -20,6 +20,7 @@ appear in French, with their English meaning.
 - [Changing an account](#changing-an-account)
 - [Removing a member or deleting an account](#removing-a-member-or-deleting-an-account)
 - [Creating and deleting an application](#creating-and-deleting-an-application)
+- [Account administration (superadmin)](#account-administration-superadmin)
 - [Who can do what](#who-can-do-what)
 - [Current limitations](#current-limitations)
 
@@ -62,8 +63,9 @@ What the **admin** role adds:
   account as an admin, changing an admin's rights or removing them from the
   application. A member who may
   manage collaborators manages the other members, but cannot touch an admin;
-- **managing accounts**: confirming an account on the person's behalf,
-  resending or cancelling an invitation, deleting an account;
+- **managing accounts**: creating an account directly, confirming an account
+  on the person's behalf, resending or cancelling an invitation, deleting an
+  account;
 - **copying or moving** tables and flows to another application;
 - **keeping the application running**: it runs decisions only while it has at
   least one admin whose account is active.
@@ -74,6 +76,9 @@ The **superadmin**, reserved to Claims IA:
 - acts in every application as an admin holding every right, even without
   being a member. They do not appear in the user list of those applications;
 - creates applications and names their admins, deletes applications;
+- sees every account, those without an application included, gives them a
+  temporary password or deletes them (see
+  [Account administration](#account-administration-superadmin));
 - every one of their actions is recorded in a log, shown in
   **Administration**, "Journal" tab.
 
@@ -81,8 +86,9 @@ The **superadmin**, reserved to Claims IA:
 
 ## Rights
 
-Rights are ticked by group in the "Inviter" (Invite), "Ajouter un compte"
-(Add an account) and "Modifier le collaborateur" (Edit collaborator) windows.
+Rights are ticked by group in the "Créer un compte" (Create an account),
+"Inviter" (Invite), "Ajouter un compte existant" (Add an existing account) and
+"Modifier le collaborateur" (Edit collaborator) windows.
 Their labels are shown in English on screen. Tables "View" is ticked by
 default, and these windows refuse to save without it.
 
@@ -100,7 +106,7 @@ default, and these windows refuse to save without it.
 | Decision History | Make API call for inactive versions | Running a published version that is not the active one; giving this right to an API key. |
 | API Consumer Credentials | Read | Seeing the application's API keys. |
 | API Consumer Credentials | Manage | Creating, changing and deleting API keys. |
-| Project Collaborators | Manage | Seeing and managing members: inviting, adding an account, changing rights, removing from the application. |
+| Project Collaborators | Manage | Seeing and managing members: inviting, adding an existing account, changing rights, removing from the application. |
 
 Rules that apply whenever rights are given:
 
@@ -132,6 +138,25 @@ contact their application's admin, or Claims IA. The **Actualiser**
 If an invitation was already waiting for that email address, the account
 joins that application automatically on sign-up.
 
+### Creating an account directly
+
+In **Paramètres** (Settings), "Utilisateurs" (Users) card, **Créer un
+compte** (Create an account) button (admin):
+
+1. Enter the person's email address and, if needed, their username (by
+   default, it is taken from the address).
+2. Pick their role, **Member** or **Admin**, and tick their rights.
+3. **Créer le compte** (Create the account).
+
+The account is created active and joins the application at once, with no
+invitation and no email to open. A **temporary password** is shown once, with
+the username: pass them on to the person. It is also emailed to them when
+sending works; the window says whether it was. At their first sign-in, they
+choose their own password (see [Temporary password](#temporary-password)).
+
+An address already used by an account is refused: add that account with
+**Ajouter un compte existant** (Add an existing account).
+
 ### Being invited
 
 In **Paramètres** (Settings), "Utilisateurs" (Users) card, **Inviter**
@@ -148,7 +173,8 @@ The invitation shows in the list with the status **Invité** (Invited). Then:
 - **the person has no account yet**: they sign up with that address and join
   the application. An admin can also click **Confirmer** (Confirm): the
   account is then created and activated, and a **temporary password** is
-  shown, to pass on to the person;
+  shown, to pass on to the person, as for
+  [Creating an account directly](#creating-an-account-directly);
 - **the person already has an account**: an admin clicks **Confirmer** to add
   them to the application.
 
@@ -157,9 +183,11 @@ On an "Invité" row, the envelope icon **resends the invitation** and the cross
 
 ### Adding an existing account
 
-**Ajouter un compte** (Add an account) button: search the account by username
-or email, pick its role and tick its rights, then **Ajouter** (Add). The
-account joins the application at once, without an invitation:
+**Ajouter un compte existant** (Add an existing account) button: it creates no
+account, it attaches an account that already exists to the application.
+Search the account by username or email, pick its role and tick its rights,
+then **Ajouter** (Add). The account joins the application at once, without an
+invitation:
 
 - **Member**: with the ticked rights;
 - **Admin** (offered to admins only): as an admin, with the ticked rights. If
@@ -190,6 +218,15 @@ password is entered.
 The password must be 8 to 32 characters long and contain at least one
 uppercase letter, one lowercase letter and one digit, without spaces.
 
+### Temporary password
+
+An account gets a temporary password when an admin creates or confirms it, or
+when a superadmin gives it one. Signing in with that password opens the
+**Choisissez votre mot de passe** (Choose your password) page: enter the
+temporary password, then the new one twice. Until then, no other page can be
+opened, and the API refuses any other request from the account. The **Se
+déconnecter** (Sign out) link lets the person come back later.
+
 ---
 
 ## Changing an account
@@ -207,7 +244,9 @@ Account menu (top right) > **Modifier le profil** (Edit profile):
 The **Préférences** (Preferences) card (flow editor navigation mode) is saved
 without a password.
 
-To change your password, use **Mot de passe oublié ?** on the sign-in page.
+The **Changer le mot de passe** (Change the password) card asks for the
+current password, then the new one twice. Without the current password, use
+**Mot de passe oublié ?** on the sign-in page.
 
 ### A member's rights
 
@@ -232,9 +271,14 @@ Both actions are in **Modifier le collaborateur**.
 Deleting an account is refused:
 
 - while it is still a member of another application: remove it from the
-  listed applications first;
+  listed applications first (a superadmin can also delete it from all of them
+  at once);
 - for your own account;
 - for a superadmin's account.
+
+An account removed from all its applications no longer shows in any user
+list: only a superadmin finds it, in **Administration**, "Comptes" (Accounts)
+tab.
 
 ---
 
@@ -256,13 +300,40 @@ flags it with the "Aucun admin" (No admin) badge.
 
 ---
 
+## Account administration (superadmin)
+
+**Administration**, "Comptes" (Accounts) tab: every account, with its
+applications ("admin" where it is one) and its status: **Actif** (Active),
+**En attente** (Pending: address not verified), **Mot de passe temporaire**
+(Temporary password), **Superadmin**. The search looks at the username and the
+email address; **Sans application** (Without an application) keeps the
+accounts that belong to no application, which no other screen reaches.
+
+On every account except your own and superadmins':
+
+- **Donner un mot de passe temporaire** (Give a temporary password, key icon):
+  for a person who lost their password when the **Mot de passe oublié ?**
+  email does not go out. The old password stops working, the account's open
+  sessions are closed, and a pending account is activated. The temporary
+  password is shown once, to pass on to the person;
+- **Supprimer le compte** (Delete the account, bin icon): **permanent**
+  deletion. The account leaves all its applications and its pending
+  invitations are cancelled. To confirm, type its email address. The window
+  flags the applications it is admin of: check another admin remains.
+
+These actions are recorded in the log ("Journal" tab), which never holds a
+password.
+
+---
+
 ## Who can do what
 
 | Action | Who |
 | ------ | --- |
 | Sign up | Anyone |
-| Change your profile | Yourself |
+| Change your profile, change your password | Yourself |
 | See an application's members | "Manage" collaborators right |
+| Create an account directly | Admin, with the "Manage" collaborators right |
 | Invite a member | "Manage" collaborators right |
 | Invite an admin | Admin, with the "Manage" collaborators right |
 | Add an existing account as a member | "Manage" collaborators right |
@@ -274,6 +345,9 @@ flags it with the "Aucun admin" (No admin) badge.
 | Remove an admin from the application | Admin, with the "Manage" collaborators right |
 | Delete an account | Admin, with the "Manage" collaborators right |
 | Create or delete an application | Superadmin |
+| See every account, those without an application included | Superadmin |
+| Give an account a temporary password | Superadmin, never for their own nor a superadmin's |
+| Delete an account from all its applications at once | Superadmin, never their own nor a superadmin's |
 | Appoint or remove a superadmin | Claims IA, on the server |
 
 In every case, nobody gives more rights than they hold.
@@ -288,12 +362,9 @@ Known points, awaiting a fix:
   verification, it is immediate. Otherwise the new address waits for a
   confirmation, but no confirmation email is sent: the old address stays the
   account's.
-- **Password**: it cannot be changed from the profile; use **Mot de passe
-  oublié ?**. The temporary password given when an invitation is confirmed
-  does not have to be changed, despite what the message says.
 - **Admin role**: an existing member cannot be made admin directly. Remove
-  them from the application, then add them again with **Ajouter un compte**
-  and the Admin role.
+  them from the application, then add them again with **Ajouter un compte
+  existant** and the Admin role.
 - **Verification email**: it cannot be resent. An admin can activate the
   account with **Confirmer**.
 - **Settings page**: a member without the "Manage" collaborators right sees an
