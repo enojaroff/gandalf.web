@@ -375,7 +375,7 @@
       "inviteFailed": "L'application est créée, mais l'invitation de son admin a échoué : invitez-le depuis ses paramètres."
     },
     "you": "Vous",
-    "viewRequired": "Cochez au moins le droit « View » des tables (Decision Tables) : sans lui, le membre ne voit rien de l'application.",
+    "viewRequired": "Cochez au moins le droit « Voir » des tables de décision : sans lui, le membre ne voit rien de l'application.",
     "adminRoleRefused": "Le rôle admin ne peut pas être donné de cette façon.",
     "adminPartial": "Le compte a été ajouté comme membre, mais n'a pas pu être nommé admin : {reason}",
     "createAccount": "Créer un compte",
@@ -388,7 +388,8 @@
     "tempPasswordNotEmailed": "Aucun e-mail n'a été envoyé : transmettez-le vous-même.",
     "accountExists": "Un compte utilise déjà cette adresse : ajoutez-le avec « Ajouter un compte existant ».",
     "usernameTaken": "Ce nom d'utilisateur est déjà pris.",
-    "usernameInvalid": "Nom d'utilisateur invalide : 2 à 32 caractères parmi lettres, chiffres, point, tiret et tiret bas."
+    "usernameInvalid": "Nom d'utilisateur invalide : 2 à 32 caractères parmi lettres, chiffres, point, tiret et tiret bas.",
+    "consumerDescriptionPlaceholder": "ex. : application mobile, service interne"
   },
   "common": {
     "clearFilters": "Effacer les filtres",
@@ -588,5 +589,34 @@
     "logAccountDeleted": "Compte supprimé : {email}",
     "logPasswordReset": "Mot de passe temporaire donné : {email}",
     "logAccountCreated": "Compte créé : {email}"
+  },
+  "scopes": {
+    "groups": {
+      "project": "Application",
+      "tables": "Tables de décision",
+      "decisions": "Historique des décisions",
+      "consumers": "Consommateurs API",
+      "users": "Collaborateurs"
+    },
+    "user": {
+      "project_update": "Modifier les paramètres",
+      "tables_create": "Créer",
+      "tables_view": "Voir",
+      "tables_update": "Modifier",
+      "tables_delete": "Supprimer",
+      "tables_publish": "Publier",
+      "tables_activate": "Activer",
+      "decisions_view": "Voir",
+      "decisions_make": "Exécuter",
+      "decisions_make_inactive": "Exécuter une version inactive (appel API)",
+      "consumers_manage": "Gérer",
+      "consumers_get": "Voir",
+      "users_manage": "Gérer"
+    },
+    "consumer": {
+      "decisions_view": "Consulter les décisions",
+      "decisions_make": "Exécuter des décisions",
+      "decisions_make_inactive": "Exécuter une version inactive"
+    }
   }
 }

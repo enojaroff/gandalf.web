@@ -341,7 +341,7 @@
       "inviteFailed": "L'applicazione è creata, ma l'invito del suo admin non è riuscito: invitatelo dalle sue impostazioni."
     },
     "you": "Lei",
-    "viewRequired": "Selezionate almeno il permesso «View» delle tabelle (Decision Tables): senza di esso il membro non vede nulla dell'applicazione.",
+    "viewRequired": "Selezionate almeno il permesso «Vedere» delle tabelle decisionali: senza di esso il membro non vede nulla dell'applicazione.",
     "adminRoleRefused": "Il ruolo admin non può essere assegnato in questo modo.",
     "adminPartial": "L'account è stato aggiunto come membro, ma non è stato possibile nominarlo admin: {reason}",
     "createAccount": "Crea un account",
@@ -356,7 +356,8 @@
     "addExistingUser": "Aggiungi un account esistente",
     "accountExists": "Un account usa già questo indirizzo: aggiungetelo con «Aggiungi un account esistente».",
     "usernameTaken": "Questo nome utente è già in uso.",
-    "usernameInvalid": "Nome utente non valido: da 2 a 32 caratteri tra lettere, cifre, punto, trattino e trattino basso."
+    "usernameInvalid": "Nome utente non valido: da 2 a 32 caratteri tra lettere, cifre, punto, trattino e trattino basso.",
+    "consumerDescriptionPlaceholder": "es.: app mobile, servizio interno"
   },
   "common": {
     "clearFilters": "Cancella i filtri",
@@ -556,5 +557,34 @@
     "logAccountDeleted": "Account eliminato: {email}",
     "logPasswordReset": "Password temporanea assegnata: {email}",
     "logAccountCreated": "Account creato: {email}"
+  },
+  "scopes": {
+    "groups": {
+      "project": "Applicazione",
+      "tables": "Tabelle decisionali",
+      "decisions": "Cronologia delle decisioni",
+      "consumers": "Consumatori API",
+      "users": "Collaboratori"
+    },
+    "user": {
+      "project_update": "Modificare le impostazioni",
+      "tables_create": "Creare",
+      "tables_view": "Vedere",
+      "tables_update": "Modificare",
+      "tables_delete": "Eliminare",
+      "tables_publish": "Pubblicare",
+      "tables_activate": "Attivare",
+      "decisions_view": "Vedere",
+      "decisions_make": "Eseguire",
+      "decisions_make_inactive": "Eseguire una versione inattiva (chiamata API)",
+      "consumers_manage": "Gestire",
+      "consumers_get": "Vedere",
+      "users_manage": "Gestire"
+    },
+    "consumer": {
+      "decisions_view": "Consultare le decisioni",
+      "decisions_make": "Eseguire decisioni",
+      "decisions_make_inactive": "Eseguire una versione inattiva"
+    }
   }
 }

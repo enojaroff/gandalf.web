@@ -88,25 +88,25 @@ The **superadmin**, reserved to Claims IA:
 
 Rights are ticked by group in the "Créer un compte" (Create an account),
 "Inviter" (Invite), "Ajouter un compte existant" (Add an existing account) and
-"Modifier le collaborateur" (Edit collaborator) windows.
-Their labels are shown in English on screen. Tables "View" is ticked by
-default, and these windows refuse to save without it.
+"Modifier le collaborateur" (Edit collaborator) windows; the table quotes
+them as they appear. Decision tables "Voir" (View) is ticked by default, and
+these windows refuse to save without it.
 
 | Group on screen | Right on screen | Allows |
 | --------------- | --------------- | ------ |
-| Project | Change Settings | Changing the application's name, description and settings, managing its categories, exporting its data. |
-| Decision Tables | View | Seeing tables, flows, their versions, revisions and statistics. **Essential**: without it, the member sees nothing of the application. |
-| Decision Tables | Create | Creating, copying and importing tables and flows; copying them to another application (admin only). |
-| Decision Tables | Update | Changing tables and flows, creating and editing drafts, testing a draft, rolling back to a revision. |
-| Decision Tables | Delete | Deleting tables and flows; with "Create", moving them to another application (admin only). |
-| Decision Tables | Publish | Publishing a draft (it becomes a numbered version); deleting a published version. |
-| Decision Tables | Activate | Putting a version in production (activating it); changing the variant split of a published version. |
-| Decision History | View | Browsing the decision history and a decision's details. |
-| Decision History | Make | Running decisions, testing a published version, annotating a decision. |
-| Decision History | Make API call for inactive versions | Running a published version that is not the active one; giving this right to an API key. |
-| API Consumer Credentials | Read | Seeing the application's API keys. |
-| API Consumer Credentials | Manage | Creating, changing and deleting API keys. |
-| Project Collaborators | Manage | Seeing and managing members: inviting, adding an existing account, changing rights, removing from the application. |
+| Application (Project) | Modifier les paramètres (Change Settings) | Changing the application's name, description and settings, managing its categories, exporting its data. |
+| Tables de décision (Decision Tables) | Voir (View) | Seeing tables, flows, their versions, revisions and statistics. **Essential**: without it, the member sees nothing of the application. |
+| Tables de décision (Decision Tables) | Créer (Create) | Creating, copying and importing tables and flows; copying them to another application (admin only). |
+| Tables de décision (Decision Tables) | Modifier (Update) | Changing tables and flows, creating and editing drafts, testing a draft, rolling back to a revision. |
+| Tables de décision (Decision Tables) | Supprimer (Delete) | Deleting tables and flows; with "Créer", moving them to another application (admin only). |
+| Tables de décision (Decision Tables) | Publier (Publish) | Publishing a draft (it becomes a numbered version); deleting a published version. |
+| Tables de décision (Decision Tables) | Activer (Activate) | Putting a version in production (activating it); changing the variant split of a published version. |
+| Historique des décisions (Decision History) | Voir (View) | Browsing the decision history and a decision's details. |
+| Historique des décisions (Decision History) | Exécuter (Make) | Running decisions, testing a published version, annotating a decision. |
+| Historique des décisions (Decision History) | Exécuter une version inactive (appel API) (Make API call for inactive versions) | Running a published version that is not the active one; giving this right to an API key. |
+| Consommateurs API (API Consumer Credentials) | Voir (Read) | Seeing the application's API keys. |
+| Consommateurs API (API Consumer Credentials) | Gérer (Manage) | Creating, changing and deleting API keys. |
+| Collaborateurs (Project Collaborators) | Gérer (Manage) | Seeing and managing members: inviting, adding an existing account, changing rights, removing from the application. |
 
 Rules that apply whenever rights are given:
 
@@ -116,7 +116,7 @@ Rules that apply whenever rights are given:
 - **only an admin changes or removes an admin.**
 
 An admin gets their rights like any member: those ticked in their invitation.
-For instance, a client-side admin can manage their team without "Activate":
+For instance, a client-side admin can manage their team without "Activer":
 they never put anything in production themselves.
 
 ---
@@ -160,12 +160,12 @@ An address already used by an account is refused: add that account with
 ### Being invited
 
 In **Paramètres** (Settings), "Utilisateurs" (Users) card, **Inviter**
-(Invite) button ("Manage" collaborators right):
+(Invite) button ("Gérer" collaborators right):
 
 1. Enter the person's email address.
 2. Pick the role: **Member** or **Admin** (inviting an admin is reserved to
    admins).
-3. Tick their rights (tables "View" is already ticked, and required).
+3. Tick their rights (tables "Voir" is already ticked, and required).
 4. **Envoyer une invitation** (Send an invitation).
 
 The invitation shows in the list with the status **Invité** (Invited). Then:
@@ -265,8 +265,8 @@ Both actions are in **Modifier le collaborateur**.
 
 | Action | Effect | Who |
 | ------ | ------ | --- |
-| **Retirer de l'application** (Remove from the application) | The account leaves this application. It still exists and keeps its other applications. | "Manage" collaborators right; admin to remove an admin. |
-| **Supprimer le compte** (Delete the account) | **Permanent** deletion of the account. To confirm, type its email address. | Admin, with the "Manage" collaborators right. |
+| **Retirer de l'application** (Remove from the application) | The account leaves this application. It still exists and keeps its other applications. | "Gérer" collaborators right; admin to remove an admin. |
+| **Supprimer le compte** (Delete the account) | **Permanent** deletion of the account. To confirm, type its email address. | Admin, with the "Gérer" collaborators right. |
 
 Deleting an account is refused:
 
@@ -332,18 +332,18 @@ password.
 | ------ | --- |
 | Sign up | Anyone |
 | Change your profile, change your password | Yourself |
-| See an application's members | "Manage" collaborators right |
-| Create an account directly | Admin, with the "Manage" collaborators right |
-| Invite a member | "Manage" collaborators right |
-| Invite an admin | Admin, with the "Manage" collaborators right |
-| Add an existing account as a member | "Manage" collaborators right |
-| Add an existing account as an admin | Admin, with the "Manage" collaborators right |
-| Confirm an account, resend or cancel an invitation | Admin, with the "Manage" collaborators right |
-| Change a member's rights | "Manage" collaborators right, never your own |
-| Change an admin's rights | Admin, with the "Manage" collaborators right |
-| Remove a member from the application | "Manage" collaborators right, never yourself |
-| Remove an admin from the application | Admin, with the "Manage" collaborators right |
-| Delete an account | Admin, with the "Manage" collaborators right |
+| See an application's members | "Gérer" collaborators right |
+| Create an account directly | Admin, with the "Gérer" collaborators right |
+| Invite a member | "Gérer" collaborators right |
+| Invite an admin | Admin, with the "Gérer" collaborators right |
+| Add an existing account as a member | "Gérer" collaborators right |
+| Add an existing account as an admin | Admin, with the "Gérer" collaborators right |
+| Confirm an account, resend or cancel an invitation | Admin, with the "Gérer" collaborators right |
+| Change a member's rights | "Gérer" collaborators right, never your own |
+| Change an admin's rights | Admin, with the "Gérer" collaborators right |
+| Remove a member from the application | "Gérer" collaborators right, never yourself |
+| Remove an admin from the application | Admin, with the "Gérer" collaborators right |
+| Delete an account | Admin, with the "Gérer" collaborators right |
 | Create or delete an application | Superadmin |
 | See every account, those without an application included | Superadmin |
 | Give an account a temporary password | Superadmin, never for their own nor a superadmin's |
@@ -367,7 +367,7 @@ Known points, awaiting a fix:
   existant** and the Admin role.
 - **Verification email**: it cannot be resent. An admin can activate the
   account with **Confirmer**.
-- **Settings page**: a member without the "Manage" collaborators right sees an
+- **Settings page**: a member without the "Gérer" collaborators right sees an
   error message on loading and an empty user list.
-- **Language**: rights labels, the account activation page and the new
-  password page are in English.
+- **Language**: the account activation page and the new password page (link
+  of **Mot de passe oublié ?**) are in English.

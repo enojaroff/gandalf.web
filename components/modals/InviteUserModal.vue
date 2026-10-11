@@ -23,8 +23,8 @@
 
         <UFormField :label="$t('settings.scopes')">
           <div class="space-y-3 mt-1">
-            <div v-for="group in PROJECT_USER_SCOPE_GROUPS" :key="group.title">
-              <p class="text-xs font-semibold uppercase text-muted mb-1">{{ group.title }}</p>
+            <div v-for="group in PROJECT_USER_SCOPE_GROUPS" :key="group.id">
+              <p class="text-xs font-semibold uppercase text-muted mb-1">{{ $t(scopeGroupTitleKey(group)) }}</p>
               <div class="flex flex-wrap gap-x-4 gap-y-1">
                 <label
                   v-for="item in group.scopes"
@@ -36,7 +36,7 @@
                     :disabled="loading"
                     @update:model-value="toggleScope(item.key, $event)"
                   />
-                  <span>{{ item.label }}</span>
+                  <span>{{ $t(userScopeLabelKey(item.key)) }}</span>
                 </label>
               </div>
             </div>
@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { PROJECT_USER_SCOPE_GROUPS } from '~/utils/scopes'
+import { PROJECT_USER_SCOPE_GROUPS, scopeGroupTitleKey, userScopeLabelKey } from '~/utils/scopes'
 import { REQUIRED_MEMBER_SCOPE, accountErrorText } from '~/utils/accountErrors'
 
 const emit = defineEmits<{ close: []; saved: [] }>()
