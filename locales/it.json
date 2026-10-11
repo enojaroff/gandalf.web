@@ -603,5 +603,9 @@
       "consumers_get": "Chiavi API: vedere",
       "users_manage": "Membri: gestire"
     }
+  },
+  "rights": {
+    "readOnlySave": "Sola lettura: vi manca il permesso «{right}» per salvare.",
+    "readOnlyCreate": "Vi manca il permesso «{right}» per creare."
   }
 }

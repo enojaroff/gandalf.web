@@ -120,10 +120,20 @@ In **Paramètres** (Settings):
   Voir" (view), and creating or deleting a key "Consommateurs API : Gérer"
   (manage).
 
-Likewise, **Importer** (Import) a table needs decision tables "Créer" (create)
-or "Modifier" (update). If the API still refuses an action for lack of a
-right, the message names the missing rights, for instance "Droits manquants
-dans cette application : Tables : créer" (Missing rights in this application).
+In **Tables** and **Flows**:
+
+- **Nouvelle table** (New table), **Nouveau flow** (New flow) and
+  **Importer** (Import) a new table need decision tables "Créer" (create);
+- changing a table or a flow (title, description, configuration, variants,
+  rules, graph) and restoring a revision need decision tables "Modifier"
+  (update). Without it, the editor opens read only, with a notice saying so;
+- **Supprimer** (Delete) needs decision tables "Supprimer" (delete);
+- **Copier vers** (Copy to) another application is reserved to admins with
+  "Créer", **Déplacer vers** (Move to) to those who also have "Supprimer".
+
+If the API still refuses an action for lack of a right, the message names the
+missing rights, for instance "Droits manquants dans cette application :
+Tables : créer" (Missing rights in this application).
 
 Rules that apply whenever rights are given:
 

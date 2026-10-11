@@ -19,6 +19,7 @@
             <template v-if="!editingTitle">
               <h1 class="text-2xl font-bold">{{ table.title }}</h1>
               <UButton
+                v-if="canUpdate"
                 icon="i-lucide-pencil"
                 variant="ghost"
                 size="xs"
@@ -38,6 +39,7 @@
             <template v-if="!editingDescription">
               <p class="text-muted">{{ table.description || '—' }}</p>
               <UButton
+                v-if="canUpdate"
                 icon="i-lucide-pencil"
                 variant="ghost"
                 size="xs"
@@ -56,20 +58,21 @@
         <div class="flex items-center gap-2">
           <DecisionTableExcelExportImport :table-id="tableId" @imported="onImported" />
           <UButton
-            v-if="isAdmin && table"
+            v-if="projectsStore.canCopyTo && table"
             icon="i-lucide-copy"
             variant="ghost"
             title="Copier vers un autre projet"
             @click="() => { if (table) copyMove = { mode: 'copy', item: table } }"
           />
           <UButton
-            v-if="isAdmin && table"
+            v-if="projectsStore.canMoveTo && table"
             icon="i-lucide-corner-up-right"
             variant="ghost"
             title="Déplacer vers un autre projet"
             @click="() => { if (table) copyMove = { mode: 'move', item: table } }"
           />
           <UButton
+            v-if="projectsStore.can('tables_delete')"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -88,6 +91,7 @@
               <h3 class="font-semibold">{{ $t('tables.configuration') }}</h3>
               <template v-if="!editingTypes">
                 <UButton
+                  v-if="canUpdate"
                   icon="i-lucide-pencil"
                   variant="ghost"
                   size="xs"
@@ -248,6 +252,7 @@
                   :title="$t('tables.exportExcel')"
                   @click="excel.exportExcel(tableId, variant._id)"
                 />
+                <template v-if="canUpdate">
                 <UButton
                   icon="i-lucide-copy-plus"
                   variant="ghost"
@@ -273,6 +278,7 @@
                   :title="table.variants.length < 2 ? $t('tables.variantLastOne') : $t('tables.variantDelete')"
                   @click="openVariantAction('delete', variant)"
                 />
+                </template>
               </span>
             </li>
           </ul>
@@ -350,7 +356,8 @@ const draftCount = computed(() => versions.value.filter(v => v.status === 'draft
 const typesLocked = computed(() => versions.value.some(v => v.status === 'published'))
 
 // Copier/déplacer vers un autre projet — admin uniquement.
-const isAdmin = computed(() => projectsStore.isAdmin)
+// Modifier la table (titre, description, configuration, variantes) demande tables_update
+const canUpdate = computed(() => projectsStore.can('tables_update'))
 const copyMove = ref<{ mode: 'copy' | 'move'; item: DecisionTable } | null>(null)
 
 function onCopyMoveSaved() {
@@ -378,6 +385,8 @@ let matchingTypeSnapshot: MatchingType = 'first'
 let decisionTypeSnapshot: DecisionType = 'alpha_num'
 
 onMounted(async () => {
+  // Rôle et droits : les actions proposées en dépendent
+  projectsStore.ensureCurrentUser()
   try {
     const [tableResponse, categoriesResponse, versionsResponse] = await Promise.all([
       gandalf.tables.getById(tableId),
@@ -390,10 +399,6 @@ onMounted(async () => {
   }
   finally {
     loading.value = false
-  }
-  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
-  if (projectsStore.currentUserRole === null) {
-    projectsStore.fetchCurrentUserRole()
   }
 })
 

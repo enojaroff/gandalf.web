@@ -115,10 +115,21 @@ cours. Dans **Paramètres** :
 - la carte « Consommateurs API » demande « Consommateurs API : Voir », et
   créer ou supprimer une clé « Consommateurs API : Gérer ».
 
-De même, **Importer** une table demande « Créer » ou « Modifier » des tables
-de décision. Si l'API refuse malgré tout une action faute de droit, le message
-nomme les droits manquants, par exemple « Droits manquants dans cette
-application : Tables : créer ».
+Dans **Tables** et **Flows** :
+
+- **Nouvelle table**, **Nouveau flow** et **Importer** une nouvelle table
+  demandent « Tables de décision : Créer » ;
+- modifier une table ou un flow (titre, description, configuration,
+  variantes, règles, graphe) et restaurer une révision demandent
+  « Tables de décision : Modifier ». Sans ce droit, l'éditeur s'ouvre en
+  lecture seule, avec un bandeau qui le signale ;
+- **Supprimer** demande « Tables de décision : Supprimer » ;
+- **Copier vers** une autre application est réservé aux admins qui ont
+  « Créer », **Déplacer vers** à ceux qui ont aussi « Supprimer ».
+
+Si l'API refuse malgré tout une action faute de droit, le message nomme les
+droits manquants, par exemple « Droits manquants dans cette application :
+Tables : créer ».
 
 Règles qui s'appliquent à toute attribution de droits :
 
