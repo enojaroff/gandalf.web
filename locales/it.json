@@ -585,6 +585,21 @@
       "decisions_view": "Consultare le decisioni",
       "decisions_make": "Eseguire decisioni",
       "decisions_make_inactive": "Eseguire una versione inattiva"
+    },
+    "badge": {
+      "project_update": "Impostazioni: modificare",
+      "tables_create": "Tabelle: creare",
+      "tables_view": "Tabelle: vedere",
+      "tables_update": "Tabelle: modificare",
+      "tables_delete": "Tabelle: eliminare",
+      "tables_publish": "Tabelle: pubblicare",
+      "tables_activate": "Tabelle: attivare",
+      "decisions_view": "Decisioni: vedere",
+      "decisions_make": "Decisioni: eseguire",
+      "decisions_make_inactive": "Versioni inattive: eseguire",
+      "consumers_manage": "Chiavi API: gestire",
+      "consumers_get": "Chiavi API: vedere",
+      "users_manage": "Membri: gestire"
     }
   }
 }

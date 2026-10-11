@@ -120,7 +120,9 @@
           </template>
           <template #scope-cell="{ row }">
             <div class="flex flex-wrap gap-1">
-              <UBadge v-for="s in row.original.scope" :key="s" size="xs" variant="soft">{{ s }}</UBadge>
+              <UBadge v-for="badge in userScopeBadges(row.original.scope)" :key="badge.key" size="xs" variant="soft" :title="badge.key">
+                {{ badge.labelKey ? $t(badge.labelKey) : badge.key }}
+              </UBadge>
             </div>
           </template>
           <template #actions-cell="{ row }">
@@ -187,7 +189,9 @@
         <UTable v-else :data="consumers" :columns="consumerColumns">
           <template #scope-cell="{ row }">
             <div class="flex flex-wrap gap-1">
-              <UBadge v-for="s in row.original.scope" :key="s" size="xs" variant="soft">{{ s }}</UBadge>
+              <UBadge v-for="badge in consumerScopeBadges(row.original.scope)" :key="badge.key" size="xs" variant="soft" :title="badge.key">
+                {{ badge.labelKey ? $t(badge.labelKey) : badge.key }}
+              </UBadge>
             </div>
           </template>
           <template #actions-cell="{ row }">
@@ -225,6 +229,7 @@
 <script setup lang="ts">
 import type { Collaborator, CollaboratorStatus, CreatedAccount, ProjectConsumer } from '~/types/project'
 import { apiErrorMessage } from '~/utils/apiErrors'
+import { consumerScopeBadges, userScopeBadges } from '~/utils/scopes'
 // Explicit imports: these live under components/modals/, which Nuxt auto-imports
 // as <ModalsInviteUserModal>/<ModalsAddConsumerModal>. The template uses the
 // unprefixed names, so import them here to resolve them reliably.

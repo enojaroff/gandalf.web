@@ -585,6 +585,21 @@
       "decisions_view": "Переглядати рішення",
       "decisions_make": "Виконувати рішення",
       "decisions_make_inactive": "Виконувати неактивну версію"
+    },
+    "badge": {
+      "project_update": "Налаштування: змінювати",
+      "tables_create": "Таблиці: створювати",
+      "tables_view": "Таблиці: переглядати",
+      "tables_update": "Таблиці: редагувати",
+      "tables_delete": "Таблиці: видаляти",
+      "tables_publish": "Таблиці: публікувати",
+      "tables_activate": "Таблиці: активувати",
+      "decisions_view": "Рішення: переглядати",
+      "decisions_make": "Рішення: виконувати",
+      "decisions_make_inactive": "Неактивні версії: виконувати",
+      "consumers_manage": "Ключі API: керувати",
+      "consumers_get": "Ключі API: переглядати",
+      "users_manage": "Учасники: керувати"
     }
   }
 }
