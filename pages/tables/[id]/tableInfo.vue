@@ -253,6 +253,7 @@
                   variant="ghost"
                   size="xs"
                   :title="$t('tables.variantCopy')"
+                  :disabled="saving"
                   @click="openVariantAction('copy', variant)"
                 />
                 <UButton
@@ -260,6 +261,7 @@
                   variant="ghost"
                   size="xs"
                   :title="$t('tables.variantEdit')"
+                  :disabled="saving"
                   @click="openVariantAction('edit', variant)"
                 />
                 <UButton
@@ -267,7 +269,7 @@
                   color="error"
                   variant="ghost"
                   size="xs"
-                  :disabled="table.variants.length < 2"
+                  :disabled="saving || table.variants.length < 2"
                   :title="table.variants.length < 2 ? $t('tables.variantLastOne') : $t('tables.variantDelete')"
                   @click="openVariantAction('delete', variant)"
                 />
@@ -319,7 +321,7 @@ import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
 import VariantModal from '~/components/modals/VariantModal.vue'
 import { copyVariant, removeVariant } from '~/utils/tableVariants'
-import type { NewVariant, VariantInfo } from '~/utils/tableVariants'
+import type { VariantInfo, VariantMode } from '~/utils/tableVariants'
 import type { ImportResponse } from '~/composables/useGandalf'
 import type { TableVersion, TableVersionSummary } from '~/types/version'
 import { defaultDraftName, versionNumberLabel } from '~/utils/versions'
@@ -468,28 +470,6 @@ watch(editingTypes, (val) => {
   }
 })
 
-// Table à enregistrer : ses variantes peuvent compter une variante nouvelle, sans _id.
-type TableDraft = Omit<DecisionTable, 'variants'> & { variants: (DecisionVariant | NewVariant)[] }
-
-// Enregistre la table entière (l'API remplace champs et variantes) et renvoie
-// la version enregistrée.
-async function saveTable(next: TableDraft): Promise<DecisionTable> {
-  const payload = {
-    ...next,
-    fields: next.fields
-      .filter(f => !f.isDeleted)
-      .map(({ isDeleted: _d, ...f }) => f),
-    variants: next.variants.map(v => ({
-      ...v,
-      rules: v.rules
-        .filter(r => !r.isDeleted)
-        .map(({ isDeleted: _d, ...r }) => r),
-    })),
-  }
-  const response = await gandalf.tables.update(tableId, payload as never)
-  return response.data
-}
-
 // Seule l'identité est modifiée ici (titre, description, types, catégorie). Le
 // contenu repart de la table enregistrée, relue juste avant : un onglet ouvert
 // depuis longtemps ne renvoie pas un ancien contenu, que le mode de
@@ -498,9 +478,10 @@ async function saveTableInfo() {
   if (!table.value) return
   saving.value = true
   try {
+    // L'API remplace champs et variantes : ils repartent tels qu'elle les a renvoyés.
     const stored = (await gandalf.tables.getById(tableId)).data
     const { title, description, matching_type, decision_type, category_id } = table.value
-    table.value = await saveTable({ ...stored, title, description, matching_type, decision_type, category_id })
+    table.value = (await gandalf.tables.update(tableId, { ...stored, title, description, matching_type, decision_type, category_id })).data
     editingTitle.value = false
     editingDescription.value = false
     editingTypes.value = false
@@ -510,7 +491,7 @@ async function saveTableInfo() {
 
 // ── Variantes : dupliquer, modifier, supprimer ──────────────────────────────
 const toast = useToast()
-const variantAction = ref<{ mode: 'copy' | 'edit' | 'delete'; variant: DecisionVariant } | null>(null)
+const variantAction = ref<{ mode: VariantMode; variant: DecisionVariant } | null>(null)
 
 const VARIANT_SAVED_TOASTS = {
   copy: 'tables.variantCreated',
@@ -518,11 +499,10 @@ const VARIANT_SAVED_TOASTS = {
   delete: 'tables.variantDeleted',
 } as const
 
-function openVariantAction(mode: 'copy' | 'edit' | 'delete', variant: DecisionVariant) {
-  // La table part entière : une édition en ligne non validée ne doit pas partir avec.
-  if (editingTitle.value) cancelEdit('title')
-  if (editingDescription.value) cancelEdit('description')
-  if (editingTypes.value) cancelEdit('types')
+// L'action écrit dans un brouillon, pas dans la table : une édition en ligne
+// en cours (titre, description, types) n'est ni envoyée ni perdue.
+function openVariantAction(mode: VariantMode, variant: DecisionVariant) {
+  if (saving.value) return
   variantAction.value = { mode, variant }
 }
 
@@ -555,7 +535,7 @@ async function applyVariantAction(info: VariantInfo) {
     ? [...draft.variants, copyVariant(inDraft ?? variant, info)]
     : mode === 'edit'
       ? draft.variants.map(v => (v._id === variant._id ? { ...v, ...info } : v))
-      : removeVariant(draft.variants, variant._id)
+      : removeVariant(draft.variants, variant._id, draft.variants_probability)
   let saved: TableVersion
   try {
     // Le contenu part entier : champs et répartition tels que le brouillon les a.

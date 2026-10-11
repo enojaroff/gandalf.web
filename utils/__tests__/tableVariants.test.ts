@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DecisionVariant } from '~/types/decision-table'
-import { copyVariant, removeVariant } from '~/utils/tableVariants'
+import { characterCount, copyVariant, removeVariant } from '~/utils/tableVariants'
 
 const variant = (id: string, probability: number, extra: Partial<DecisionVariant> = {}): DecisionVariant => ({
   _id: id,
@@ -62,20 +62,37 @@ describe('copyVariant', () => {
 })
 
 describe('removeVariant', () => {
-  it('reporte la probabilité retirée sur la première variante restante', () => {
-    const result = removeVariant([variant('a', 50), variant('b', 30), variant('c', 20)], 'b')
+  it('en mode percent, reporte la probabilité retirée sur la première variante restante', () => {
+    const result = removeVariant([variant('a', 50), variant('b', 30), variant('c', 20)], 'b', 'percent')
     expect(result.map(v => [v._id, v.probability])).toEqual([['a', 80], ['c', 20]])
   })
 
-  it('reporte sur la suivante quand on retire la première', () => {
-    const result = removeVariant([variant('a', 50), variant('b', 50)], 'a')
+  it('en mode percent, reporte sur la suivante quand on retire la première', () => {
+    const result = removeVariant([variant('a', 50), variant('b', 50)], 'a', 'percent')
     expect(result.map(v => [v._id, v.probability])).toEqual([['b', 100]])
+  })
+
+  it('hors mode percent, ne reporte rien : une probabilité reste entre 0 et 100', () => {
+    for (const mode of ['random', 'first', undefined, null]) {
+      const result = removeVariant([variant('a', 60), variant('b', 60)], 'b', mode)
+      expect(result.map(v => [v._id, v.probability])).toEqual([['a', 60]])
+    }
   })
 
   it('garde la dernière variante et ignore un id inconnu', () => {
     const one = [variant('a', 100)]
-    expect(removeVariant(one, 'a')).toBe(one)
+    expect(removeVariant(one, 'a', 'percent')).toBe(one)
     const two = [variant('a', 50), variant('b', 50)]
-    expect(removeVariant(two, 'z')).toBe(two)
+    expect(removeVariant(two, 'z', 'percent')).toBe(two)
+  })
+})
+
+describe('characterCount', () => {
+  it('compte les points de code, comme mb_strlen côté API', () => {
+    expect(characterCount('Standard')).toBe(8)
+    expect(characterCount('😀')).toBe(1)
+    expect('😀'.length).toBe(2)
+    expect(characterCount('😀'.repeat(70))).toBe(70)
+    expect(characterCount('')).toBe(0)
   })
 })
