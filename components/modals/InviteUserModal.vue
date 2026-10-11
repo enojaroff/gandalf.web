@@ -59,14 +59,19 @@
 
 <script setup lang="ts">
 import { PROJECT_USER_SCOPE_GROUPS } from '~/utils/scopes'
+import { REQUIRED_MEMBER_SCOPE, accountErrorText } from '~/utils/accountErrors'
 
 const emit = defineEmits<{ close: []; saved: [] }>()
 
 const { t } = useI18n()
 const gandalf = useGandalf()
-const form = reactive({ email: '', role: 'member', scope: [] as string[] })
+const projectsStore = useProjectsStore()
+// « View » des tables coché d'emblée : sans lui, le membre ne voit rien
+const form = reactive({ email: '', role: 'member', scope: [REQUIRED_MEMBER_SCOPE] as string[] })
 const loading = ref(false)
 const error = ref<string | null>(null)
+// Le message ne survit pas à une correction des droits
+watch(() => form.scope, () => { error.value = null }, { deep: true })
 const success = ref<string | null>(null)
 
 // UCheckbox in Nuxt UI v3 is boolean-only, so toggle each scope key manually.
@@ -79,13 +84,15 @@ function toggleScope(key: string, checked: boolean) {
   }
 }
 
-const roleItems = [
-  { value: 'admin', label: 'Admin' },
+// Seul un admin invite un admin (un superadmin agit comme un admin)
+const roleItems = computed(() => [
+  ...(projectsStore.isAdmin ? [{ value: 'admin', label: 'Admin' }] : []),
   { value: 'member', label: 'Member' },
-]
+])
 
 async function onInvite() {
   if (!form.email) { error.value = t('errors.required'); return }
+  if (!form.scope.includes(REQUIRED_MEMBER_SCOPE)) { error.value = t('settings.viewRequired'); return }
   loading.value = true; error.value = null
   try {
     await gandalf.projects.inviteUser({ email: form.email, role: form.role, scope: form.scope })
@@ -94,8 +101,7 @@ async function onInvite() {
     setTimeout(() => emit('close'), 1500)
   }
   catch (err: unknown) {
-    const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || t('settings.invitationFailed')
+    error.value = accountErrorText(err, t, 'settings.invitationFailed')
   }
   finally { loading.value = false }
 }

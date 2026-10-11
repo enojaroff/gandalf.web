@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { REQUIRED_MEMBER_SCOPE, accountErrorText } from '~/utils/accountErrors'
 import { PROJECT_USER_SCOPE_GROUPS } from '~/utils/scopes'
 import type { User } from '~/types/project'
 
@@ -91,16 +92,21 @@ const toast = useToast()
 const query = ref('')
 const results = ref<User[]>([])
 const selected = ref<User | null>(null)
+const projectsStore = useProjectsStore()
 const role = ref('member')
-const scope = ref<string[]>([])
+// « View » des tables : sans lui, le membre ne voit rien de l'application
+const scope = ref<string[]>([REQUIRED_MEMBER_SCOPE])
 const searching = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
+// Le message ne survit pas à une correction des droits
+watch(scope, () => { error.value = null }, { deep: true })
 
-const roleItems = [
-  { value: 'admin', label: 'Admin' },
+// Seul un admin nomme un admin (un superadmin agit comme un admin)
+const roleItems = computed(() => [
+  ...(projectsStore.isAdmin ? [{ value: 'admin', label: 'Admin' }] : []),
   { value: 'member', label: 'Member' },
-]
+])
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 // Monotonic sequence to drop out-of-order search responses.
@@ -140,21 +146,32 @@ function toggleScope(key: string, checked: boolean) {
 
 async function onAdd() {
   if (!selected.value) return
+  if (!scope.value.includes(REQUIRED_MEMBER_SCOPE)) {
+    error.value = t('settings.viewRequired')
+    return
+  }
   loading.value = true
   error.value = null
+  const userId = selected.value._id
+  let added = false
   try {
-    await gandalf.projects.addUser({
-      user_id: selected.value._id,
-      role: role.value,
-      scope: scope.value,
-    })
+    // L'API n'ajoute qu'un membre : un admin est ajouté comme membre, nommé
+    // admin (il reçoit alors les droits de l'appelant), puis ses droits sont
+    // ceux cochés ici.
+    await gandalf.projects.addUser({ user_id: userId, role: 'member', scope: scope.value })
+    added = true
+    if (role.value === 'admin') {
+      await gandalf.projects.setAdmin(userId)
+      await gandalf.projects.updateUser({ user_id: userId, scope: scope.value })
+    }
     toast.add({ title: t('settings.collaboratorAdded'), color: 'success' })
     emit('saved')
     emit('close')
   }
   catch (err: unknown) {
-    const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || t('errors.failedToSave')
+    const reason = accountErrorText(err, t, 'errors.failedToSave')
+    error.value = added ? t('settings.adminPartial', { reason }) : reason
+    if (added) emit('saved')
   }
   finally { loading.value = false }
 }

@@ -287,8 +287,13 @@ export function useGandalf() {
     addUser: (user: { user_id: string; role: string; scope: string[] }) =>
       request(`${apiBase}/v1/projects/users`, { method: 'POST', body: user }),
 
-    updateUser: (user: { user_id: string; role: string; scope: string[] }) =>
+    // Droits d'un membre. Le rôle n'est pas envoyé : l'API refuse `admin` ici.
+    updateUser: (user: { user_id: string; scope: string[] }) =>
       request(`${apiBase}/v1/projects/users`, { method: 'PUT', body: user }),
+
+    // Admin seulement : nomme admin un membre, qui reçoit les droits de l'appelant.
+    setAdmin: (userId: string) =>
+      request(`${apiBase}/v1/projects/users/admin`, { method: 'POST', body: { user_id: userId } }),
 
     removeUser: (userId: string) =>
       request(`${apiBase}/v1/projects/users`, {

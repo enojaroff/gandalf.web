@@ -323,7 +323,10 @@
       "adminInvited": "Invito inviato a {email}",
       "inviteFailed": "L'applicazione è creata, ma l'invito del suo admin non è riuscito: invitatelo dalle sue impostazioni."
     },
-    "you": "Lei"
+    "you": "Lei",
+    "viewRequired": "Selezionate almeno il permesso «View» delle tabelle (Decision Tables): senza di esso il membro non vede nulla dell'applicazione.",
+    "adminRoleRefused": "Il ruolo admin non può essere assegnato in questo modo.",
+    "adminPartial": "L'account è stato aggiunto come membro, ma non è stato possibile nominarlo admin: {reason}"
   },
   "common": {
     "clearFilters": "Cancella i filtri",
