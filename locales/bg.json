@@ -585,6 +585,21 @@
       "decisions_view": "Преглед на решенията",
       "decisions_make": "Изпълнение на решения",
       "decisions_make_inactive": "Изпълнение на неактивна версия"
+    },
+    "badge": {
+      "project_update": "Настройки: промяна",
+      "tables_create": "Таблици: създаване",
+      "tables_view": "Таблици: преглед",
+      "tables_update": "Таблици: редактиране",
+      "tables_delete": "Таблици: изтриване",
+      "tables_publish": "Таблици: публикуване",
+      "tables_activate": "Таблици: активиране",
+      "decisions_view": "Решения: преглед",
+      "decisions_make": "Решения: изпълнение",
+      "decisions_make_inactive": "Неактивни версии: изпълнение",
+      "consumers_manage": "API ключове: управление",
+      "consumers_get": "API ключове: преглед",
+      "users_manage": "Членове: управление"
     }
   }
 }

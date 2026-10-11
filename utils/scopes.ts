@@ -59,3 +59,31 @@ export const PROJECT_USER_SCOPE_GROUPS: ScopeGroup[] = [
 export const scopeGroupTitleKey = (group: ScopeGroup): string => `scopes.groups.${group.id}`
 export const userScopeLabelKey = (scope: string): string => `scopes.user.${scope}`
 export const consumerScopeLabelKey = (scope: string): string => `scopes.consumer.${scope}`
+
+// Badges des listes (membres, clés d'API) : un libellé court qui se lit hors
+// de son groupe, dans l'ordre des fenêtres ; la clé technique reste en
+// info-bulle. Un droit inconnu (ancien ou retiré) s'affiche par sa clé.
+export interface ScopeBadge {
+  key: string
+  labelKey: string | null
+}
+
+const USER_SCOPE_ORDER: string[] = PROJECT_USER_SCOPE_GROUPS.flatMap(group => group.scopes.map(scope => scope.key))
+
+export function userScopeBadges(scopes: string[] = []): ScopeBadge[] {
+  const rank = (scope: string) => {
+    const index = USER_SCOPE_ORDER.indexOf(scope)
+    return index === -1 ? USER_SCOPE_ORDER.length : index
+  }
+  return [...scopes]
+    .sort((a, b) => rank(a) - rank(b))
+    .map(key => ({ key, labelKey: USER_SCOPE_ORDER.includes(key) ? `scopes.badge.${key}` : null }))
+}
+
+export function consumerScopeBadges(scopes: string[] = []): ScopeBadge[] {
+  const known: string[] = PROJECT_CONSUMER_SCOPES
+  return known
+    .filter(scope => scopes.includes(scope))
+    .concat(scopes.filter(scope => !known.includes(scope)))
+    .map(key => ({ key, labelKey: known.includes(key) ? consumerScopeLabelKey(key) : null }))
+}
