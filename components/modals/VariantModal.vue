@@ -2,7 +2,7 @@
      table). La page fournit `submit`, qui applique l'opération et enregistre la
      table ; la modale gère la saisie, l'attente et les erreurs. -->
 <template>
-  <UModal :open="true" @close="emit('close')">
+  <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
       <h3 class="text-base font-semibold">{{ heading }}</h3>
     </template>
@@ -11,7 +11,6 @@
       <div class="space-y-4">
         <template v-if="mode === 'delete'">
           <p class="text-sm">{{ $t('tables.variantDeleteConfirm', { title: variant.title }) }}</p>
-          <p v-if="variant.is_default" class="text-sm text-muted">{{ $t('tables.variantDeleteDefault') }}</p>
         </template>
 
         <template v-else>
@@ -19,10 +18,10 @@
             {{ $t('tables.variantCopyHint', { title: variant.title }) }}
           </p>
           <UFormField :label="$t('common.name')" :error="titleError" required>
-            <UInput v-model="title" class="w-full" maxlength="128" autofocus @keydown.enter="onSubmit" />
+            <UInput v-model="title" class="w-full" autofocus @keydown.enter="onSubmit" />
           </UFormField>
           <UFormField :label="$t('common.description')" :hint="$t('common.optional')" :error="descriptionError">
-            <UInput v-model="description" class="w-full" maxlength="128" @keydown.enter="onSubmit" />
+            <UInput v-model="description" class="w-full" @keydown.enter="onSubmit" />
           </UFormField>
         </template>
 
@@ -48,11 +47,12 @@
 
 <script setup lang="ts">
 import type { DecisionVariant } from '~/types/decision-table'
-import type { VariantInfo } from '~/utils/tableVariants'
+import type { VariantInfo, VariantMode } from '~/utils/tableVariants'
+import { characterCount } from '~/utils/tableVariants'
 import { apiErrorMessage, apiValidationMessages } from '~/utils/apiErrors'
 
 const props = defineProps<{
-  mode: 'copy' | 'edit' | 'delete'
+  mode: VariantMode
   variant: DecisionVariant
   // Applique l'opération et enregistre la table ; rejette si l'API refuse.
   submit: (info: VariantInfo) => Promise<void>
@@ -81,13 +81,13 @@ const submitLabel = computed(() => ({
 })[props.mode])
 
 // Mêmes bornes que l'API (TableRulesProvider) : nom de 2 à 128 caractères,
-// description vide ou de 2 à 128.
+// description vide ou de 2 à 128, comptés comme elle (characterCount).
 const titleError = computed(() => {
-  const length = title.value.trim().length
+  const length = characterCount(title.value.trim())
   return length < 2 || length > 128 ? t('tables.variantNameLength') : undefined
 })
 const descriptionError = computed(() => {
-  const length = description.value.trim().length
+  const length = characterCount(description.value.trim())
   return length === 1 || length > 128 ? t('tables.variantDescriptionLength') : undefined
 })
 const invalid = computed(() => props.mode !== 'delete' && !!(titleError.value || descriptionError.value))

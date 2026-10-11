@@ -35,20 +35,27 @@ export function filterEmpty<T>(arr: T[]): T[] {
   return arr.filter(item => item !== null && item !== undefined && item !== '')
 }
 
+// Exemple d'appel de la route v2 (`{ version, variant_id, data }`) : sans
+// version, l'API exécute la version active.
 export function generateCurlSample(
   tableId: string,
   fields: Array<{ key: string; type: string }>,
   baseUrl = '/api',
+  opts: { version?: number | null; variantId?: string } = {},
 ): string {
-  const body = fields.reduce(
+  const data = fields.reduce(
     (acc, field) => {
       acc[field.key] = field.type === 'numeric' ? 0 : field.type === 'date' ? todayIso() : 'value'
       return acc
     },
     {} as Record<string, unknown>,
   )
+  const body: Record<string, unknown> = {}
+  if (opts.version) body.version = opts.version
+  if (opts.variantId) body.variant_id = opts.variantId
+  body.data = data
 
-  return `curl -X POST ${baseUrl}/v1/tables/${tableId}/decisions \\
+  return `curl -X POST ${baseUrl}/v2/tables/${tableId}/decisions \\
   -H "Content-Type: application/json" \\
   -d '${JSON.stringify(body, null, 2)}'`
 }

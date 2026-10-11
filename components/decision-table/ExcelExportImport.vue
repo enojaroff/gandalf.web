@@ -1,11 +1,13 @@
 <!--
   Boutons "Exporter Excel" / "Importer Excel" pour une table de décision,
   avec gestion complète du flux round-trip :
-   - export : télécharge la variante donnée (ou la variante par défaut) ;
+   - export : télécharge la variante donnée (ou la première) de la version
+     donnée (ou de la version active) ;
    - import : sélecteur de fichier caché → upload multipart ;
    - conflit 409 (verrou optimiste) : modal proposant d'écraser (force=1) ;
    - erreurs 422 : alerte listant chaque problème avec son adresse de cellule.
-  Émet 'imported' avec la table renvoyée par l'API pour que la page rafraîchisse.
+  Émet 'imported' avec la réponse de l'API (la table, ou le brouillon écrit)
+  pour que la page rafraîchisse.
 -->
 <template>
   <div class="flex gap-2 items-center">
@@ -14,7 +16,7 @@
       variant="outline"
       size="sm"
       :loading="exporting"
-      @click="exportExcel(tableId, variantId)"
+      @click="exportExcel(tableId, variantId, versionId)"
     >
       {{ $t('tables.exportExcel') }}
     </UButton>
@@ -85,17 +87,19 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable } from '~/types/decision-table'
+import type { ImportResponse } from '~/composables/useGandalf'
 
 defineProps<{
   tableId: string
-  /** Variante à exporter ; absente = variante par défaut de la table. */
+  /** Variante à exporter ; absente = la première. */
   variantId?: string
+  /** Version (brouillon ou publiée) à exporter ; absente = la version active. */
+  versionId?: string
 }>()
 
 const emit = defineEmits<{
-  /** Import réussi — la page doit recharger la table (200 update / 201 create). */
-  imported: [table: DecisionTable]
+  /** Import réussi — la page doit recharger (200 mise à jour / 201 création). */
+  imported: [response: ImportResponse]
 }>()
 
 const {
@@ -117,13 +121,13 @@ async function onFileSelected(event: Event) {
   // Réinitialiser pour permettre de re-sélectionner le même fichier
   input.value = ''
   if (!file) return
-  const table = await importFile(file)
-  if (table) emit('imported', table)
+  const response = await importFile(file)
+  if (response) emit('imported', response)
 }
 
 async function onForce() {
-  const table = await forceImport()
-  if (table) emit('imported', table)
+  const response = await forceImport()
+  if (response) emit('imported', response)
 }
 
 function formatDate(iso: string): string {

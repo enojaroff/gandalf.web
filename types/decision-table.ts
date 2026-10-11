@@ -75,9 +75,6 @@ export interface DecisionVariant {
   title: string
   description?: string
   probability: number
-  // Variante utilisée quand la requête n'en précise pas ; gérée par l'API
-  // (une seule par table, la première si celle par défaut est supprimée).
-  is_default?: boolean
   default_decision: unknown
   default_title?: string | null
   default_description?: string | null
@@ -94,6 +91,8 @@ export interface DecisionTable {
   matching_type: MatchingType
   decision_type: DecisionType
   variants_probability?: string
+  // Version publiée exécutée par l'API (voir types/version.ts)
+  active_version_id?: string | null
   fields: DecisionField[]
   variants: DecisionVariant[]
 }
