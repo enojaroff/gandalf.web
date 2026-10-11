@@ -108,6 +108,23 @@ these windows refuse to save without it.
 | Consommateurs API (API Consumer Credentials) | Gérer (Manage) | Creating, changing and deleting API keys. |
 | Collaborateurs (Project Collaborators) | Gérer (Manage) | Seeing and managing members: inviting, adding an existing account, changing rights, removing from the application. |
 
+The interface only offers what your rights allow in the current application.
+In **Paramètres** (Settings):
+
+- **Éditer** (Edit: name, description, settings) and the buttons of the
+  "Catégories" (Categories) card need "Application : Modifier les paramètres"
+  (change settings);
+- the "Utilisateurs" (Users) card only shows with "Collaborateurs : Gérer"
+  (manage collaborators);
+- the "Consommateurs API" (API consumers) card needs "Consommateurs API :
+  Voir" (view), and creating or deleting a key "Consommateurs API : Gérer"
+  (manage).
+
+Likewise, **Importer** (Import) a table needs decision tables "Créer" (create)
+or "Modifier" (update). If the API still refuses an action for lack of a
+right, the message names the missing rights, for instance "Droits manquants
+dans cette application : Tables : créer" (Missing rights in this application).
+
 Rules that apply whenever rights are given:
 
 - **nobody gives more rights than they hold**, to a member or to an API key;
@@ -367,7 +384,5 @@ Known points, awaiting a fix:
   existant** and the Admin role.
 - **Verification email**: it cannot be resent. An admin can activate the
   account with **Confirmer**.
-- **Settings page**: a member without the "Gérer" collaborators right sees an
-  error message on loading and an empty user list.
 - **Language**: the account activation page and the new password page (link
   of **Mot de passe oublié ?**) are in English.

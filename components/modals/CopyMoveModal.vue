@@ -61,7 +61,7 @@
  * refuse (403) le cas échéant.
  */
 import { computed, ref } from 'vue'
-import { apiErrorMessage } from '~/utils/apiErrors'
+import { apiErrorText } from '~/utils/apiErrors'
 
 interface Target { _id: string; title: string }
 
@@ -74,6 +74,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
+const { t } = useI18n()
 const gandalf = useGandalf()
 const projectsStore = useProjectsStore()
 
@@ -157,7 +158,7 @@ async function onSubmit() {
       await action(target._id, targetProjectId.value)
     }
     catch (err: unknown) {
-      failures.value.push({ id: target._id, title: target.title, message: apiErrorMessage(err) || 'Opération impossible.' })
+      failures.value.push({ id: target._id, title: target.title, message: apiErrorText(err, t, 'errors.operationFailed') })
     }
     progress.value++
   }

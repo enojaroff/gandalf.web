@@ -54,18 +54,28 @@ export const useProjectsStore = defineStore('projects', {
     // GET /v1/projects/users renvoie le membre applicationable courant (objet).
     async fetchCurrentUserRole() {
       const gandalf = useGandalf()
+      // Une réponse arrivée après un changement de projet ne le concerne pas
+      const projectId = this.selectedProjectId
       try {
         const response = await gandalf.projects.getUsers()
+        if (projectId !== this.selectedProjectId) return this.currentUserRole
         // Le backend renvoie l'objet du membre courant ; tolérer un array par sécurité.
         const member = Array.isArray(response.data) ? response.data[0] : response.data
         this.currentUserRole = (member as { role?: string } | undefined)?.role ?? null
         this.currentUserScopes = (member as { scope?: string[] } | undefined)?.scope ?? []
       }
       catch {
+        if (projectId !== this.selectedProjectId) return this.currentUserRole
         this.currentUserRole = null
         this.currentUserScopes = null
       }
       return this.currentUserRole
+    },
+
+    // Charge le rôle et les droits s'ils ne le sont pas encore (avant de
+    // choisir les actions à proposer).
+    async ensureCurrentUser() {
+      if (this.currentUserScopes === null) await this.fetchCurrentUserRole()
     },
 
     selectProject(projectId: string) {

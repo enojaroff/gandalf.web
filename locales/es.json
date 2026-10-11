@@ -390,7 +390,9 @@
     "tableNameLength": "El nombre de la tabla debe tener entre {min} y {max} caracteres.",
     "failedToCreate": "Error al crear la tabla.",
     "failedToLoad": "Error al cargar los datos.",
-    "failedToSave": "Error al guardar."
+    "failedToSave": "Error al guardar.",
+    "missingScopes": "Faltan permisos en esta aplicación: {scopes}.",
+    "operationFailed": "La operación no se pudo realizar."
   },
   "versions": {
     "title": "Versiones",

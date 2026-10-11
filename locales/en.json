@@ -422,7 +422,9 @@
     "tableNameLength": "The table name must be between {min} and {max} characters long.",
     "failedToCreate": "Failed to create table.",
     "failedToLoad": "Failed to load data.",
-    "failedToSave": "Failed to save."
+    "failedToSave": "Failed to save.",
+    "missingScopes": "Missing rights in this application: {scopes}.",
+    "operationFailed": "The operation failed."
   },
   "versions": {
     "title": "Versions",

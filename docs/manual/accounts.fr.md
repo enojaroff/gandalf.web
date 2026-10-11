@@ -106,6 +106,20 @@ décision est coché d'office, et ces fenêtres refusent d'enregistrer sans lui.
 | Consommateurs API | Gérer | Créer, modifier et supprimer des clés d'API. |
 | Collaborateurs | Gérer | Voir et gérer les membres : inviter, ajouter un compte existant, modifier les droits, retirer de l'application. |
 
+L'interface ne propose que ce que vos droits permettent dans l'application en
+cours. Dans **Paramètres** :
+
+- **Éditer** (nom, description, réglages) et les boutons de la carte
+  « Catégories » demandent « Application : Modifier les paramètres » ;
+- la carte « Utilisateurs » n'apparaît qu'avec « Collaborateurs : Gérer » ;
+- la carte « Consommateurs API » demande « Consommateurs API : Voir », et
+  créer ou supprimer une clé « Consommateurs API : Gérer ».
+
+De même, **Importer** une table demande « Créer » ou « Modifier » des tables
+de décision. Si l'API refuse malgré tout une action faute de droit, le message
+nomme les droits manquants, par exemple « Droits manquants dans cette
+application : Tables : créer ».
+
 Règles qui s'appliquent à toute attribution de droits :
 
 - **personne ne donne plus de droits qu'il n'en a**, à un membre comme à une
@@ -367,8 +381,5 @@ Points connus, en attente de correction :
   **Ajouter un compte existant** et le rôle Admin.
 - **E-mail de vérification** : il ne peut pas être renvoyé. Un admin peut
   activer le compte avec **Confirmer**.
-- **Page Paramètres** : un membre qui n'a pas le droit « Gérer » des
-  collaborateurs voit un message d'erreur au chargement et une liste
-  d'utilisateurs vide.
 - **Langue** : la page d'activation du compte et la page du nouveau mot de
   passe (lien de **Mot de passe oublié ?**) sont en anglais.

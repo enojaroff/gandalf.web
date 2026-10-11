@@ -21,6 +21,7 @@
       {{ $t('tables.exportExcel') }}
     </UButton>
     <UButton
+      v-if="canImport"
       icon="i-lucide-upload"
       variant="outline"
       size="sm"
@@ -114,6 +115,12 @@ const {
 } = useTableExcel()
 
 const fileInput = ref<HTMLInputElement | null>(null)
+
+// L'import crée une table (tables_create) ou met à jour une table existante
+// (tables_update) : l'API vérifie le droit selon le fichier.
+const projectsStore = useProjectsStore()
+const canImport = computed(() => projectsStore.can('tables_create') || projectsStore.can('tables_update'))
+onMounted(() => projectsStore.ensureCurrentUser())
 
 async function onFileSelected(event: Event) {
   const input = event.target as HTMLInputElement

@@ -1,5 +1,6 @@
 import type { TableImportConflict, TableImportError } from '~/types/decision-table'
 import type { ImportResponse } from '~/composables/useGandalf'
+import { apiErrorText } from '~/utils/apiErrors'
 
 /**
  * Logique partagée d'export/import Excel round-trip d'une table de décision.
@@ -90,6 +91,11 @@ export function useTableExcel() {
       }
       if (status === 404) {
         importErrors.value = [{ cell: null, row: null, column: null, field: null, message: t('tables.importNotFound') }]
+        return null
+      }
+      if (status === 403) {
+        // Droit manquant : créer (nouvelle table) ou modifier (table existante)
+        importErrors.value = [{ cell: null, row: null, column: null, field: null, message: apiErrorText(err, t, 'tables.importError') }]
         return null
       }
       toast.add({ title: t('tables.importError'), color: 'error' })
