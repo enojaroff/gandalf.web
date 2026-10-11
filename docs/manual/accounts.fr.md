@@ -86,25 +86,25 @@ Le **superadmin**, réservé à Claims IA :
 ## Droits
 
 Les droits se cochent par groupe dans les fenêtres « Créer un compte »,
-« Inviter », « Ajouter un compte existant » et « Modifier le collaborateur ». Les libellés y sont en anglais ;
-le tableau les reprend tels qu'ils s'affichent. « View » des tables est coché
-d'office, et ces fenêtres refusent d'enregistrer sans lui.
+« Inviter », « Ajouter un compte existant » et « Modifier le collaborateur » ;
+le tableau les reprend tels qu'ils s'affichent. « Voir » des tables de
+décision est coché d'office, et ces fenêtres refusent d'enregistrer sans lui.
 
 | Groupe à l'écran | Droit à l'écran | Permet |
 | ---------------- | --------------- | ------ |
-| Project | Change Settings | Modifier le nom, la description et les réglages de l'application, gérer ses catégories, exporter ses données. |
-| Decision Tables | View | Voir les tables, les flows, leurs versions, leurs révisions et leurs statistiques. **Indispensable** : sans lui, le membre ne voit rien de l'application. |
-| Decision Tables | Create | Créer, copier et importer des tables et des flows ; les copier vers une autre application (admin seulement). |
-| Decision Tables | Update | Modifier les tables et les flows, créer et modifier des brouillons, tester un brouillon, revenir à une révision. |
-| Decision Tables | Delete | Supprimer des tables et des flows ; avec « Create », les déplacer vers une autre application (admin seulement). |
-| Decision Tables | Publish | Publier un brouillon (il devient une version numérotée) ; supprimer une version publiée. |
-| Decision Tables | Activate | Mettre une version en production (l'activer) ; changer la répartition des variantes d'une version publiée. |
-| Decision History | View | Consulter l'historique des décisions et le détail d'une décision. |
-| Decision History | Make | Exécuter des décisions, tester une version publiée, annoter une décision. |
-| Decision History | Make API call for inactive versions | Exécuter une version publiée qui n'est pas la version active ; donner ce droit à une clé d'API. |
-| API Consumer Credentials | Read | Voir les clés d'API de l'application. |
-| API Consumer Credentials | Manage | Créer, modifier et supprimer des clés d'API. |
-| Project Collaborators | Manage | Voir et gérer les membres : inviter, ajouter un compte existant, modifier les droits, retirer de l'application. |
+| Application | Modifier les paramètres | Modifier le nom, la description et les réglages de l'application, gérer ses catégories, exporter ses données. |
+| Tables de décision | Voir | Voir les tables, les flows, leurs versions, leurs révisions et leurs statistiques. **Indispensable** : sans lui, le membre ne voit rien de l'application. |
+| Tables de décision | Créer | Créer, copier et importer des tables et des flows ; les copier vers une autre application (admin seulement). |
+| Tables de décision | Modifier | Modifier les tables et les flows, créer et modifier des brouillons, tester un brouillon, revenir à une révision. |
+| Tables de décision | Supprimer | Supprimer des tables et des flows ; avec « Créer », les déplacer vers une autre application (admin seulement). |
+| Tables de décision | Publier | Publier un brouillon (il devient une version numérotée) ; supprimer une version publiée. |
+| Tables de décision | Activer | Mettre une version en production (l'activer) ; changer la répartition des variantes d'une version publiée. |
+| Historique des décisions | Voir | Consulter l'historique des décisions et le détail d'une décision. |
+| Historique des décisions | Exécuter | Exécuter des décisions, tester une version publiée, annoter une décision. |
+| Historique des décisions | Exécuter une version inactive (appel API) | Exécuter une version publiée qui n'est pas la version active ; donner ce droit à une clé d'API. |
+| Consommateurs API | Voir | Voir les clés d'API de l'application. |
+| Consommateurs API | Gérer | Créer, modifier et supprimer des clés d'API. |
+| Collaborateurs | Gérer | Voir et gérer les membres : inviter, ajouter un compte existant, modifier les droits, retirer de l'application. |
 
 Règles qui s'appliquent à toute attribution de droits :
 
@@ -116,7 +116,7 @@ Règles qui s'appliquent à toute attribution de droits :
 
 Un admin reçoit ses droits comme tout membre : ceux cochés dans son
 invitation. On peut donc, par exemple, avoir un admin côté client qui gère son
-équipe mais à qui l'on ne donne pas « Activate » : il ne met rien en
+équipe mais à qui l'on ne donne pas « Activer » : il ne met rien en
 production lui-même.
 
 ---
@@ -161,12 +161,12 @@ Une adresse déjà utilisée par un compte est refusée : ajouter ce compte avec
 ### Être invité
 
 Dans **Paramètres**, carte « Utilisateurs », bouton **Inviter** (droit
-« Manage » des collaborateurs) :
+« Gérer » des collaborateurs) :
 
 1. Saisir l'adresse e-mail de la personne.
 2. Choisir le rôle : **Member** ou **Admin** (inviter un admin est réservé aux
    admins).
-3. Cocher ses droits (« View » des tables est déjà coché, et obligatoire).
+3. Cocher ses droits (« Voir » des tables est déjà coché, et obligatoire).
 4. **Envoyer une invitation**.
 
 L'invitation apparaît dans la liste avec le statut **Invité**. Ensuite :
@@ -265,8 +265,8 @@ Les deux actions se trouvent dans **Modifier le collaborateur**.
 
 | Action | Effet | Qui |
 | ------ | ----- | --- |
-| **Retirer de l'application** | Le compte quitte cette application. Il existe toujours et garde ses autres applications. | Droit « Manage » des collaborateurs ; admin pour retirer un admin. |
-| **Supprimer le compte** | Suppression **définitive** du compte. Pour confirmer, saisir son adresse e-mail. | Admin, avec le droit « Manage » des collaborateurs. |
+| **Retirer de l'application** | Le compte quitte cette application. Il existe toujours et garde ses autres applications. | Droit « Gérer » des collaborateurs ; admin pour retirer un admin. |
+| **Supprimer le compte** | Suppression **définitive** du compte. Pour confirmer, saisir son adresse e-mail. | Admin, avec le droit « Gérer » des collaborateurs. |
 
 La suppression d'un compte est refusée :
 
@@ -332,18 +332,18 @@ contient jamais de mot de passe.
 | ------ | --- |
 | S'inscrire | Tout le monde |
 | Modifier son profil, changer son mot de passe | Soi-même |
-| Voir les membres d'une application | Droit « Manage » des collaborateurs |
-| Créer un compte directement | Admin, avec le droit « Manage » des collaborateurs |
-| Inviter un membre | Droit « Manage » des collaborateurs |
-| Inviter un admin | Admin, avec le droit « Manage » des collaborateurs |
-| Ajouter un compte existant comme membre | Droit « Manage » des collaborateurs |
-| Ajouter un compte existant comme admin | Admin, avec le droit « Manage » des collaborateurs |
-| Confirmer un compte, renvoyer ou annuler une invitation | Admin, avec le droit « Manage » des collaborateurs |
-| Modifier les droits d'un membre | Droit « Manage » des collaborateurs, jamais les siens |
-| Modifier les droits d'un admin | Admin, avec le droit « Manage » des collaborateurs |
-| Retirer un membre de l'application | Droit « Manage » des collaborateurs, jamais soi-même |
-| Retirer un admin de l'application | Admin, avec le droit « Manage » des collaborateurs |
-| Supprimer un compte | Admin, avec le droit « Manage » des collaborateurs |
+| Voir les membres d'une application | Droit « Gérer » des collaborateurs |
+| Créer un compte directement | Admin, avec le droit « Gérer » des collaborateurs |
+| Inviter un membre | Droit « Gérer » des collaborateurs |
+| Inviter un admin | Admin, avec le droit « Gérer » des collaborateurs |
+| Ajouter un compte existant comme membre | Droit « Gérer » des collaborateurs |
+| Ajouter un compte existant comme admin | Admin, avec le droit « Gérer » des collaborateurs |
+| Confirmer un compte, renvoyer ou annuler une invitation | Admin, avec le droit « Gérer » des collaborateurs |
+| Modifier les droits d'un membre | Droit « Gérer » des collaborateurs, jamais les siens |
+| Modifier les droits d'un admin | Admin, avec le droit « Gérer » des collaborateurs |
+| Retirer un membre de l'application | Droit « Gérer » des collaborateurs, jamais soi-même |
+| Retirer un admin de l'application | Admin, avec le droit « Gérer » des collaborateurs |
+| Supprimer un compte | Admin, avec le droit « Gérer » des collaborateurs |
 | Créer ou supprimer une application | Superadmin |
 | Voir tous les comptes, y compris sans application | Superadmin |
 | Donner un mot de passe temporaire à un compte | Superadmin, jamais pour le sien ni pour un superadmin |
@@ -367,8 +367,8 @@ Points connus, en attente de correction :
   **Ajouter un compte existant** et le rôle Admin.
 - **E-mail de vérification** : il ne peut pas être renvoyé. Un admin peut
   activer le compte avec **Confirmer**.
-- **Page Paramètres** : un membre qui n'a pas le droit « Manage » des
+- **Page Paramètres** : un membre qui n'a pas le droit « Gérer » des
   collaborateurs voit un message d'erreur au chargement et une liste
   d'utilisateurs vide.
-- **Langue** : les libellés des droits, la page d'activation du compte et la
-  page du nouveau mot de passe sont en anglais.
+- **Langue** : la page d'activation du compte et la page du nouveau mot de
+  passe (lien de **Mot de passe oublié ?**) sont en anglais.

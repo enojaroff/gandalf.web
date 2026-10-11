@@ -375,7 +375,7 @@
       "inviteFailed": "The application is created, but inviting its admin failed: invite them from its settings."
     },
     "you": "You",
-    "viewRequired": "Tick at least the tables \"View\" right (Decision Tables): without it, the member sees nothing of the application.",
+    "viewRequired": "Tick at least the \"View\" right of Decision Tables: without it, the member sees nothing of the application.",
     "adminRoleRefused": "The admin role cannot be given this way.",
     "adminPartial": "The account was added as a member, but could not be made admin: {reason}",
     "createAccount": "Create an account",
@@ -388,7 +388,8 @@
     "tempPasswordNotEmailed": "No email was sent: pass it on yourself.",
     "accountExists": "An account already uses this address: add it with \"Add an existing account\".",
     "usernameTaken": "This username is already taken.",
-    "usernameInvalid": "Invalid username: 2 to 32 characters among letters, digits, dot, hyphen and underscore."
+    "usernameInvalid": "Invalid username: 2 to 32 characters among letters, digits, dot, hyphen and underscore.",
+    "consumerDescriptionPlaceholder": "e.g. Mobile App, Internal Service"
   },
   "common": {
     "clearFilters": "Clear filters",
@@ -588,5 +589,34 @@
     "logAccountDeleted": "Account deleted: {email}",
     "logPasswordReset": "Temporary password given: {email}",
     "logAccountCreated": "Account created: {email}"
+  },
+  "scopes": {
+    "groups": {
+      "project": "Project",
+      "tables": "Decision Tables",
+      "decisions": "Decision History",
+      "consumers": "API Consumer Credentials",
+      "users": "Project Collaborators"
+    },
+    "user": {
+      "project_update": "Change Settings",
+      "tables_create": "Create",
+      "tables_view": "View",
+      "tables_update": "Update",
+      "tables_delete": "Delete",
+      "tables_publish": "Publish",
+      "tables_activate": "Activate",
+      "decisions_view": "View",
+      "decisions_make": "Make",
+      "decisions_make_inactive": "Make API call for inactive versions",
+      "consumers_manage": "Manage",
+      "consumers_get": "Read",
+      "users_manage": "Manage"
+    },
+    "consumer": {
+      "decisions_view": "View decisions",
+      "decisions_make": "Make decisions",
+      "decisions_make_inactive": "Run an inactive version"
+    }
   }
 }

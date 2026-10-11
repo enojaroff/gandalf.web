@@ -10,6 +10,7 @@ export const PROJECT_USER_SCOPES: UserScope[] = [
   'users_manage',
   'project_update',
   'decisions_view',
+  'decisions_make',
   'tables_publish',
   'tables_activate',
   'decisions_make_inactive',
@@ -21,54 +22,40 @@ export const PROJECT_CONSUMER_SCOPES: ConsumerScope[] = [
   'decisions_make_inactive',
 ]
 
-// Project-user scopes grouped for the collaborator form, mirroring the original
-// (AngularJS) UI: one section per resource area, each scope with a short label.
+// Droits d'un membre groupés pour les fenêtres de membres, comme l'ancienne
+// interface (AngularJS) : une section par domaine. Les libellés sont traduits :
+// scopes.groups.<id> pour un groupe, scopes.user.<droit> pour un droit.
 export interface ScopeItem {
-  key: string
-  label: string
+  key: UserScope
 }
 export interface ScopeGroup {
-  title: string
+  id: 'project' | 'tables' | 'decisions' | 'consumers' | 'users'
   scopes: ScopeItem[]
 }
 
 export const PROJECT_USER_SCOPE_GROUPS: ScopeGroup[] = [
+  { id: 'project', scopes: [{ key: 'project_update' }] },
   {
-    title: 'Project',
+    id: 'tables',
     scopes: [
-      { key: 'project_update', label: 'Change Settings' },
+      { key: 'tables_create' },
+      { key: 'tables_view' },
+      { key: 'tables_update' },
+      { key: 'tables_delete' },
+      { key: 'tables_publish' },
+      { key: 'tables_activate' },
     ],
   },
   {
-    title: 'Decision Tables',
-    scopes: [
-      { key: 'tables_create', label: 'Create' },
-      { key: 'tables_view', label: 'View' },
-      { key: 'tables_update', label: 'Update' },
-      { key: 'tables_delete', label: 'Delete' },
-      { key: 'tables_publish', label: 'Publish' },
-      { key: 'tables_activate', label: 'Activate' },
-    ],
+    id: 'decisions',
+    scopes: [{ key: 'decisions_view' }, { key: 'decisions_make' }, { key: 'decisions_make_inactive' }],
   },
-  {
-    title: 'Decision History',
-    scopes: [
-      { key: 'decisions_view', label: 'View' },
-      { key: 'decisions_make', label: 'Make' },
-      { key: 'decisions_make_inactive', label: 'Make API call for inactive versions' },
-    ],
-  },
-  {
-    title: 'API Consumer Credentials',
-    scopes: [
-      { key: 'consumers_manage', label: 'Manage' },
-      { key: 'consumers_get', label: 'Read' },
-    ],
-  },
-  {
-    title: 'Project Collaborators',
-    scopes: [
-      { key: 'users_manage', label: 'Manage' },
-    ],
-  },
+  { id: 'consumers', scopes: [{ key: 'consumers_manage' }, { key: 'consumers_get' }] },
+  { id: 'users', scopes: [{ key: 'users_manage' }] },
 ]
+
+// Clés i18n des libellés. Un droit de clé d'API se lit seul, sans groupe :
+// il a son propre libellé (scopes.consumer.<droit>).
+export const scopeGroupTitleKey = (group: ScopeGroup): string => `scopes.groups.${group.id}`
+export const userScopeLabelKey = (scope: string): string => `scopes.user.${scope}`
+export const consumerScopeLabelKey = (scope: string): string => `scopes.consumer.${scope}`

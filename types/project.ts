@@ -8,6 +8,7 @@ export type UserScope =
   | 'users_manage'
   | 'project_update'
   | 'decisions_view'
+  | 'decisions_make'
   // Versions des tables : publier, mettre en production, exécuter une version
   // inactive (droit qu'un utilisateur doit avoir pour le donner à une clé)
   | 'tables_publish'
