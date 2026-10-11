@@ -6,6 +6,8 @@ interface ProjectsState {
   selectedProjectId: string | null
   // Rôle de l'utilisateur courant dans le projet actif ('admin' | 'user' | null).
   currentUserRole: string | null
+  // Droits de l'utilisateur courant dans le projet actif (null : pas encore chargés).
+  currentUserScopes: string[] | null
 }
 
 export const useProjectsStore = defineStore('projects', {
@@ -13,6 +15,7 @@ export const useProjectsStore = defineStore('projects', {
     projects: [],
     selectedProjectId: null,
     currentUserRole: null,
+    currentUserScopes: null,
   }),
 
   getters: {
@@ -22,6 +25,10 @@ export const useProjectsStore = defineStore('projects', {
     // Vrai si l'utilisateur est admin du projet actif (gouverne l'affichage des
     // actions admin comme copier/déplacer ; l'API reste l'autorité via son 403).
     isAdmin: (state): boolean => state.currentUserRole === 'admin',
+
+    // Vrai si l'utilisateur courant a ce droit dans le projet actif. Sert à
+    // n'afficher que les actions permises ; l'API reste l'autorité (403).
+    can: state => (scope: string): boolean => (state.currentUserScopes ?? []).includes(scope),
   },
 
   actions: {
@@ -52,9 +59,11 @@ export const useProjectsStore = defineStore('projects', {
         // Le backend renvoie l'objet du membre courant ; tolérer un array par sécurité.
         const member = Array.isArray(response.data) ? response.data[0] : response.data
         this.currentUserRole = (member as { role?: string } | undefined)?.role ?? null
+        this.currentUserScopes = (member as { scope?: string[] } | undefined)?.scope ?? []
       }
       catch {
         this.currentUserRole = null
+        this.currentUserScopes = null
       }
       return this.currentUserRole
     },
@@ -63,12 +72,14 @@ export const useProjectsStore = defineStore('projects', {
       this.selectedProjectId = projectId
       // Le rôle dépend du projet : l'invalider, il sera rechargé au besoin.
       this.currentUserRole = null
+      this.currentUserScopes = null
     },
 
     reset() {
       this.projects = []
       this.selectedProjectId = null
       this.currentUserRole = null
+      this.currentUserScopes = null
     },
   },
 

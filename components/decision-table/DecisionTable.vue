@@ -23,13 +23,14 @@
             title="Click to edit field"
             @click="emit('edit-field', field)"
           >
-            <div class="flex items-center gap-1">
-              <span class="truncate max-w-24 text-xs font-semibold" :title="field.title">
-                {{ field.title }}
-              </span>
-              <UBadge variant="outline" size="xs">{{ field.type }}</UBadge>
+            <!-- 1re ligne : titre sur toute la largeur ; 2e ligne : clé et type -->
+            <div class="dt-field-title text-xs font-semibold" :title="field.title">
+              {{ field.title }}
             </div>
-            <div class="text-xs text-muted font-normal">{{ field.key }}</div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-muted font-normal">{{ field.key }}</span>
+              <UBadge variant="outline" size="xs" class="ml-auto">{{ field.type }}</UBadge>
+            </div>
           </th>
 
           <!-- Colonne séparation -->
@@ -484,6 +485,13 @@ function toggleDelete(rule: DecisionRule) {
 }
 
 .decision-table {
+  /* Largeurs des colonnes fixes, reprises par les décalages `left`/`right` des
+     colonnes suivantes. Imposées en min-width : quand le tableau déborde, le
+     navigateur réduirait sinon ces colonnes sous leur `width`, et une colonne
+     fixe décalée d'une largeur supposée recouvrirait sa voisine. */
+  --dt-drag-w: 1.5rem;
+  --dt-num-w: 2.5rem;
+  --dt-actions-w: 4.5rem;  /* deux boutons (52px) + marges (16px) */
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8125rem;
@@ -500,7 +508,8 @@ function toggleDelete(rule: DecisionRule) {
   position: sticky;
   left: 0;
   z-index: 2;
-  width: 1.5rem;
+  width: var(--dt-drag-w);
+  min-width: var(--dt-drag-w);
   padding-left: 0;
   padding-right: 0;
   text-align: center;
@@ -532,18 +541,19 @@ function toggleDelete(rule: DecisionRule) {
 
 .dt-cell--num {
   position: sticky;
-  left: 1.5rem;        /* après la poignée (24px) */
+  left: var(--dt-drag-w);
   z-index: 2;
-  width: 2.5rem;
+  width: var(--dt-num-w);
+  min-width: var(--dt-num-w);
   text-align: center;
   background: var(--ui-bg-muted);
 }
 
 .dt-cell--title {
   position: sticky;
-  left: 4rem;          /* après poignée (24px) + # (40px) */
+  left: calc(var(--dt-drag-w) + var(--dt-num-w));
   z-index: 2;
-  min-width: 160px;
+  min-width: 250px;
   background: var(--ui-bg);
   box-shadow: 2px 0 4px -2px var(--ui-border);
   padding: 0;
@@ -554,13 +564,14 @@ function toggleDelete(rule: DecisionRule) {
   position: sticky;
   right: 0;
   z-index: 2;
-  width: 4rem;
+  width: var(--dt-actions-w);
+  min-width: var(--dt-actions-w);
   background: var(--ui-bg-muted);
 }
 
 .dt-cell--decision {
   position: sticky;
-  right: 4rem;         /* après la colonne actions (64px) */
+  right: var(--dt-actions-w);
   z-index: 2;
   min-width: 80px;
   background: color-mix(in srgb, var(--ui-primary) 5%, var(--ui-bg));
@@ -578,7 +589,7 @@ function toggleDelete(rule: DecisionRule) {
 }
 
 .dt-cell--field {
-  min-width: 140px;
+  min-width: 160px;
   background: var(--ui-bg-muted);
 }
 
@@ -588,6 +599,17 @@ function toggleDelete(rule: DecisionRule) {
 
 .dt-cell--field-header:hover {
   background: var(--ui-bg-elevated);
+}
+
+/* Titre du champ à la largeur de la colonne, sans l'élargir (largeur
+   intrinsèque nulle) : un titre plus long est tronqué, texte complet en
+   infobulle. */
+.dt-field-title {
+  width: 0;
+  min-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* ── En-têtes ──────────────────────────────────────────── */
@@ -611,7 +633,7 @@ thead .dt-cell--actions {
 /* ── Cellules condition ────────────────────────────────── */
 .dt-cell--condition {
   cursor: pointer;
-  min-width: 140px;
+  min-width: 160px;
   padding: 0;
 }
 

@@ -46,6 +46,10 @@
             </div>
           </template>
 
+          <template #version-cell="{ row }">
+            <span class="text-muted">{{ row.original.table?.version ? `v${row.original.table.version.number}` : '—' }}</span>
+          </template>
+
           <template #final_decision-cell="{ row }">
             <UBadge variant="soft">{{ row.original.final_decision }}</UBadge>
           </template>
@@ -93,7 +97,13 @@ interface HistoryItem {
   description: string
   final_decision: string | number
   created_at: string
-  table?: { _id: string; title: string; variant?: { _id: string; title: string } }
+  table?: {
+    _id: string
+    title: string
+    variant?: { _id: string; title: string }
+    // Version de table exécutée ; null pour une décision antérieure aux versions
+    version?: { _id: string; number: number } | null
+  }
   variant?: { _id: string; title: string }
 }
 
@@ -129,6 +139,7 @@ const columns = computed(() => [
   { accessorKey: 'created_at',     header: sortableHeader(t('history.date')) },
   { accessorKey: '_id',            header: sortableHeader(t('history.id')) },
   { id: 'table_info', accessorFn: (row: HistoryItem) => row.table?.title ?? '', header: sortableHeader(t('history.tableInfo')) },
+  { id: 'version', accessorFn: (row: HistoryItem) => row.table?.version?.number ?? 0, header: sortableHeader(t('history.version')) },
   { accessorKey: 'title',          header: sortableHeader(t('history.decisionName')) },
   { accessorKey: 'final_decision', header: sortableHeader(t('history.decision')) },
   { id: 'actions',                 header: '', enableSorting: false },

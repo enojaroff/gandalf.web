@@ -105,6 +105,16 @@
                 :color="categoryById.get(row.original.category_id)!.color"
                 size="xs"
               />
+              <!-- Un nœud exécute une autre version que la version active de sa table -->
+              <UBadge
+                v-if="row.original.outdated"
+                color="warning"
+                variant="subtle"
+                size="sm"
+                :title="$t('versions.pinOutdatedHint')"
+              >
+                {{ $t('versions.flowOutdated') }}
+              </UBadge>
             </div>
             <p v-if="row.original.description" class="text-xs text-muted truncate max-w-xs">
               {{ row.original.description }}

@@ -1,4 +1,8 @@
-<!-- Éditeur visuel d'un flow (DRG) : canvas Vue Flow + panneaux d'édition -->
+<!-- Éditeur visuel d'un flow (DRG) : canvas Vue Flow + panneaux d'édition.
+     Comme pour les tables, on édite toujours un brouillon (gandalf.api,
+     VERSIONS.md) : ?version= désigne le brouillon ou la version de départ ;
+     sans lui, la version active. Chaque nœud est figé sur une version publiée
+     de sa table. -->
 <template>
   <div>
     <!-- En-tête à la largeur standard ; seule la grille de l'éditeur occupe toute la fenêtre -->
@@ -23,6 +27,9 @@
             @click="runPanelOpen = true"
           >
             {{ $t('flows.run') }}
+          </UButton>
+          <UButton v-if="!isNew" icon="i-lucide-history" variant="ghost" :to="`/flows/${routeId}/versions`">
+            {{ $t('versions.title') }}
           </UButton>
           <UButton icon="i-lucide-save" :loading="saving" @click="save">
             {{ $t('common.save') }}
@@ -51,6 +58,34 @@
           />
         </div>
       </div>
+
+      <!-- Version éditée : un brouillon, ou la version de départ d'un nouveau brouillon -->
+      <UAlert
+        v-if="!isNew"
+        :color="draft ? 'warning' : 'info'"
+        variant="subtle"
+        :icon="draft ? 'i-lucide-file-pen' : 'i-lucide-info'"
+        class="mb-4"
+      >
+        <template #description>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span v-if="draft">
+              {{ $t('versions.editorDraft', { name: draft.name || '—' }) }}
+              <span v-if="draftOriginLabel" class="text-muted">· {{ $t('versions.editorFrom', { version: draftOriginLabel }) }}</span>
+            </span>
+            <span v-else-if="base">{{ $t('versions.editorFromVersion', { version: baseLabel }) }}</span>
+            <span v-else>{{ $t('versions.flowNoVersion') }}</span>
+            <UButton
+              v-if="draft && projectsStore.can('tables_publish')"
+              size="xs"
+              icon="i-lucide-stamp"
+              @click="() => { showPublish = true }"
+            >
+              {{ $t('versions.publish') }}
+            </UButton>
+          </div>
+        </template>
+      </UAlert>
 
       <!-- Catégorie du flow -->
       <div class="flex items-center gap-2 mb-4">
@@ -106,12 +141,34 @@
               </div>
               <div v-if="!flow.nodes.length" class="text-xs text-muted">{{ $t('flows.noNodes') }}</div>
               <div v-else class="space-y-1">
-                <div v-for="n in flow.nodes" :key="n.node_id" class="flex items-center justify-between text-sm py-1">
-                  <span class="truncate">
-                    {{ nodeDisplayName(n) }}
-                    <span class="text-muted font-mono text-xs">{{ n.node_id }}</span>
-                  </span>
-                  <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeNode(n.node_id)" />
+                <div v-for="n in flow.nodes" :key="n.node_id" class="text-sm py-1">
+                  <div class="flex items-center justify-between">
+                    <span class="truncate">
+                      {{ nodeDisplayName(n) }}
+                      <span class="text-muted font-mono text-xs">{{ n.node_id }}</span>
+                    </span>
+                    <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeNode(n.node_id)" />
+                  </div>
+                  <!-- Version de table figée pour ce nœud -->
+                  <div class="flex items-center gap-1 mt-1">
+                    <USelect
+                      :model-value="n.table_version_id ?? undefined"
+                      :items="pinOptions(n.table_id)"
+                      :placeholder="$t('versions.pinActive')"
+                      size="xs"
+                      class="flex-1"
+                      @update:model-value="(value: string) => setPin(n, value)"
+                    />
+                    <UBadge
+                      v-if="pinStatus(n) === 'outdated'"
+                      color="warning"
+                      variant="subtle"
+                      size="sm"
+                      :title="$t('versions.pinOutdatedHint')"
+                    >
+                      {{ $t('versions.pinOutdated') }}
+                    </UBadge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -130,7 +187,7 @@
         <UCard class="flow-editor-canvas" :ui="{ body: 'p-0 h-full' }">
           <FlowEditorFlowCanvas
             :flow="flow"
-            :tables="tables"
+            :tables="canvasTables"
             @update:flow="onFlowUpdate"
             @remove-node="removeNode"
             @remove-output="removeOutput"
@@ -223,12 +280,22 @@
       </template>
     </UModal>
 
-    <!-- Run panel -->
+    <!-- Run panel : exécution de test du brouillon ou de la version éditée -->
     <FlowEditorRunPanel
       v-if="!isNew"
       v-model:open="runPanelOpen"
       :flow="flow"
       :node-labels="nodeLabels"
+      :version-id="draft?._id ?? base?._id"
+    />
+
+    <VersionPublishModal
+      v-if="showPublish && draft"
+      kind="flow"
+      :owner-id="routeId"
+      :draft="draft"
+      @published="onPublished"
+      @close="showPublish = false"
     />
 
     <!-- Copier / déplacer vers un autre projet (admin) -->
@@ -245,10 +312,14 @@
 
 <script setup lang="ts">
 import type { Flow, FlowInput, FlowIOType, FlowNode } from '~/types/flow'
-import type { DecisionTable } from '~/types/decision-table'
+import type { DecisionField, DecisionTable } from '~/types/decision-table'
 import type { Category } from '~/types/category'
+import type { FlowVersion, TableVersionSummary, VersionSummary } from '~/types/version'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
+import VersionPublishModal from '~/components/versions/VersionPublishModal.vue'
+import { defaultDraftName, versionNumberLabel } from '~/utils/versions'
+import { pinStatusOf, tablesForPins } from '~/utils/flowPins'
 
 // fullWidth : la page gère elle-même ses conteneurs pour que le canvas occupe toute la largeur de la fenêtre (cf. layouts/default.vue)
 definePageMeta({ middleware: 'auth', fullWidth: true })
@@ -276,6 +347,82 @@ function onCopyMoveSaved() {
 
 const flow = ref<Flow>(emptyFlow())
 const tables = ref<DecisionTable[]>([])
+
+// Brouillon édité, ou version de départ (publiée) quand il n'y en a pas encore
+const draft = ref<FlowVersion | null>(null)
+const base = ref<FlowVersion | null>(null)
+const showPublish = ref(false)
+// Identité du flow telle qu'enregistrée : seul un changement la renvoie à l'API
+let identitySnapshot = ''
+
+// Versions publiées de chaque table utilisée, et champs des versions figées
+const tableVersions = ref<Record<string, TableVersionSummary[]>>({})
+const pinnedFields = ref<Record<string, DecisionField[]>>({})
+
+const baseLabel = computed(() => (base.value ? versionNumberLabel(base.value) : null) ?? '—')
+const draftOriginLabel = computed(() => {
+  const origin = draft.value?.origin_version_id
+  return origin && base.value?._id === origin ? versionNumberLabel(base.value) : null
+})
+
+// Le canvas lit les champs d'un nœud sur sa table : ceux de la version figée.
+const canvasTables = computed(() => tablesForPins(tables.value, flow.value.nodes, pinnedFields.value))
+
+function activeVersionOf(tableId: string): string | null {
+  return tableVersions.value[tableId]?.find(v => v.is_active)?._id ?? null
+}
+
+function pinStatus(node: FlowNode) {
+  return pinStatusOf(node, activeVersionOf(node.table_id))
+}
+
+function pinOptions(tableId: string) {
+  return (tableVersions.value[tableId] ?? [])
+    .filter(v => v.status === 'published')
+    .map(v => ({
+      label: `${versionNumberLabel(v)}${v.is_active ? ` (${t('versions.active')})` : ''}`,
+      value: v._id,
+    }))
+}
+
+async function loadTableVersions(tableId: string) {
+  if (tableVersions.value[tableId]) return
+  try {
+    const response = await gandalf.tables.versions.list(tableId)
+    tableVersions.value = { ...tableVersions.value, [tableId]: response.data }
+  }
+  catch {
+    tableVersions.value = { ...tableVersions.value, [tableId]: [] }
+  }
+}
+
+// Les champs d'une version figée qui n'est pas la version active (la table
+// chargée porte déjà ceux de la version active).
+async function loadPinnedFields(node: FlowNode) {
+  const pin = node.table_version_id
+  if (!pin || pinnedFields.value[pin] || pin === activeVersionOf(node.table_id)) return
+  try {
+    const response = await gandalf.tables.versions.get(node.table_id, pin)
+    pinnedFields.value = { ...pinnedFields.value, [pin]: response.data.fields }
+  }
+  catch {
+    // Version supprimée : le canvas garde les champs de la table.
+  }
+}
+
+function setPin(node: FlowNode, versionId: string) {
+  node.table_version_id = versionId
+  loadPinnedFields(node)
+}
+
+function identityOf(value: Flow): string {
+  return JSON.stringify([value.title, value.description ?? '', value.category_id ?? null])
+}
+
+function onPublished(version: VersionSummary) {
+  toast.add({ title: t('versions.publishedToast', { number: version.number }), color: 'success' })
+  router.push(`/flows/${routeId.value}/versions`)
+}
 // Catégories de l'application, pour le sélecteur dans l'en-tête.
 const categories = ref<Category[]>([])
 const loading = ref(true)
@@ -366,11 +513,29 @@ async function load() {
     }
     else {
       const resp = await gandalf.flows.getById(routeId.value)
-      flow.value = { ...emptyFlow(), ...resp.data }
-      // Fetch full detail (with fields) for every referenced table, in parallel.
-      await Promise.all(
-        [...new Set(flow.value.nodes.map((n) => n.table_id))].map(ensureTableDetail),
-      )
+      // ?version= : un brouillon, ou une version publiée de départ ; sinon la version active
+      const versionId = (route.query.version as string | undefined) || resp.data.active_version_id || null
+      const version = versionId ? (await gandalf.flows.versions.get(routeId.value, versionId)).data : null
+      draft.value = null
+      base.value = null
+      if (version?.status === 'draft') {
+        draft.value = version
+        base.value = version.origin_version_id
+          ? (await gandalf.flows.versions.get(routeId.value, version.origin_version_id).catch(() => null))?.data ?? null
+          : null
+      }
+      else {
+        base.value = version
+      }
+      flow.value = version
+        ? { ...emptyFlow(), ...resp.data, inputs: version.inputs, outputs: version.outputs, nodes: version.nodes, edges: version.edges }
+        : { ...emptyFlow(), ...resp.data }
+      identitySnapshot = identityOf(flow.value)
+      // Fetch full detail (with fields) for every referenced table, in parallel,
+      // with its versions and the fields of the versions the nodes are pinned to.
+      const tableIds = [...new Set(flow.value.nodes.map((n) => n.table_id))]
+      await Promise.all([...tableIds.map(ensureTableDetail), ...tableIds.map(loadTableVersions)])
+      await Promise.all(flow.value.nodes.map(loadPinnedFields))
     }
   }
   catch {
@@ -466,8 +631,14 @@ function addNode() {
   const node: FlowNode = { node_id: newNode.node_id.trim(), table_id: tableId }
   if (label) node.label = label
   flow.value.nodes.push(node)
-  // Load the table's fields so its field handles render on the canvas.
+  // Load the table's fields so its field handles render on the canvas, and its
+  // versions; the node is pinned to the active one until another is chosen.
   ensureTableDetail(tableId)
+  loadTableVersions(tableId).then(() => {
+    const added = flow.value.nodes.find(n => n.node_id === node.node_id)
+    const active = activeVersionOf(tableId)
+    if (added && !added.table_version_id && active) added.table_version_id = active
+  })
   newNode.table_id = ''
   newNode.node_id = ''
   newNode.label = ''
@@ -539,9 +710,34 @@ async function save() {
       router.replace(`/flows/${resp.data._id}/edit`)
     }
     else {
-      const resp = await gandalf.flows.update(routeId.value, payload)
-      flow.value = { ...emptyFlow(), ...resp.data }
-      toast.add({ title: t('flows.saved'), color: 'success' })
+      // L'identité (titre, description, catégorie) est celle du flow ; le
+      // graphe va dans le brouillon, créé au premier enregistrement.
+      if (identityOf(flow.value) !== identitySnapshot) {
+        await gandalf.flows.update(routeId.value, {
+          title: payload.title,
+          description: payload.description,
+          category_id: payload.category_id,
+        })
+        identitySnapshot = identityOf(flow.value)
+      }
+      if (!draft.value) {
+        const created = await gandalf.flows.versions.create(routeId.value, {
+          from_version_id: base.value?._id,
+          name: defaultDraftName(),
+        })
+        draft.value = created.data
+        router.replace({ query: { ...route.query, version: created.data._id } })
+        toast.add({ title: t('versions.draftCreated'), color: 'success' })
+      }
+      const resp = await gandalf.flows.versions.update(routeId.value, draft.value._id, {
+        inputs: payload.inputs,
+        outputs: payload.outputs,
+        nodes: payload.nodes,
+        edges: payload.edges,
+      })
+      draft.value = resp.data
+      flow.value = { ...flow.value, inputs: resp.data.inputs, outputs: resp.data.outputs, nodes: resp.data.nodes, edges: resp.data.edges }
+      toast.add({ title: t('versions.editorSaved'), color: 'success' })
     }
   }
   catch (e) {
@@ -573,8 +769,8 @@ async function deleteFlow() {
 
 onMounted(() => {
   load()
-  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
-  if (projectsStore.currentUserRole === null) {
+  // Rôle et droits projet : copier/déplacer (admins), publier (tables_publish).
+  if (projectsStore.currentUserRole === null || projectsStore.currentUserScopes === null) {
     projectsStore.fetchCurrentUserRole()
   }
 })

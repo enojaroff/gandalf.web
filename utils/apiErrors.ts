@@ -18,3 +18,10 @@ export function apiValidationMessages(e: unknown): string[] {
   if (Array.isArray(errors)) return errors.filter(isString)
   return Object.values(body).filter(Array.isArray).flat().filter(isString)
 }
+
+// Code et message d'une erreur de l'API rendue par le Handler :
+// { meta: { code, error: 'version_in_use', error_message }, data }.
+export function apiErrorCode(e: unknown): { code: string | null; message: string | null } {
+  const meta = (e as { data?: { meta?: { error?: string; error_message?: string } } })?.data?.meta
+  return { code: meta?.error ?? null, message: meta?.error_message ?? null }
+}

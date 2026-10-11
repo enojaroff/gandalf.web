@@ -91,6 +91,8 @@ export interface DecisionTable {
   matching_type: MatchingType
   decision_type: DecisionType
   variants_probability?: string
+  // Version publiée exécutée par l'API (voir types/version.ts)
+  active_version_id?: string | null
   fields: DecisionField[]
   variants: DecisionVariant[]
 }

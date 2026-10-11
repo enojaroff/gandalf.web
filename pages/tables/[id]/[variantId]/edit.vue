@@ -1,4 +1,7 @@
-<!-- Page d'édition d'une table de décision. Pour une variante donnée -->
+<!-- Page d'édition d'une table de décision, pour une variante donnée. On édite
+     toujours un brouillon (gandalf.api, VERSIONS.md) : ?version= désigne le
+     brouillon ou la version de départ ; sans lui, la version active. Le premier
+     enregistrement d'une version publiée crée un brouillon à partir d'elle. -->
 <template>
   <div>
     <UBreadcrumb :items="breadcrumbs" class="mb-4" />
@@ -8,12 +11,41 @@
     </div>
 
     <template v-else-if="table && variant">
+      <!-- Version éditée : un brouillon, ou la version de départ d'un nouveau brouillon -->
+      <UAlert
+        :color="draft ? 'warning' : 'info'"
+        variant="subtle"
+        :icon="draft ? 'i-lucide-file-pen' : 'i-lucide-info'"
+        class="mb-4"
+      >
+        <template #description>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span v-if="draft">
+              {{ $t('versions.editorDraft', { name: draft.name || '—' }) }}
+              <span v-if="draftOriginLabel" class="text-muted">· {{ $t('versions.editorFrom', { version: draftOriginLabel }) }}</span>
+            </span>
+            <span v-else>{{ $t('versions.editorFromVersion', { version: baseLabel }) }}</span>
+            <span class="flex gap-2">
+              <UButton size="xs" variant="ghost" :to="`/tables/${tableId}/versions`">{{ $t('versions.title') }}</UButton>
+              <UButton
+                v-if="draft && projectsStore.can('tables_publish')"
+                size="xs"
+                icon="i-lucide-stamp"
+                @click="() => { showPublish = true }"
+              >
+                {{ $t('versions.publish') }}
+              </UButton>
+            </span>
+          </div>
+        </template>
+      </UAlert>
+
       <!-- Actions bar -->
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-4">
           <p class="text-sm text-muted">Variant: {{ variant.title }}</p>
           <div class="flex gap-2">
-            <UButton variant="ghost" size="sm" :to="`/tables/${tableId}/debug`">Test</UButton>
+            <UButton variant="ghost" size="sm" :to="testLink">Test</UButton>
             <UButton variant="ghost" size="sm" :to="`/tables/${tableId}/analytics`">Analytics</UButton>
           </div>
         </div>
@@ -21,6 +53,7 @@
           <DecisionTableExcelExportImport
             :table-id="tableId"
             :variant-id="variantId"
+            :version-id="draft?._id ?? base?._id"
             @imported="onImported"
           />
           <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
@@ -80,6 +113,14 @@
         </UButton>
       </div>
     </template>
+
+    <VersionPublishModal
+      v-if="showPublish && draft"
+      :owner-id="tableId"
+      :draft="draft"
+      @published="onPublished"
+      @close="showPublish = false"
+    />
 
     <!-- Modal ajout de champ -->
     <UModal v-model:open="showAddFieldModal">
@@ -159,7 +200,10 @@ import { objectId } from '~/utils/filters'
 import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
 import { apiValidationMessages } from '~/utils/apiErrors'
 import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
-import type { TableUpdateMeta } from '~/composables/useGandalf'
+import type { ImportResponse } from '~/composables/useGandalf'
+import type { TableVersion, VersionSummary } from '~/types/version'
+import VersionPublishModal from '~/components/versions/VersionPublishModal.vue'
+import { defaultDraftName, versionNumberLabel } from '~/utils/versions'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -167,8 +211,15 @@ const { t } = useI18n()
 const toast = useToast()
 const route = useRoute()
 const gandalf = useGandalf()
+const router = useRouter()
+const projectsStore = useProjectsStore()
 const tableId = route.params.id as string
 const variantId = route.params.variantId as string
+
+// Brouillon édité, ou version de départ (publiée) quand il n'y en a pas encore
+const draft = ref<TableVersion | null>(null)
+const base = ref<TableVersion | null>(null)
+const showPublish = ref(false)
 
 const table = ref<DecisionTable | null>(null)
 const loading = ref(true)
@@ -202,6 +253,22 @@ function setTable(data: DecisionTable) {
   table.value = data
   storedFieldIds.value = new Set(data.fields.map(f => f._id).filter((id): id is string => !!id))
 }
+
+// The editor works on the table's identity and a version's content.
+function setContent(identity: DecisionTable, version: TableVersion | null) {
+  setTable(version
+    ? { ...identity, fields: version.fields, variants: version.variants, variants_probability: version.variants_probability }
+    : identity)
+}
+
+const baseLabel = computed(() => (base.value ? versionNumberLabel(base.value) : null) ?? '—')
+const draftOriginLabel = computed(() => {
+  const origin = draft.value?.origin_version_id
+  return origin && base.value?._id === origin ? versionNumberLabel(base.value) : null
+})
+const testLink = computed(() => draft.value
+  ? `/tables/${tableId}/debug?version=${draft.value._id}`
+  : `/tables/${tableId}/debug`)
 
 // The key as the API will store it, when it differs from what was typed.
 function storedKeyPreview(key: string): string | null {
@@ -267,14 +334,16 @@ async function submitEditField() {
     : []
 
   // Every confirmation first: nothing changes if one is declined. A field not
-  // saved yet is only renamed here: nothing else uses its key.
+  // saved yet is only renamed here: nothing else uses its key. Flows keep
+  // their own version of the table: they follow the rename when they are
+  // brought to the version that carries it.
   if (renamed && field._id && storedFieldIds.value.has(field._id)) {
     editFieldBusy.value = true
     const flows = await flowsUsingTable()
     editFieldBusy.value = false
     // Modal closed or reopened meanwhile (its inputs are locked while busy)
     if (!showEditFieldModal.value || session !== editFieldSession) return
-    if (!confirm(t('tables.renameFieldConfirm', { from: field.key, to: newKey, flows }))) return
+    if (!confirm(t('versions.renameFieldConfirm', { from: field.key, to: newKey, flows }))) return
   }
   if (incompatible.length
     && !confirm(t('tables.typeChangeConfirm', { field: field.title || field.key, count: incompatible.length }))) return
@@ -293,23 +362,6 @@ async function submitEditField() {
   field.title = form.title
   field.type = form.type
   showEditFieldModal.value = false
-}
-
-// Report what the API did with field renames on save (response meta).
-function reportFieldRenames(meta?: TableUpdateMeta) {
-  if (!meta?.field_renames || !Object.keys(meta.field_renames).length) return
-  const updated = meta.flows_updated ?? []
-  toast.add({
-    title: t('tables.renameFieldSaved'),
-    description: updated.length ? t('tables.renameFieldFlowsUpdated', { flows: updated.join(', ') }) : undefined,
-    color: 'success',
-  })
-  if (meta.flows_failed?.length) {
-    toast.add({ title: t('tables.renameFieldFlowsFailed', { flows: meta.flows_failed.join(', ') }), color: 'error' })
-  }
-  if (meta.flows_invalid?.length) {
-    toast.add({ title: t('tables.renameFieldFlowsInvalid', { flows: meta.flows_invalid.join(', ') }), color: 'warning' })
-  }
 }
 
 function deleteEditField() {
@@ -362,29 +414,70 @@ const variantDefaultDecision = computed({
 const isDecisionType = computed(() => table.value?.matching_type === 'first')
 
 onMounted(async () => {
+  if (projectsStore.currentUserScopes === null) projectsStore.fetchCurrentUserRole()
   try {
     const response = await gandalf.tables.getById(tableId)
-    setTable(response.data)
+    // ?version= : un brouillon, ou une version publiée de départ ; sinon la version active
+    const versionId = (route.query.version as string | undefined) || response.data.active_version_id || null
+    const version = versionId ? (await gandalf.tables.versions.get(tableId, versionId)).data : null
+    if (version?.status === 'draft') {
+      draft.value = version
+      base.value = version.origin_version_id
+        ? (await gandalf.tables.versions.get(tableId, version.origin_version_id).catch(() => null))?.data ?? null
+        : null
+    }
+    else {
+      base.value = version
+    }
+    setContent(response.data, version)
+    // La variante demandée peut manquer dans ce contenu (supprimée dans le
+    // brouillon, ou copiée sous un nouvel _id) : ouvrir sa première variante.
+    // Le paramètre change, la page est remontée.
+    const first = table.value?.variants[0]?._id
+    if (first && !table.value?.variants.some(v => v._id === variantId)) {
+      await navigateTo({ path: `/tables/${tableId}/${first}/edit`, query: route.query }, { replace: true })
+    }
   }
   finally {
     loading.value = false
   }
 })
 
-/** Import Excel réussi : l'API renvoie la table à jour, on remplace l'état local. */
-function onImported(imported: DecisionTable) {
-  // L'import round-trip met à jour la table courante ; un import mode=create
-  // renverrait une autre table — dans ce cas on ne remplace pas l'éditeur.
-  if (imported._id === tableId) {
-    setTable(imported)
+/** Import Excel réussi : le brouillon écrit (ou la table) remplace l'état local. */
+function onImported(imported: ImportResponse) {
+  if (!table.value) return
+  if (imported.meta?.imported_into === 'version') {
+    const version = imported.data as TableVersion
+    if (version._id === draft.value?._id) {
+      draft.value = version
+      setContent(table.value, version)
+    }
+    else {
+      // Brouillon créé à partir de la version publiée ouverte : il devient le
+      // brouillon édité. Seule la query change, la page n'est pas remontée :
+      // l'état est mis à jour ici, comme à l'enregistrement.
+      draft.value = version
+      setContent(table.value, version)
+      router.replace({ query: { ...route.query, version: version._id } })
+      toast.add({ title: t('versions.draftCreated'), color: 'success' })
+    }
   }
+  else if ((imported.data as DecisionTable)._id === tableId) {
+    setTable(imported.data as DecisionTable)
+  }
+}
+
+function onPublished(version: VersionSummary) {
+  toast.add({ title: t('versions.publishedToast', { number: version.number }), color: 'success' })
+  navigateTo(`/tables/${tableId}/versions`)
 }
 
 const breadcrumbs = computed(() => [
   { label: 'Tables', to: '/tables' },
   { label: table.value?.title || tableId, to: `/tables/${tableId}/info` },
-  { label: variant.value?.title || variantId, to: `/tables/${tableId}/${variantId}/edit` },
-  { label: 'Edit' },
+  { label: t('versions.title'), to: `/tables/${tableId}/versions` },
+  { label: draft.value ? (draft.value.name || t('versions.draft')) : baseLabel.value },
+  { label: variant.value?.title || variantId },
 ])
 
 
@@ -480,9 +573,24 @@ async function save() {
           .map(({ isDeleted: _d, ...r }) => ({ ...r, conditions: alignConditions(r, activeFieldKeys) })),
       })),
     }
-    const response = await gandalf.tables.update(tableId, payload as never)
-    setTable(response.data)
-    reportFieldRenames(response.meta)
+    // Une version publiée est figée : son premier enregistrement crée un brouillon.
+    if (!draft.value) {
+      const created = await gandalf.tables.versions.create(tableId, {
+        from_version_id: base.value?._id,
+        name: defaultDraftName(),
+      })
+      draft.value = created.data
+      router.replace({ query: { ...route.query, version: created.data._id } })
+      toast.add({ title: t('versions.draftCreated'), color: 'success' })
+    }
+    const response = await gandalf.tables.versions.update(tableId, draft.value._id, {
+      fields: payload.fields,
+      variants: payload.variants,
+      variants_probability: payload.variants_probability,
+    })
+    draft.value = response.data
+    setContent(table.value, response.data)
+    toast.add({ title: t('versions.editorSaved'), color: 'success' })
   }
   catch (err: unknown) {
     // Show why the API refused the table (422 details) instead of failing silently.
