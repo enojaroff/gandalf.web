@@ -5,7 +5,8 @@
     "groups": "Groups",
     "history": "History",
     "settings": "Settings",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "admin": "Administration"
   },
   "auth": {
     "signIn": "Sign In",
@@ -338,7 +339,12 @@
       "title": "New Application",
       "nameLabel": "Application name",
       "namePlaceholder": "e.g. My Decision Engine",
-      "descriptionPlaceholder": "Optional description"
+      "descriptionPlaceholder": "Optional description",
+      "superadminOnly": "Only a Claims IA superadmin creates applications. Ask Claims IA to create yours.",
+      "adminEmail": "Application admin (email)",
+      "adminEmailHelp": "Invited with the admin role and every scope. You are not a member of the application: confirm their account, or invite them later, from its settings.",
+      "adminInvited": "Invitation sent to {email}",
+      "inviteFailed": "The application is created, but inviting its admin failed: invite them from its settings."
     }
   },
   "common": {
@@ -373,5 +379,44 @@
     "failedToCreate": "Failed to create table.",
     "failedToLoad": "Failed to load data.",
     "failedToSave": "Failed to save."
+  },
+  "welcome": {
+    "title": "Welcome to Gandalf",
+    "createFirst": "Start by creating a first application.",
+    "noApplication": "Your account does not belong to any application.",
+    "askInvite": "Ask your application's admin, or Claims IA, to invite you.",
+    "refresh": "Refresh"
+  },
+  "admin": {
+    "title": "Administration",
+    "intro": "Every application, its admins, and the log of the superadmins' actions.",
+    "applications": "Applications",
+    "log": "Log",
+    "application": "Application",
+    "admins": "Admins",
+    "members": "Members",
+    "noApplication": "No application.",
+    "noAdmin": "No admin",
+    "noAdminHint": "The application runs no decision until it has an active admin.",
+    "open": "Open the application",
+    "settings": "Collaborators and settings",
+    "showLog": "Show its log",
+    "delete": "Delete",
+    "deleteTitle": "Delete the application \"{title}\"",
+    "deleteWarning": "The application and all its tables are permanently deleted. This cannot be undone and is logged.",
+    "deleteTypeTitle": "Type \"{title}\" to confirm",
+    "deleteFailed": "Failed to delete the application.",
+    "deleted": "Application \"{title}\" deleted",
+    "superadminOnly": "This page is reserved to superadmins.",
+    "logIntro": "Every request of a superadmin, reads included, and every grant or revocation of the role.",
+    "allApplications": "All applications",
+    "logEmpty": "No entry.",
+    "logDate": "Date",
+    "logUser": "Superadmin",
+    "logAction": "Action",
+    "logStatus": "Status",
+    "logCommand": "Command",
+    "logGrant": "Superadmin role granted to {email}",
+    "logRevoke": "Superadmin role revoked from {email}"
   }
 }

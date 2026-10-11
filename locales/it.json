@@ -5,7 +5,8 @@
     "groups": "Gruppi",
     "history": "Cronologia",
     "settings": "Impostazioni",
-    "signOut": "Esci"
+    "signOut": "Esci",
+    "admin": "Amministrazione"
   },
   "auth": {
     "signIn": "Accedi",
@@ -304,7 +305,12 @@
       "title": "Nuova applicazione",
       "nameLabel": "Nome dell'applicazione",
       "namePlaceholder": "es. Il mio motore decisionale",
-      "descriptionPlaceholder": "Descrizione opzionale"
+      "descriptionPlaceholder": "Descrizione opzionale",
+      "superadminOnly": "Solo un superadmin di Claims IA crea le applicazioni. Chiedete a Claims IA di creare la vostra.",
+      "adminEmail": "Admin dell'applicazione (e-mail)",
+      "adminEmailHelp": "Invitato con il ruolo admin e tutti i permessi. Non siete membri dell'applicazione: confermate il suo account, o invitatelo più tardi, dalle sue impostazioni.",
+      "adminInvited": "Invito inviato a {email}",
+      "inviteFailed": "L'applicazione è creata, ma l'invito del suo admin non è riuscito: invitatelo dalle sue impostazioni."
     }
   },
   "common": {
@@ -339,5 +345,44 @@
     "failedToCreate": "Creazione tabella fallita.",
     "failedToLoad": "Caricamento dei dati fallito.",
     "failedToSave": "Salvataggio fallito."
+  },
+  "welcome": {
+    "title": "Benvenuti in Gandalf",
+    "createFirst": "Iniziate creando una prima applicazione.",
+    "noApplication": "Il vostro account non appartiene a nessuna applicazione.",
+    "askInvite": "Chiedete all'admin della vostra applicazione, o a Claims IA, di invitarvi.",
+    "refresh": "Aggiorna"
+  },
+  "admin": {
+    "title": "Amministrazione",
+    "intro": "Tutte le applicazioni, i loro admin e il registro delle azioni dei superadmin.",
+    "applications": "Applicazioni",
+    "log": "Registro",
+    "application": "Applicazione",
+    "admins": "Admin",
+    "members": "Membri",
+    "noApplication": "Nessuna applicazione.",
+    "noAdmin": "Nessun admin",
+    "noAdminHint": "L'applicazione non esegue decisioni finché non ha un admin attivo.",
+    "open": "Apri l'applicazione",
+    "settings": "Collaboratori e impostazioni",
+    "showLog": "Vedi il suo registro",
+    "delete": "Elimina",
+    "deleteTitle": "Eliminare l'applicazione «{title}»",
+    "deleteWarning": "L'applicazione e tutte le sue tabelle vengono eliminate definitivamente. Questa azione è irreversibile e registrata.",
+    "deleteTypeTitle": "Digitate «{title}» per confermare",
+    "deleteFailed": "Eliminazione dell'applicazione non riuscita.",
+    "deleted": "Applicazione «{title}» eliminata",
+    "superadminOnly": "Questa pagina è riservata ai superadmin.",
+    "logIntro": "Ogni richiesta di un superadmin, letture comprese, e ogni assegnazione o revoca del ruolo.",
+    "allApplications": "Tutte le applicazioni",
+    "logEmpty": "Nessuna voce.",
+    "logDate": "Data",
+    "logUser": "Superadmin",
+    "logAction": "Azione",
+    "logStatus": "Stato",
+    "logCommand": "Comando",
+    "logGrant": "Ruolo superadmin assegnato a {email}",
+    "logRevoke": "Ruolo superadmin revocato a {email}"
   }
 }

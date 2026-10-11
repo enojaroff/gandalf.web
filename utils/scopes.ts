@@ -9,7 +9,6 @@ export const PROJECT_USER_SCOPES: UserScope[] = [
   'consumers_manage',
   'users_manage',
   'project_update',
-  'project_delete',
   'decisions_view',
 ]
 
@@ -34,7 +33,6 @@ export const PROJECT_USER_SCOPE_GROUPS: ScopeGroup[] = [
     title: 'Project',
     scopes: [
       { key: 'project_update', label: 'Change Settings' },
-      { key: 'project_delete', label: 'Delete' },
     ],
   },
   {

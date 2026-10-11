@@ -4,6 +4,7 @@ import type { Project, ProjectUser, ProjectConsumer, User, Collaborator, Confirm
 import type { Group } from '~/types/group'
 import type { Flow, FlowRun, FlowResult } from '~/types/flow'
 import type { Category } from '~/types/category'
+import type { AdminLogPage } from '~/types/admin'
 
 function btoa64(str: string): string {
   return btoa(str)
@@ -66,7 +67,8 @@ export function useGandalf() {
       reqHeaders['Authorization'] = `${authStore.tokenType} ${authStore.accessToken}`
     }
 
-    if (projectsStore.selectedProjectId) {
+    // Un X-Application explicite (agir sur une autre application) l'emporte
+    if (projectsStore.selectedProjectId && !reqHeaders['X-Application']) {
       reqHeaders['X-Application'] = projectsStore.selectedProjectId
     }
 
@@ -207,7 +209,12 @@ export function useGandalf() {
         body: project,
       }),
 
-    delete: () => request(`${apiBase}/v1/projects`, { method: 'DELETE' }),
+    // Superadmin seulement. Sans id : l'application sélectionnée.
+    delete: (projectId?: string) =>
+      request(`${apiBase}/v1/projects`, {
+        method: 'DELETE',
+        headers: projectId ? { 'X-Application': projectId } : {},
+      }),
 
     export: () => request<unknown>(`${apiBase}/v1/projects/export`),
 
@@ -532,5 +539,13 @@ export function useGandalf() {
       request<{ data: unknown }>(`${apiBase}/v1/decisions/${decisionId}`),
   }
 
-  return { auth, users, projects, categories, tables, flows, groups, history, consumer }
+  // ─── Superadmin (gandalf.api, ADMIN.md) ───────────────────────────────────
+
+  const superadmin = {
+    // Journal d'administration, le plus récent d'abord
+    log: (params: { application_id?: string; user_id?: string; size?: number; page?: number } = {}) =>
+      request<AdminLogPage>(`${apiBase}/v1/superadmin/log`, { params }),
+  }
+
+  return { auth, users, projects, categories, tables, flows, groups, history, consumer, superadmin }
 }

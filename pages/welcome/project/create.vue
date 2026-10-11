@@ -36,6 +36,13 @@
 definePageMeta({ layout: 'auth', middleware: 'auth' })
 
 const projectsStore = useProjectsStore()
+const userStore = useUserStore()
+
+// Seul un superadmin crée une application (gandalf.api, ADMIN.md)
+onMounted(async () => {
+  if (!userStore.currentUser) await userStore.fetchCurrent().catch(() => null)
+  if (!userStore.isSuperadmin) navigateTo('/welcome')
+})
 
 const form = reactive({ title: '', description: '' })
 const loading = ref(false)
@@ -52,9 +59,11 @@ async function onSubmit() {
 
   try {
     const gandalf = useGandalf()
-    await gandalf.projects.create({ title: form.title, description: form.description })
+    const resp = await gandalf.projects.create({ title: form.title, description: form.description })
     await projectsStore.fetchAll()
-    await navigateTo('/tables')
+    projectsStore.selectProject(resp.data._id)
+    // Le superadmin n'en est pas membre : il nomme son admin dans les paramètres
+    await navigateTo('/settings/project')
   }
   catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
