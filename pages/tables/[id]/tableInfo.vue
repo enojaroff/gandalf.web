@@ -207,15 +207,27 @@
             <li
               v-for="variant in table.variants"
               :key="variant._id"
-              class="flex items-center justify-between text-sm"
+              class="flex items-center justify-between gap-4 text-sm"
             >
-              <NuxtLink
-                :to="`/tables/${table._id}/${variant._id}/edit`"
-                class="text-primary hover:underline font-medium"
-              >
-                {{ variant.title }}
-              </NuxtLink>
-              <span class="flex items-center gap-2 text-muted">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <NuxtLink
+                    :to="`/tables/${table._id}/${variant._id}/edit`"
+                    class="text-primary hover:underline font-medium"
+                  >
+                    {{ variant.title }}
+                  </NuxtLink>
+                  <UBadge
+                    v-if="variant.is_default && table.variants.length > 1"
+                    :label="$t('tables.variantDefault')"
+                    color="neutral"
+                    variant="subtle"
+                    size="sm"
+                  />
+                </div>
+                <p v-if="variant.description" class="text-xs text-muted truncate">{{ variant.description }}</p>
+              </div>
+              <span class="flex items-center gap-2 text-muted shrink-0">
                 {{ variant.rules.length }} rule{{ variant.rules.length !== 1 ? 's' : '' }}
                 · {{ variant.probability }}%
                 <UButton
@@ -224,6 +236,29 @@
                   size="xs"
                   :title="$t('tables.exportExcel')"
                   @click="excel.exportExcel(tableId, variant._id)"
+                />
+                <UButton
+                  icon="i-lucide-copy-plus"
+                  variant="ghost"
+                  size="xs"
+                  :title="$t('tables.variantCopy')"
+                  @click="openVariantAction('copy', variant)"
+                />
+                <UButton
+                  icon="i-lucide-pencil"
+                  variant="ghost"
+                  size="xs"
+                  :title="$t('tables.variantEdit')"
+                  @click="openVariantAction('edit', variant)"
+                />
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="xs"
+                  :disabled="table.variants.length < 2"
+                  :title="table.variants.length < 2 ? $t('tables.variantLastOne') : $t('tables.variantDelete')"
+                  @click="openVariantAction('delete', variant)"
                 />
               </span>
             </li>
@@ -244,6 +279,15 @@
       </UCard>
     </template>
 
+    <!-- Dupliquer / modifier / supprimer une variante -->
+    <VariantModal
+      v-if="variantAction"
+      :mode="variantAction.mode"
+      :variant="variantAction.variant"
+      :submit="applyVariantAction"
+      @close="variantAction = null"
+    />
+
     <!-- Copier / déplacer vers un autre projet (admin) -->
     <CopyMoveModal
       v-if="copyMove"
@@ -257,11 +301,14 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable, MatchingType, DecisionType } from '~/types/decision-table'
+import type { DecisionTable, DecisionVariant, MatchingType, DecisionType } from '~/types/decision-table'
 import type { Category } from '~/types/category'
 import CategorySelect from '~/components/categories/CategorySelect.vue'
 import CategoryBadge from '~/components/categories/CategoryBadge.vue'
 import CopyMoveModal from '~/components/modals/CopyMoveModal.vue'
+import VariantModal from '~/components/modals/VariantModal.vue'
+import { copyVariant, removeVariant } from '~/utils/tableVariants'
+import type { NewVariant, VariantInfo } from '~/utils/tableVariants'
 
 definePageMeta({ path: '/tables/:id/info', middleware: 'auth' })
 
@@ -385,24 +432,33 @@ watch(editingTypes, (val) => {
   }
 })
 
+// Table à enregistrer : ses variantes peuvent compter une variante nouvelle, sans _id.
+type TableDraft = Omit<DecisionTable, 'variants'> & { variants: (DecisionVariant | NewVariant)[] }
+
+// Enregistre la table entière (l'API remplace champs et variantes) et renvoie
+// la version enregistrée.
+async function saveTable(next: TableDraft): Promise<DecisionTable> {
+  const payload = {
+    ...next,
+    fields: next.fields
+      .filter(f => !f.isDeleted)
+      .map(({ isDeleted: _d, ...f }) => f),
+    variants: next.variants.map(v => ({
+      ...v,
+      rules: v.rules
+        .filter(r => !r.isDeleted)
+        .map(({ isDeleted: _d, ...r }) => r),
+    })),
+  }
+  const response = await gandalf.tables.update(tableId, payload as never)
+  return response.data
+}
+
 async function saveTableInfo() {
   if (!table.value) return
   saving.value = true
   try {
-    const payload = {
-      ...table.value,
-      fields: table.value.fields
-        .filter(f => !f.isDeleted)
-        .map(({ isDeleted: _d, ...f }) => f),
-      variants: table.value.variants.map(v => ({
-        ...v,
-        rules: v.rules
-          .filter(r => !r.isDeleted)
-          .map(({ isDeleted: _d, ...r }) => r),
-      })),
-    }
-    const response = await gandalf.tables.update(tableId, payload as never)
-    table.value = response.data
+    table.value = await saveTable(table.value)
     editingTitle.value = false
     editingDescription.value = false
     editingTypes.value = false
@@ -410,9 +466,41 @@ async function saveTableInfo() {
   finally { saving.value = false }
 }
 
+// ── Variantes : dupliquer, modifier, supprimer ──────────────────────────────
+const toast = useToast()
+const variantAction = ref<{ mode: 'copy' | 'edit' | 'delete'; variant: DecisionVariant } | null>(null)
+
+const VARIANT_SAVED_TOASTS = {
+  copy: 'tables.variantCreated',
+  edit: 'tables.variantUpdated',
+  delete: 'tables.variantDeleted',
+} as const
+
+function openVariantAction(mode: 'copy' | 'edit' | 'delete', variant: DecisionVariant) {
+  // La table part entière : une édition en ligne non validée ne doit pas partir avec.
+  if (editingTitle.value) cancelEdit('title')
+  if (editingDescription.value) cancelEdit('description')
+  if (editingTypes.value) cancelEdit('types')
+  variantAction.value = { mode, variant }
+}
+
+// Appelée par VariantModal ; une erreur de l'API remonte à la modale, qui l'affiche.
+async function applyVariantAction(info: VariantInfo) {
+  const action = variantAction.value
+  if (!table.value || !action) return
+  const { mode, variant } = action
+  const variants = mode === 'copy'
+    ? [...table.value.variants, copyVariant(variant, info)]
+    : mode === 'edit'
+      ? table.value.variants.map(v => (v._id === variant._id ? { ...v, ...info } : v))
+      : removeVariant(table.value.variants, variant._id)
+  table.value = await saveTable({ ...table.value, variants })
+  toast.add({ title: t(VARIANT_SAVED_TOASTS[mode]), color: 'success' })
+}
+
 const fieldColumns = computed(() => [
-  { accessorKey: 'key', header: t('fields.key') },
   { accessorKey: 'title', header: t('fields.title') },
+  { accessorKey: 'key', header: t('fields.key') },
   { accessorKey: 'type', header: t('fields.type') },
 ])
 
