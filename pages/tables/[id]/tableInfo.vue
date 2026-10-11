@@ -490,11 +490,17 @@ async function saveTable(next: TableDraft): Promise<DecisionTable> {
   return response.data
 }
 
+// Seule l'identité est modifiée ici (titre, description, types, catégorie). Le
+// contenu repart de la table enregistrée, relue juste avant : un onglet ouvert
+// depuis longtemps ne renvoie pas un ancien contenu, que le mode de
+// compatibilité publierait et activerait.
 async function saveTableInfo() {
   if (!table.value) return
   saving.value = true
   try {
-    table.value = await saveTable(table.value)
+    const stored = (await gandalf.tables.getById(tableId)).data
+    const { title, description, matching_type, decision_type, category_id } = table.value
+    table.value = await saveTable({ ...stored, title, description, matching_type, decision_type, category_id })
     editingTitle.value = false
     editingDescription.value = false
     editingTypes.value = false
@@ -520,27 +526,52 @@ function openVariantAction(mode: 'copy' | 'edit' | 'delete', variant: DecisionVa
   variantAction.value = { mode, variant }
 }
 
+// Brouillon qui reçoit les actions sur les variantes de cette page : créé à la
+// première, tiré de la version active, puis repris, pour que les changements
+// se cumulent au lieu de partir chacun dans son brouillon.
+const variantDraftId = ref<string | null>(null)
+
 // Appelée par VariantModal ; une erreur de l'API remonte à la modale, qui
-// l'affiche. Le changement part dans un nouveau brouillon tiré de la version
-// active : la version active, figée, ne change pas.
+// l'affiche. La version active, figée, ne change pas.
 async function applyVariantAction(info: VariantInfo) {
   const action = variantAction.value
   if (!table.value || !action) return
   const { mode, variant } = action
-  const draft = (await gandalf.tables.versions.create(tableId, { name: defaultDraftName() })).data
-  const source = draft.variants.find(v => v._id === variant._id) ?? variant
+  const reused = variantDraftId.value
+    ? (await gandalf.tables.versions.get(tableId, variantDraftId.value).catch(() => null))?.data ?? null
+    : null
+  // Un brouillon publié ou supprimé depuis n'est plus repris
+  const draft = reused?.status === 'draft'
+    ? reused
+    : (await gandalf.tables.versions.create(tableId, { name: defaultDraftName() })).data
+  const created = draft !== reused
+  const inDraft = draft.variants.find(v => v._id === variant._id)
+  if (mode !== 'copy' && !inDraft) {
+    // Le message passe par data.message, que la modale affiche
+    const message = t('versions.variantNotInDraft', { name: draft.name })
+    throw Object.assign(new Error(message), { data: { message } })
+  }
   const variants = mode === 'copy'
-    ? [...draft.variants, copyVariant(source, info)]
+    ? [...draft.variants, copyVariant(inDraft ?? variant, info)]
     : mode === 'edit'
       ? draft.variants.map(v => (v._id === variant._id ? { ...v, ...info } : v))
       : removeVariant(draft.variants, variant._id)
-  // Le contenu part entier : champs et répartition tels que le brouillon les a repris.
-  const saved = (await gandalf.tables.versions.update(tableId, draft._id, {
-    fields: draft.fields,
-    variants,
-    variants_probability: draft.variants_probability,
-  })).data
-  versions.value = [...versions.value, saved]
+  let saved: TableVersion
+  try {
+    // Le contenu part entier : champs et répartition tels que le brouillon les a.
+    saved = (await gandalf.tables.versions.update(tableId, draft._id, {
+      fields: draft.fields,
+      variants,
+      variants_probability: draft.variants_probability,
+    })).data
+  }
+  catch (err) {
+    // Pas de brouillon vide laissé par une tentative refusée
+    if (created) await gandalf.tables.versions.remove(tableId, draft._id).catch(() => null)
+    throw err
+  }
+  variantDraftId.value = saved._id
+  versions.value = [...versions.value.filter(v => v._id !== saved._id), saved]
   toast.add({
     title: t(VARIANT_SAVED_TOASTS[mode]),
     description: t('versions.savedInDraft', { name: saved.name }),

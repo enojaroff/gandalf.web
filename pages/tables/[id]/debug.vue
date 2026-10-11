@@ -25,7 +25,7 @@
           </template>
 
           <div class="space-y-4">
-            <div v-for="field in table.fields" :key="field._id">
+            <div v-for="field in fields" :key="field._id">
               <UFormField :label="`${field.title} (${field.key})`">
                 <UInput
                   v-if="field.type === 'string'"
@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DecisionTable } from '~/types/decision-table'
+import type { DecisionField, DecisionTable } from '~/types/decision-table'
 import type { TableVersionSummary } from '~/types/version'
 import { generateCurlSample } from '~/utils/filters'
 import { apiErrorCode, apiValidationMessages } from '~/utils/apiErrors'
@@ -118,10 +118,13 @@ definePageMeta({ middleware: 'auth' })
 const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
+const projectsStore = useProjectsStore()
 const tableId = route.params.id as string
 
 const ACTIVE = 'active'
 const table = ref<DecisionTable | null>(null)
+// Les champs de la version testée ; ceux de la table sont ceux de la version active
+const fields = ref<DecisionField[]>([])
 const versions = ref<TableVersionSummary[]>([])
 const selectedVersion = ref<string>((route.query.version as string) || ACTIVE)
 const loadingTable = ref(true)
@@ -130,9 +133,11 @@ const testing = ref(false)
 const result = ref<unknown>(null)
 const testError = ref<string | null>(null)
 
+// Exécuter un brouillon demande tables_update (gandalf.api, VERSIONS.md) ;
+// une version publiée, decisions_make comme pour l'appeler.
 const versionItems = computed(() => [
   { label: t('versions.testActive'), value: ACTIVE },
-  ...versions.value.map(v => ({
+  ...versions.value.filter(v => v.status !== 'draft' || projectsStore.can('tables_update')).map(v => ({
     label: v.status === 'draft'
       ? `${t('versions.draft')} · ${v.name || '—'}`
       : `${versionNumberLabel(v)}${v.is_active ? ` (${t('versions.active')})` : ''}`,
@@ -146,6 +151,7 @@ const runVersionId = computed(() =>
 )
 
 onMounted(async () => {
+  if (projectsStore.currentUserScopes === null) projectsStore.fetchCurrentUserRole()
   try {
     const [tableResponse, versionsResponse] = await Promise.all([
       gandalf.tables.getById(tableId),
@@ -167,13 +173,17 @@ watch(selectedVersion, () => {
 })
 
 // Les champs du formulaire sont ceux de la version testée ; les valeurs déjà
-// saisies sont gardées pour les champs qui restent.
+// saisies sont gardées pour les champs qui restent. Seule la dernière version
+// choisie compte quand les réponses arrivent dans le désordre.
+let fieldsRequest = 0
 async function loadFields() {
   if (!table.value) return
+  const request = ++fieldsRequest
   const id = selectedVersion.value === ACTIVE ? null : selectedVersion.value
-  const fields = id ? (await gandalf.tables.versions.get(tableId, id)).data.fields : table.value.fields
-  table.value = { ...table.value, fields }
-  testInput.value = Object.fromEntries(fields.map(f => [f.key, testInput.value[f.key] ?? null]))
+  const loaded = id ? (await gandalf.tables.versions.get(tableId, id)).data.fields : table.value.fields
+  if (request !== fieldsRequest) return
+  fields.value = loaded
+  testInput.value = Object.fromEntries(loaded.map(f => [f.key, testInput.value[f.key] ?? null]))
 }
 
 const breadcrumbs = computed(() => [
@@ -187,7 +197,7 @@ const curlSample = computed(() => {
   const version = versions.value.find(v => v._id === selectedVersion.value)
   return generateCurlSample(
     tableId,
-    table.value.fields.map(f => ({ key: f.key, type: f.type })),
+    fields.value.map(f => ({ key: f.key, type: f.type })),
     '/api',
     { version: version && version.status === 'published' && !version.is_active ? version.number : null },
   )

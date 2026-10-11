@@ -482,6 +482,7 @@
     "pinOutdated": "Not active",
     "pinOutdatedHint": "A node runs a table version other than the table's active one.",
     "ranVersion": "Version run: {version}",
-    "updateFlowsCount": "Update {count} flow(s)"
+    "updateFlowsCount": "Update {count} flow(s)",
+    "variantNotInDraft": "This variant is no longer in the draft \"{name}\", where this page's changes go: open the draft to change it."
   }
 }

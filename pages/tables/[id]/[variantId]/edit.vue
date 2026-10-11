@@ -430,6 +430,13 @@ onMounted(async () => {
       base.value = version
     }
     setContent(response.data, version)
+    // La variante demandée peut manquer dans ce contenu (supprimée dans le
+    // brouillon, ou copiée sous un nouvel _id) : ouvrir sa première variante.
+    // Le paramètre change, la page est remontée.
+    const first = table.value?.variants[0]?._id
+    if (first && !table.value?.variants.some(v => v._id === variantId)) {
+      await navigateTo({ path: `/tables/${tableId}/${first}/edit`, query: route.query }, { replace: true })
+    }
   }
   finally {
     loading.value = false
@@ -446,8 +453,13 @@ function onImported(imported: ImportResponse) {
       setContent(table.value, version)
     }
     else {
-      // Brouillon créé à partir d'une version publiée : l'ouvrir
-      navigateTo(`/tables/${tableId}/${variantId}/edit?version=${version._id}`)
+      // Brouillon créé à partir de la version publiée ouverte : il devient le
+      // brouillon édité. Seule la query change, la page n'est pas remontée :
+      // l'état est mis à jour ici, comme à l'enregistrement.
+      draft.value = version
+      setContent(table.value, version)
+      router.replace({ query: { ...route.query, version: version._id } })
+      toast.add({ title: t('versions.draftCreated'), color: 'success' })
     }
   }
   else if ((imported.data as DecisionTable)._id === tableId) {

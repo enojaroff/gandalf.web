@@ -325,15 +325,18 @@ function originLabel(version: TableVersionSummary): string {
   return versionNumberLabel(origin) ?? (origin.name || t('versions.draft'))
 }
 
-// Le brouillon s'ouvre dans l'éditeur, sur sa première variante.
+// Le brouillon s'ouvre dans l'éditeur ; une variante qu'il n'a pas (supprimée,
+// ou copiée sous un nouvel _id) ouvre sa première variante.
 function editLink(version: Pick<VersionSummary, '_id'>): string {
   const variant = table.value?.variants[0]?._id ?? 'first'
   return `/tables/${tableId}/${variant}/edit?version=${version._id}`
 }
 
-// La répartition de la version active est un changement de production.
+// La répartition d'une version publiée est un changement de production : la
+// version active pour les appels directs, une autre pour les clés qui
+// l'appellent avec `version` (gandalf.api, VERSIONS.md).
 function canSplit(version: TableVersionSummary): boolean {
-  return can('tables_update') && (!version.is_active || can('tables_activate'))
+  return version.status === 'draft' ? can('tables_update') : can('tables_activate')
 }
 
 function canDelete(version: TableVersionSummary): boolean {

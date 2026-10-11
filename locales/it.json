@@ -448,6 +448,7 @@
     "pinOutdated": "Non attiva",
     "pinOutdatedHint": "Un nodo esegue una versione diversa da quella attiva della sua tabella.",
     "ranVersion": "Versione eseguita: {version}",
-    "updateFlowsCount": "Aggiorna {count} flusso/i"
+    "updateFlowsCount": "Aggiorna {count} flusso/i",
+    "variantNotInDraft": "Questa variante non è più nella bozza «{name}», dove vanno le modifiche di questa pagina: aprite la bozza per modificarla."
   }
 }

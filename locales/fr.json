@@ -482,6 +482,7 @@
     "pinOutdated": "Non active",
     "pinOutdatedHint": "Un nœud exécute une autre version que la version active de sa table.",
     "ranVersion": "Version exécutée : {version}",
-    "updateFlowsCount": "Mettre à jour {count} flow(s)"
+    "updateFlowsCount": "Mettre à jour {count} flow(s)",
+    "variantNotInDraft": "Cette variante n'est plus dans le brouillon « {name} », où vont les changements de cette page : ouvrez le brouillon pour la modifier."
   }
 }
