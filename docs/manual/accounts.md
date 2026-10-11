@@ -44,9 +44,17 @@ right by itself.
 
 | Role | Who | On top of their rights |
 | ---- | --- | ---------------------- |
-| **Member** ("Member") | An account attached to the application | Nothing: they do what their rights allow. |
+| **Member** ("Member") | An account attached to the application, with any role other than admin | Nothing: they do what their rights allow. |
 | **Application admin** ("Admin") | A member with the admin role. Can be one of the client's users | Manages the admins and the accounts of their application (see below). |
 | **Superadmin** | A Claims IA account, appointed on the server by Claims IA | Creates and deletes applications; acts as an admin holding every right in **every** application. |
+
+The role is stored for each member, and only the value **admin** has an
+effect. The "Rôle" (Role) column of the user list shows the stored value:
+`admin`, `member`, or, on older accounts, `manager` (the role the former
+interface gave) or `user`. `member`, `manager` and `user` have exactly the same
+effect: they are plain members, and what they can do depends only on their
+rights. The superadmin is not a role within an application: it is a property of
+the account.
 
 What the **admin** role adds:
 

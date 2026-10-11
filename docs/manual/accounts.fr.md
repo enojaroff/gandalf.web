@@ -41,9 +41,17 @@ donne aucun droit à lui seul.
 
 | Rôle | Qui | En plus de ses droits |
 | ---- | --- | --------------------- |
-| **Membre** (« Member ») | Un compte rattaché à l'application | Rien : il fait ce que ses droits permettent. |
+| **Membre** (« Member ») | Un compte rattaché à l'application, avec tout autre rôle que admin | Rien : il fait ce que ses droits permettent. |
 | **Admin d'application** (« Admin ») | Un membre avec le rôle admin. Il peut être un utilisateur du client | Gère les admins et les comptes de son application (voir ci-dessous). |
 | **Superadmin** | Un compte Claims IA, désigné sur le serveur par Claims IA | Crée et supprime les applications ; agit comme un admin qui a tous les droits dans **toutes** les applications. |
+
+Le rôle est enregistré pour chaque membre, et seule la valeur **admin** a un
+effet. La colonne « Rôle » de la liste des utilisateurs affiche la valeur
+enregistrée : `admin`, `member`, ou, sur des comptes plus anciens, `manager`
+(rôle que donnait l'ancienne interface) ou `user`. `member`, `manager` et
+`user` ont exactement le même effet : ce sont de simples membres, et ce qu'ils
+peuvent faire dépend uniquement de leurs droits. Le superadmin n'est pas un
+rôle dans une application : c'est une propriété du compte.
 
 Ce que le rôle **admin** ajoute :
 
