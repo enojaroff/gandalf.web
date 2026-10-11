@@ -55,8 +55,9 @@ rôle dans une application : c'est une propriété du compte.
 
 Ce que le rôle **admin** ajoute :
 
-- **gérer les admins** : inviter quelqu'un avec le rôle admin, modifier les
-  droits d'un admin ou le retirer de l'application. Un membre qui a le droit
+- **gérer les admins** : inviter quelqu'un avec le rôle admin ou ajouter un
+  compte comme admin, modifier les droits d'un admin ou le retirer de
+  l'application. Un membre qui a le droit
   de gérer les collaborateurs gère les autres membres, mais ne peut pas
   toucher à un admin ;
 - **gérer les comptes** : confirmer un compte à la place de la personne,

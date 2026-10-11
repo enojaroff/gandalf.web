@@ -58,8 +58,9 @@ the account.
 
 What the **admin** role adds:
 
-- **managing admins**: inviting someone with the admin role, changing an
-  admin's rights or removing them from the application. A member who may
+- **managing admins**: inviting someone with the admin role or adding an
+  account as an admin, changing an admin's rights or removing them from the
+  application. A member who may
   manage collaborators manages the other members, but cannot touch an admin;
 - **managing accounts**: confirming an account on the person's behalf,
   resending or cancelling an invitation, deleting an account;
