@@ -8,6 +8,8 @@ This is a Front-End project for our Open-Source Decision Engine for Big-Data. Yo
 
 API docs is [here](http://docs.gandalf4.apiary.io/#).
 
+User manual: [docs/manual](docs/manual/README.md) ([français](docs/manual/README.fr.md)).
+
 ## Installation Guide
 
 ### Docker

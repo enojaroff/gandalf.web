@@ -322,7 +322,8 @@
       "adminEmailHelp": "Invitato con il ruolo admin e tutti i permessi. Non siete membri dell'applicazione: confermate il suo account, o invitatelo più tardi, dalle sue impostazioni.",
       "adminInvited": "Invito inviato a {email}",
       "inviteFailed": "L'applicazione è creata, ma l'invito del suo admin non è riuscito: invitatelo dalle sue impostazioni."
-    }
+    },
+    "you": "Lei"
   },
   "common": {
     "clearFilters": "Cancella i filtri",

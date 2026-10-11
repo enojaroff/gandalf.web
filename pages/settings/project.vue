@@ -105,6 +105,10 @@
         </template>
         <div v-if="loadingUsers" class="py-4 text-center text-muted">{{ $t('common.loading') }}</div>
         <UTable v-else :data="users" :columns="userColumns">
+          <template #email-cell="{ row }">
+            <span>{{ row.original.email }}</span>
+            <UBadge v-if="isSelf(row.original)" size="xs" variant="subtle" color="neutral" class="ml-2">{{ $t('settings.you') }}</UBadge>
+          </template>
           <template #status-cell="{ row }">
             <UBadge :color="statusColor(row.original.status)" size="xs" variant="soft">
               {{ statusLabel(row.original.status) }}
@@ -148,9 +152,9 @@
                 :title="$t('settings.cancelInvite')"
                 @click="cancelInvitation(row.original)"
               />
-              <!-- Registered collaborators: edit (contains Remove) -->
+              <!-- Registered collaborators: edit (contains Remove), when the API allows it -->
               <UButton
-                v-if="row.original.user_id"
+                v-if="canEdit(row.original)"
                 variant="ghost"
                 icon="i-lucide-pencil"
                 size="sm"
@@ -229,6 +233,7 @@
 
 <script setup lang="ts">
 import type { Collaborator, CollaboratorStatus, ProjectConsumer } from '~/types/project'
+import { apiErrorMessage } from '~/utils/apiErrors'
 // Explicit imports: these live under components/modals/, which Nuxt auto-imports
 // as <ModalsInviteUserModal>/<ModalsAddConsumerModal>. The template uses the
 // unprefixed names, so import them here to resolve them reliably.
@@ -244,6 +249,17 @@ const { t } = useI18n()
 const gandalf = useGandalf()
 const toast = useToast()
 const projectsStore = useProjectsStore()
+const userStore = useUserStore()
+
+// Nul ne modifie ni ne retire son propre compte, et seul un admin modifie un
+// admin : l'API refuse ces cas (gandalf.api, ADMIN.md), ils ne sont pas proposés.
+function isSelf(collaborator: Collaborator): boolean {
+  return !!collaborator.user_id && collaborator.user_id === userStore.currentUser?._id
+}
+function canEdit(collaborator: Collaborator): boolean {
+  if (!collaborator.user_id || isSelf(collaborator)) return false
+  return collaborator.role !== 'admin' || projectsStore.isAdmin
+}
 
 const loading = ref(false)
 const loadingUsers = ref(false)
@@ -316,6 +332,8 @@ const consumerColumns = computed(() => [
 ])
 
 onMounted(async () => {
+  if (!userStore.currentUser) userStore.fetchCurrent().catch(() => null)
+  if (projectsStore.currentUserRole === null) projectsStore.fetchCurrentUserRole()
   loading.value = true
   try {
     const project = await gandalf.projects.current()
@@ -475,23 +493,14 @@ async function saveProject() {
   finally { savingProject.value = false }
 }
 
-async function removeUser(user: Collaborator) {
-  // Only registered collaborators can be removed (invitations have no user_id).
-  if (!user.user_id) return
-  if (!confirm(t('settings.removeUser'))) return
-  try {
-    await gandalf.projects.removeUser(user.user_id)
-    await loadUsers()
-  }
-  catch { /* TODO toast */ }
-}
-
 async function removeConsumer(consumer: ProjectConsumer) {
   if (!confirm(t('settings.removeConsumer'))) return
   try {
     await gandalf.projects.removeConsumer(consumer.client_id)
     await loadConsumers()
   }
-  catch { /* TODO toast */ }
+  catch (err: unknown) {
+    toast.add({ title: apiErrorMessage(err) || t('errors.failedToSave'), color: 'error' })
+  }
 }
 </script>

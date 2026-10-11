@@ -356,7 +356,8 @@
       "adminEmailHelp": "Invited with the admin role and every scope. You are not a member of the application: confirm their account, or invite them later, from its settings.",
       "adminInvited": "Invitation sent to {email}",
       "inviteFailed": "The application is created, but inviting its admin failed: invite them from its settings."
-    }
+    },
+    "you": "You"
   },
   "common": {
     "clearFilters": "Clear filters",
