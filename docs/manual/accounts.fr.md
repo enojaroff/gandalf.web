@@ -73,7 +73,8 @@ Le **superadmin**, réservé à Claims IA :
 
 Les droits se cochent par groupe dans les fenêtres « Inviter », « Ajouter un
 compte » et « Modifier le collaborateur ». Les libellés y sont en anglais ;
-le tableau les reprend tels qu'ils s'affichent.
+le tableau les reprend tels qu'ils s'affichent. « View » des tables est coché
+d'office, et ces fenêtres refusent d'enregistrer sans lui.
 
 | Groupe à l'écran | Droit à l'écran | Permet |
 | ---------------- | --------------- | ------ |
@@ -131,7 +132,7 @@ Dans **Paramètres**, carte « Utilisateurs », bouton **Inviter** (droit
 1. Saisir l'adresse e-mail de la personne.
 2. Choisir le rôle : **Member** ou **Admin** (inviter un admin est réservé aux
    admins).
-3. Cocher ses droits, dont au moins « View » des tables.
+3. Cocher ses droits (« View » des tables est déjà coché, et obligatoire).
 4. **Envoyer une invitation**.
 
 L'invitation apparaît dans la liste avec le statut **Invité**. Ensuite :
@@ -149,9 +150,12 @@ croix **l'annule** (admin).
 ### Ajouter un compte existant
 
 Bouton **Ajouter un compte** : rechercher le compte par nom d'utilisateur ou
-par e-mail, choisir le rôle **Member** et cocher ses droits, puis
-**Ajouter**. Pour rendre quelqu'un admin, passer par une invitation (voir
-[Limites actuelles](#limites-actuelles)).
+par e-mail, choisir son rôle et cocher ses droits, puis **Ajouter**. Le compte
+rejoint l'application tout de suite, sans invitation :
+
+- **Member** : avec les droits cochés ;
+- **Admin** (proposé aux seuls admins) : comme admin, avec les droits cochés.
+  Si la nomination échoue, le compte reste membre et un message l'indique.
 
 ### Statuts dans la liste des utilisateurs
 
@@ -254,7 +258,8 @@ Une application sans admin actif n'exécute pas de décisions : la page
 | Voir les membres d'une application | Droit « Manage » des collaborateurs |
 | Inviter un membre | Droit « Manage » des collaborateurs |
 | Inviter un admin | Admin, avec le droit « Manage » des collaborateurs |
-| Ajouter un compte existant | Droit « Manage » des collaborateurs |
+| Ajouter un compte existant comme membre | Droit « Manage » des collaborateurs |
+| Ajouter un compte existant comme admin | Admin, avec le droit « Manage » des collaborateurs |
 | Confirmer un compte, renvoyer ou annuler une invitation | Admin, avec le droit « Manage » des collaborateurs |
 | Modifier les droits d'un membre | Droit « Manage » des collaborateurs, jamais les siens |
 | Modifier les droits d'un admin | Admin, avec le droit « Manage » des collaborateurs |
@@ -280,9 +285,9 @@ Points connus, en attente de correction :
   **Mot de passe oublié ?**. Le mot de passe temporaire donné à la
   confirmation d'une invitation n'a pas à être changé, contrairement à ce
   qu'indique le message.
-- **Rôle admin** : un membre existant ne peut pas être nommé admin depuis
-  l'interface, et **Ajouter un compte** avec le rôle Admin est refusé. Pour un
-  nouvel admin, passer par **Inviter** avec le rôle Admin.
+- **Rôle admin** : un membre existant ne peut pas être nommé admin
+  directement. Le retirer de l'application, puis l'ajouter de nouveau avec
+  **Ajouter un compte** et le rôle Admin.
 - **E-mail de vérification** : il ne peut pas être renvoyé. Un admin peut
   activer le compte avec **Confirmer**.
 - **Page Paramètres** : un membre qui n'a pas le droit « Manage » des

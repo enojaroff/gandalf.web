@@ -74,7 +74,8 @@ The **superadmin**, reserved to Claims IA:
 
 Rights are ticked by group in the "Inviter" (Invite), "Ajouter un compte"
 (Add an account) and "Modifier le collaborateur" (Edit collaborator) windows.
-Their labels are shown in English on screen.
+Their labels are shown in English on screen. Tables "View" is ticked by
+default, and these windows refuse to save without it.
 
 | Group on screen | Right on screen | Allows |
 | --------------- | --------------- | ------ |
@@ -130,7 +131,7 @@ In **Paramètres** (Settings), "Utilisateurs" (Users) card, **Inviter**
 1. Enter the person's email address.
 2. Pick the role: **Member** or **Admin** (inviting an admin is reserved to
    admins).
-3. Tick their rights, including at least tables "View".
+3. Tick their rights (tables "View" is already ticked, and required).
 4. **Envoyer une invitation** (Send an invitation).
 
 The invitation shows in the list with the status **Invité** (Invited). Then:
@@ -148,9 +149,12 @@ On an "Invité" row, the envelope icon **resends the invitation** and the cross
 ### Adding an existing account
 
 **Ajouter un compte** (Add an account) button: search the account by username
-or email, pick the **Member** role and tick its rights, then **Ajouter**
-(Add). To make someone an admin, use an invitation (see
-[Current limitations](#current-limitations)).
+or email, pick its role and tick its rights, then **Ajouter** (Add). The
+account joins the application at once, without an invitation:
+
+- **Member**: with the ticked rights;
+- **Admin** (offered to admins only): as an admin, with the ticked rights. If
+  the appointment fails, the account stays a member and a message says so.
 
 ### Statuses in the user list
 
@@ -252,7 +256,8 @@ flags it with the "Aucun admin" (No admin) badge.
 | See an application's members | "Manage" collaborators right |
 | Invite a member | "Manage" collaborators right |
 | Invite an admin | Admin, with the "Manage" collaborators right |
-| Add an existing account | "Manage" collaborators right |
+| Add an existing account as a member | "Manage" collaborators right |
+| Add an existing account as an admin | Admin, with the "Manage" collaborators right |
 | Confirm an account, resend or cancel an invitation | Admin, with the "Manage" collaborators right |
 | Change a member's rights | "Manage" collaborators right, never your own |
 | Change an admin's rights | Admin, with the "Manage" collaborators right |
@@ -277,9 +282,9 @@ Known points, awaiting a fix:
 - **Password**: it cannot be changed from the profile; use **Mot de passe
   oublié ?**. The temporary password given when an invitation is confirmed
   does not have to be changed, despite what the message says.
-- **Admin role**: an existing member cannot be made admin from the interface,
-  and **Ajouter un compte** with the Admin role is refused. For a new admin,
-  use **Inviter** with the Admin role.
+- **Admin role**: an existing member cannot be made admin directly. Remove
+  them from the application, then add them again with **Ajouter un compte**
+  and the Admin role.
 - **Verification email**: it cannot be resent. An admin can activate the
   account with **Confirmer**.
 - **Settings page**: a member without the "Manage" collaborators right sees an

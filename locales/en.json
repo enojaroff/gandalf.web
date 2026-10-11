@@ -357,7 +357,10 @@
       "adminInvited": "Invitation sent to {email}",
       "inviteFailed": "The application is created, but inviting its admin failed: invite them from its settings."
     },
-    "you": "You"
+    "you": "You",
+    "viewRequired": "Tick at least the tables \"View\" right (Decision Tables): without it, the member sees nothing of the application.",
+    "adminRoleRefused": "The admin role cannot be given this way.",
+    "adminPartial": "The account was added as a member, but could not be made admin: {reason}"
   },
   "common": {
     "clearFilters": "Clear filters",

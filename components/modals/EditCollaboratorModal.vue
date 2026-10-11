@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import { PROJECT_USER_SCOPE_GROUPS } from '~/utils/scopes'
+import { REQUIRED_MEMBER_SCOPE, accountErrorText } from '~/utils/accountErrors'
 import type { Collaborator } from '~/types/project'
 
 const props = defineProps<{ collaborator: Collaborator }>()
@@ -84,6 +85,8 @@ const isSelf = computed(() => !!props.collaborator.user_id && props.collaborator
 const scope = ref<string[]>([...props.collaborator.scope])
 const loading = ref(false)
 const error = ref<string | null>(null)
+// Le message ne survit pas à une correction des droits
+watch(scope, () => { error.value = null }, { deep: true })
 
 // UCheckbox in Nuxt UI v3 is boolean-only (no array binding), so toggle each
 // scope key in/out of the array manually.
@@ -98,12 +101,16 @@ function toggleScope(key: string, checked: boolean) {
 
 async function onSave() {
   if (!props.collaborator.user_id) return
+  if (!scope.value.includes(REQUIRED_MEMBER_SCOPE)) {
+    error.value = t('settings.viewRequired')
+    return
+  }
   loading.value = true
   error.value = null
   try {
+    // Le rôle ne se modifie pas ici, et l'API refuse qu'on renvoie `admin`.
     await gandalf.projects.updateUser({
       user_id: props.collaborator.user_id,
-      role: props.collaborator.role,
       scope: scope.value,
     })
     toast.add({ title: t('settings.collaboratorUpdated'), color: 'success' })
@@ -111,8 +118,7 @@ async function onSave() {
     emit('close')
   }
   catch (err: unknown) {
-    const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || t('errors.failedToSave')
+    error.value = accountErrorText(err, t, 'errors.failedToSave')
   }
   finally { loading.value = false }
 }
@@ -129,8 +135,7 @@ async function onRemove() {
     emit('close')
   }
   catch (err: unknown) {
-    const e = err as { data?: { message?: string } }
-    error.value = e?.data?.message || t('errors.failedToSave')
+    error.value = accountErrorText(err, t, 'errors.failedToSave')
   }
   finally { loading.value = false }
 }
