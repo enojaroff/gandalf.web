@@ -322,7 +322,8 @@
       "adminEmailHelp": "Invitado con el rol admin y todos los permisos. Usted no es miembro de la aplicación: confirme su cuenta, o invítelo más tarde, desde su configuración.",
       "adminInvited": "Invitación enviada a {email}",
       "inviteFailed": "La aplicación está creada, pero la invitación de su admin falló: invítelo desde su configuración."
-    }
+    },
+    "you": "Usted"
   },
   "common": {
     "clearFilters": "Borrar los filtros",
