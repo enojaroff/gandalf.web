@@ -29,6 +29,7 @@
         <template #actions-cell="{ row }">
           <div class="flex gap-2">
             <UButton
+              v-if="projectsStore.can('tables_update')"
               size="xs"
               variant="outline"
               icon="i-lucide-refresh-cw"
@@ -59,12 +60,15 @@ const { t } = useI18n()
 const route = useRoute()
 const gandalf = useGandalf()
 const tableId = route.params.id as string
+// Restaurer une révision demande tables_update
+const projectsStore = useProjectsStore()
 
 const changelogs = ref<unknown[]>([])
 const loading = ref(true)
 const table = ref<DecisionTable | null>(null)
 
 onMounted(async () => {
+  projectsStore.ensureCurrentUser()
   try {
     const [changelogsResp, tableResp] = await Promise.all([
       gandalf.tables.getChangelogs(tableId),

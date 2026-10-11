@@ -5,6 +5,8 @@
       <h1 class="text-2xl font-bold">{{ $t('tables.newTitle') }}</h1>
     </div>
 
+    <ReadOnlyNotice scope="tables_create" action="create" />
+
     <UCard>
       <UForm :state="form" @submit="onSubmit">
         <UFormField :label="$t('tables.tableName')" name="title" class="mb-4" required>
@@ -46,7 +48,7 @@
 
         <div class="flex gap-3 justify-end">
           <UButton to="/tables" variant="outline" :disabled="loading">{{ $t('common.cancel') }}</UButton>
-          <UButton type="submit" :loading="loading">{{ $t('tables.create') }}</UButton>
+          <UButton type="submit" :loading="loading" :disabled="!projectsStore.can('tables_create')">{{ $t('tables.create') }}</UButton>
         </div>
       </UForm>
     </UCard>
@@ -61,6 +63,9 @@ definePageMeta({ path: '/tables/create', middleware: 'auth' })
 
 const { t } = useI18n()
 const gandalf = useGandalf()
+// Créer une table demande tables_create
+const projectsStore = useProjectsStore()
+onMounted(() => projectsStore.ensureCurrentUser())
 
 const form = reactive({
   title: '',

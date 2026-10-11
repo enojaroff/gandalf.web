@@ -40,6 +40,8 @@
         </template>
       </UAlert>
 
+      <ReadOnlyNotice scope="tables_update" />
+
       <!-- Actions bar -->
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-4">
@@ -56,15 +58,18 @@
             :version-id="draft?._id ?? base?._id"
             @imported="onImported"
           />
-          <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
-            {{ $t('tables.addRule') }}
-          </UButton>
-          <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="showAddFieldModal = true">
-            {{ $t('tables.addField') }}
-          </UButton>
-          <UButton icon="i-lucide-check" :loading="saving" @click="save">
-            {{ $t('common.save') }}
-          </UButton>
+          <!-- Enregistrer (un brouillon) demande tables_update -->
+          <template v-if="canSave">
+            <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
+              {{ $t('tables.addRule') }}
+            </UButton>
+            <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="() => { showAddFieldModal = true }">
+              {{ $t('tables.addField') }}
+            </UButton>
+            <UButton icon="i-lucide-check" :loading="saving" @click="save">
+              {{ $t('common.save') }}
+            </UButton>
+          </template>
         </div>
       </div>
 
@@ -72,13 +77,14 @@
       <DecisionTable
         :table="table"
         :variant="variant"
+        :readonly="!canSave"
         @update:table="table = $event"
         @edit-field="openEditField"
       />
 
       <UContainer class="flex items-center justify-between h-16">
         <span></span>
-        <UButton icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
+        <UButton v-if="canSave" icon="i-lucide-plus" variant="outline" size="sm" @click="addRule">
           {{ $t('tables.addRule') }}
         </UButton>
         <span></span>
@@ -87,11 +93,12 @@
       <UCard class="mt-2" variant="subtle">
         <div class="flex items-center gap-3">
           <span class="text-xs font-semibold text-muted uppercase shrink-0 w-28">Default Decision</span>
-          <UInput v-model="variantDefaultTitle" placeholder="Title" class="flex-1" />
-          <UInput v-model="variantDefaultDescription" placeholder="Description" class="flex-1" />
+          <UInput v-model="variantDefaultTitle" placeholder="Title" class="flex-1" :disabled="!canSave" />
+          <UInput v-model="variantDefaultDescription" placeholder="Description" class="flex-1" :disabled="!canSave" />
           <UInput
             v-model="variantDefaultDecision"
             :placeholder="isDecisionType ? 'Value' : '0'"
+            :disabled="!canSave"
             class="w-32"
           />
         </div>
@@ -100,6 +107,7 @@
       <!-- Footer: delete + save -->
       <div class="mt-6 flex justify-between">
         <UButton
+          v-if="projectsStore.can('tables_delete')"
           color="error"
           variant="outline"
           icon="i-lucide-trash-2"
@@ -108,7 +116,8 @@
         >
           {{ $t('tables.deleteTable') }}
         </UButton>
-        <UButton icon="i-lucide-check" :loading="saving" @click="save">
+        <span v-else />
+        <UButton v-if="canSave" icon="i-lucide-check" :loading="saving" @click="save">
           {{ $t('common.save') }}
         </UButton>
       </div>
@@ -213,6 +222,8 @@ const route = useRoute()
 const gandalf = useGandalf()
 const router = useRouter()
 const projectsStore = useProjectsStore()
+// Enregistrer un brouillon demande tables_update ; sans lui, l'éditeur est en lecture seule
+const canSave = computed(() => projectsStore.can('tables_update'))
 const tableId = route.params.id as string
 const variantId = route.params.variantId as string
 

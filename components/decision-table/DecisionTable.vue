@@ -1,6 +1,6 @@
 <template>
   <div class="decision-table-wrapper overflow-x-auto">
-    <table class="decision-table">
+    <table class="decision-table" :class="{ 'decision-table--readonly': readonly }">
       <!-- En-tête des colonnes -->
       <thead>
         <tr>
@@ -21,7 +21,7 @@
             :key="field._id"
             class="dt-cell dt-cell--field dt-cell--field-header"
             title="Click to edit field"
-            @click="emit('edit-field', field)"
+            @click="() => { if (!readonly) emit('edit-field', field) }"
           >
             <!-- 1re ligne : titre sur toute la largeur ; 2e ligne : clé et type -->
             <div class="dt-field-title text-xs font-semibold" :title="field.title">
@@ -56,6 +56,7 @@
         v-model="draggableRules"
         tag="tbody"
         handle=".dt-drag-handle"
+        :disabled="readonly"
         :animation="150"
         ghost-class="dt-row--ghost"
         @start="isDragging = true"
@@ -199,7 +200,7 @@
 
           <!-- Actions -->
           <td class="dt-cell dt-cell--actions">
-            <div class="flex gap-1">
+            <div v-if="!readonly" class="flex gap-1">
               <UButton
                 variant="ghost"
                 icon="i-lucide-copy"
@@ -233,6 +234,8 @@ import { dateExprLabel, isValidDateCondition } from '~/utils/dateExpr'
 const props = defineProps<{
   table: DecisionTable
   variant: DecisionVariant
+  // Lecture seule (droit tables_update manquant) : rien ne s'ouvre ni ne bouge
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -479,6 +482,12 @@ function toggleDelete(rule: DecisionRule) {
 </script>
 
 <style scoped>
+/* Lecture seule : les cellules ne s'ouvrent plus ; le défilement reste à l'enveloppe */
+.decision-table--readonly thead,
+.decision-table--readonly tbody {
+  pointer-events: none;
+}
+
 .decision-table-wrapper {
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-md);

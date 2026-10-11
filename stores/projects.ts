@@ -29,6 +29,14 @@ export const useProjectsStore = defineStore('projects', {
     // Vrai si l'utilisateur courant a ce droit dans le projet actif. Sert à
     // n'afficher que les actions permises ; l'API reste l'autorité (403).
     can: state => (scope: string): boolean => (state.currentUserScopes ?? []).includes(scope),
+
+    // Copier une table ou un flow vers une autre application : admin, avec le
+    // droit de créer ; le déplacer demande en plus celui de supprimer.
+    canCopyTo: (state): boolean =>
+      state.currentUserRole === 'admin' && (state.currentUserScopes ?? []).includes('tables_create'),
+    canMoveTo: (state): boolean =>
+      state.currentUserRole === 'admin'
+      && ['tables_create', 'tables_delete'].every(scope => (state.currentUserScopes ?? []).includes(scope)),
   },
 
   actions: {

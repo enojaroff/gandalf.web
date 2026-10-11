@@ -635,5 +635,9 @@
       "consumers_get": "API keys: read",
       "users_manage": "Members: manage"
     }
+  },
+  "rights": {
+    "readOnlySave": "Read only: you need the \"{right}\" right to save.",
+    "readOnlyCreate": "You need the \"{right}\" right to create."
   }
 }

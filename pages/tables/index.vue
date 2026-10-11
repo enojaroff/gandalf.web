@@ -9,7 +9,7 @@
           {{ meta?.total ?? tables.length }} table{{ (meta?.total ?? tables.length) !== 1 ? 's' : '' }}
         </p>
       </div>
-      <UButton to="/tables/create" icon="i-lucide-plus">
+      <UButton v-if="projectsStore.can('tables_create')" to="/tables/create" icon="i-lucide-plus">
         {{ $t('tables.new') }}
       </UButton>
     </div>
@@ -37,7 +37,8 @@
 
     <!-- Commandes en masse (admin) : visibles dès qu'une ligne est sélectionnée -->
     <BulkActionsBar
-      v-if="isAdmin"
+      v-if="canCopyTo"
+      :can-move="projectsStore.canMoveTo"
       resource="table"
       :count="selectedTables.length"
       @copy="openBulk('copy')"
@@ -63,7 +64,7 @@
       <div v-else-if="tables.length === 0" class="text-center py-12">
         <UIcon name="i-lucide-table" class="text-5xl text-muted mb-4" />
         <p class="text-muted">{{ $t('tables.noTables') }} {{ $t('tables.noTablesCreate') }}</p>
-        <UButton to="/tables/create" class="mt-4" icon="i-lucide-plus">
+        <UButton v-if="projectsStore.can('tables_create')" to="/tables/create" class="mt-4" icon="i-lucide-plus">
           {{ $t('tables.create') }}
         </UButton>
       </div>
@@ -164,7 +165,8 @@ const projectsStore = useProjectsStore()
 
 // Copier/déplacer vers un autre projet — admin uniquement. `items` : une table
 // (menu de la ligne) ou la sélection (commandes en masse).
-const isAdmin = computed(() => projectsStore.isAdmin)
+// Copier vers une autre application : seule commande en masse, avec ses droits
+const canCopyTo = computed(() => projectsStore.canCopyTo)
 const copyMove = ref<{ mode: 'copy' | 'move'; items: DecisionTable[] } | null>(null)
 
 const tables = ref<DecisionTable[]>([])
@@ -243,7 +245,7 @@ function onCategoryFilterChange() {
 
 const columns = computed(() => [
   // Cases de sélection : seules les commandes admin (copier/déplacer) s'en servent
-  ...(isAdmin.value ? [{ id: 'select', header: '' }] : []),
+  ...(canCopyTo.value ? [{ id: 'select', header: '' }] : []),
   { accessorKey: 'title', header: t('common.name') },
   { accessorKey: 'matching_type', header: t('tables.matchingType') },
   { id: 'actions', header: '' },
@@ -302,29 +304,33 @@ function tableActions(table: DecisionTable): MenuItem[][] {
       },
     ],
   ]
-  // Copier/déplacer : admin uniquement.
-  if (isAdmin.value) {
+  // Copier/déplacer : admin, avec les droits de créer (et de supprimer)
+  const transfer: MenuItem[] = []
+  if (projectsStore.canCopyTo) {
+    transfer.push({
+      label: 'Copier vers…',
+      icon: 'i-lucide-copy',
+      onSelect: () => { copyMove.value = { mode: 'copy', items: [table] } },
+    })
+  }
+  if (projectsStore.canMoveTo) {
+    transfer.push({
+      label: 'Déplacer vers…',
+      icon: 'i-lucide-corner-up-right',
+      onSelect: () => { copyMove.value = { mode: 'move', items: [table] } },
+    })
+  }
+  if (transfer.length) groups.push(transfer)
+  if (projectsStore.can('tables_delete')) {
     groups.push([
       {
-        label: 'Copier vers…',
-        icon: 'i-lucide-copy',
-        onSelect: () => { copyMove.value = { mode: 'copy', items: [table] } },
-      },
-      {
-        label: 'Déplacer vers…',
-        icon: 'i-lucide-corner-up-right',
-        onSelect: () => { copyMove.value = { mode: 'move', items: [table] } },
+        label: t('common.delete'),
+        icon: 'i-lucide-trash-2',
+        color: 'error',
+        onSelect: () => { confirmDelete(table) },
       },
     ])
   }
-  groups.push([
-    {
-      label: t('common.delete'),
-      icon: 'i-lucide-trash-2',
-      color: 'error',
-      onSelect: () => { confirmDelete(table) },
-    },
-  ])
   return groups
 }
 
@@ -347,10 +353,8 @@ function onCopyMoveSaved() {
 
 onMounted(async () => {
   const firstLoad = loadTables()
-  // Rôle projet, pour n'exposer copier/déplacer qu'aux admins.
-  if (projectsStore.currentUserRole === null) {
-    projectsStore.fetchCurrentUserRole()
-  }
+  // Rôle et droits : les actions proposées en dépendent
+  projectsStore.ensureCurrentUser()
   // Catégorie mémorisée supprimée depuis : la liste resterait vide, sans
   // sélecteur pour en sortir s'il n'y a plus de catégorie.
   if (await loadCategories() && categoryFilter.value !== ALL_CATEGORIES && !categoryById.value.has(categoryFilter.value)) {

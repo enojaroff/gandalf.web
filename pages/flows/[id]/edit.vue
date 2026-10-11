@@ -31,25 +31,25 @@
           <UButton v-if="!isNew" icon="i-lucide-history" variant="ghost" :to="`/flows/${routeId}/versions`">
             {{ $t('versions.title') }}
           </UButton>
-          <UButton icon="i-lucide-save" :loading="saving" @click="save">
+          <UButton v-if="projectsStore.can(saveScope)" icon="i-lucide-save" :loading="saving" @click="save">
             {{ $t('common.save') }}
           </UButton>
           <UButton
-            v-if="!isNew && isAdmin"
+            v-if="!isNew && projectsStore.canCopyTo"
             icon="i-lucide-copy"
             variant="ghost"
             title="Copier vers un autre projet"
             @click="() => { copyMove = { mode: 'copy', item: flow } }"
           />
           <UButton
-            v-if="!isNew && isAdmin"
+            v-if="!isNew && projectsStore.canMoveTo"
             icon="i-lucide-corner-up-right"
             variant="ghost"
             title="Déplacer vers un autre projet"
             @click="() => { copyMove = { mode: 'move', item: flow } }"
           />
           <UButton
-            v-if="!isNew"
+            v-if="!isNew && projectsStore.can('tables_delete')"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -58,6 +58,8 @@
           />
         </div>
       </div>
+
+      <ReadOnlyNotice :scope="saveScope" :action="isNew ? 'create' : 'save'" />
 
       <!-- Version éditée : un brouillon, ou la version de départ d'un nouveau brouillon -->
       <UAlert
@@ -335,7 +337,8 @@ const routeId = computed(() => route.params.id as string)
 const isNew = computed(() => routeId.value === 'new')
 
 // Copier/déplacer vers un autre projet — admin uniquement.
-const isAdmin = computed(() => projectsStore.isAdmin)
+// Enregistrer : créer le flow (tables_create), ou modifier son brouillon (tables_update)
+const saveScope = computed(() => (isNew.value ? 'tables_create' : 'tables_update'))
 const copyMove = ref<{ mode: 'copy' | 'move'; item: Flow } | null>(null)
 
 function onCopyMoveSaved() {

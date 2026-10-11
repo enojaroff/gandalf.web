@@ -635,5 +635,9 @@
       "consumers_get": "Clés d'API : voir",
       "users_manage": "Membres : gérer"
     }
+  },
+  "rights": {
+    "readOnlySave": "Lecture seule : il vous manque le droit « {right} » pour enregistrer.",
+    "readOnlyCreate": "Il vous manque le droit « {right} » pour créer."
   }
 }

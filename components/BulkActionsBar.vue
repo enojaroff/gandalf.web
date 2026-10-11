@@ -17,7 +17,7 @@
       <UButton size="sm" variant="soft" icon="i-lucide-copy" @click="emit('copy')">
         Copier vers…
       </UButton>
-      <UButton size="sm" variant="soft" icon="i-lucide-corner-up-right" @click="emit('move')">
+      <UButton v-if="canMove" size="sm" variant="soft" icon="i-lucide-corner-up-right" @click="emit('move')">
         Déplacer vers…
       </UButton>
       <UButton
@@ -35,10 +35,12 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   resource: 'table' | 'flow'
   count: number
-}>()
+  // Déplacer demande aussi le droit de supprimer
+  canMove?: boolean
+}>(), { canMove: true })
 const emit = defineEmits<{ copy: []; move: []; clear: [] }>()
 
 const NOUNS = {
