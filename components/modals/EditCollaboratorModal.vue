@@ -51,7 +51,8 @@
           <UButton variant="outline" color="error" icon="i-lucide-user-minus" :disabled="loading" @click="onRemove">
             {{ $t('settings.removeFromProject') }}
           </UButton>
-          <UButton variant="soft" color="error" icon="i-lucide-trash-2" :disabled="loading" @click="onDeleteAccount">
+          <!-- Jamais pour son propre compte (l'API le refuse aussi) -->
+          <UButton v-if="!isSelf" variant="soft" color="error" icon="i-lucide-trash-2" :disabled="loading" @click="onDeleteAccount">
             {{ $t('settings.deleteAccount') }}
           </UButton>
         </div>
@@ -74,6 +75,10 @@ const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
 const gandalf = useGandalf()
 const toast = useToast()
+const userStore = useUserStore()
+
+// Son propre compte : on ne le supprime pas depuis la liste des utilisateurs.
+const isSelf = computed(() => !!props.collaborator.user_id && props.collaborator.user_id === userStore.currentUser?._id)
 
 // Local copy of the collaborator's scopes so edits are not applied until Save.
 const scope = ref<string[]>([...props.collaborator.scope])
@@ -131,7 +136,7 @@ async function onRemove() {
 }
 
 async function onDeleteAccount() {
-  if (!props.collaborator.user_id) return
+  if (!props.collaborator.user_id || isSelf.value) return
 
   // Double confirmation: the admin must type the exact email to proceed, since
   // this permanently deletes the account (not just removes it from the project).
