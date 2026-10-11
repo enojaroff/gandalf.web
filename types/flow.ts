@@ -33,10 +33,13 @@ export interface FlowOutput {
   position?: CanvasPosition
 }
 
-// Un nœud : référence une table de décision par son id.
+// Un nœud : référence une table de décision par son id, figée sur une version
+// publiée de cette table (gandalf.api, VERSIONS.md). Sans version figée, l'API
+// garde celle du nœud ou prend la version active de la table.
 export interface FlowNode {
   node_id: string
   table_id: string
+  table_version_id?: string | null
   // Optional display name shown in the canvas node header. Useful when the same
   // table is used by several nodes. The backend stores it but ignores it.
   label?: string
@@ -74,12 +77,24 @@ export interface Flow {
   outputs: FlowOutput[]
   nodes: FlowNode[]
   edges: FlowEdge[]
+  // Version publiée exécutée par l'API ; le graphe ci-dessus en est la copie
+  active_version_id?: string | null
+  // Liste des flows : un nœud exécute une autre version que la version active de sa table
+  outdated?: boolean
+}
+
+// Version d'un flow et version de table : { _id, number }
+export interface VersionRef {
+  _id: string
+  number: number | null
 }
 
 // Trace d'un nœud lors d'une exécution.
 export interface FlowRunNode {
   node_id: string
   table_id: string
+  // Version de table exécutée par le nœud
+  table_version?: VersionRef | null
   input: Record<string, unknown>
   decision_id: string | null
   answer: Record<string, unknown> | null
@@ -88,7 +103,8 @@ export interface FlowRunNode {
 // Une exécution enregistrée (collection flow_runs).
 export interface FlowRun {
   _id: string
-  flow: { _id: string; title: string }
+  flow: { _id: string; title: string; version?: VersionRef | null }
+  test?: boolean
   application?: string
   inputs: Record<string, unknown>
   answer: Record<string, unknown>
@@ -101,6 +117,8 @@ export interface FlowRun {
 // Résultat renvoyé par POST /flows/{id}/decisions.
 export interface FlowResult {
   flow_run_id: string
+  // Le flow et la version exécutée
+  flow?: { _id: string; version: VersionRef | null }
   answer: Record<string, unknown>
   answer_types: Record<string, string>
   decision_kind: DecisionKind

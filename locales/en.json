@@ -465,6 +465,23 @@
     "testVersion": "Version to test",
     "testActive": "Active version",
     "testRunFlagged": "Test runs are flagged and left out of analytics.",
-    "importedIntoDraft": "Imported into the draft \"{name}\""
+    "importedIntoDraft": "Imported into the draft \"{name}\"",
+    "flowIntro": "Edit drafts of the flow, publish them, then activate the version the API runs. Each node runs the table version it is pinned to.",
+    "flowEmpty": "This flow has no version yet.",
+    "flowNoVersion": "This flow has no version yet: saving creates its first draft.",
+    "flowActivated": "Direct API calls of this flow now run this version.",
+    "flowCallsTitle": "API keys calling this flow (last {days} days)",
+    "flowNoCalls": "No API key called this flow recently.",
+    "flowNoCallers": "No API key called this flow without a version recently.",
+    "flowInUse": "This version is in use: active, or called by an API key.",
+    "flowOutdated": "Table version behind",
+    "flowDraftCreated": "draft created, to publish",
+    "open": "Open",
+    "openEditor": "Open the editor",
+    "pinActive": "Active version of the table",
+    "pinOutdated": "Not active",
+    "pinOutdatedHint": "A node runs a table version other than the table's active one.",
+    "ranVersion": "Version run: {version}",
+    "updateFlowsCount": "Update {count} flow(s)"
   }
 }

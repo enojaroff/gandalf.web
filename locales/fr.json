@@ -465,6 +465,23 @@
     "testVersion": "Version à tester",
     "testActive": "Version active",
     "testRunFlagged": "Les exécutions de test sont marquées et exclues des analytics.",
-    "importedIntoDraft": "Importé dans le brouillon « {name} »"
+    "importedIntoDraft": "Importé dans le brouillon « {name} »",
+    "flowIntro": "Modifiez des brouillons du flow, publiez-les, puis activez la version exécutée par l'API. Chaque nœud exécute la version de table sur laquelle il est figé.",
+    "flowEmpty": "Ce flow n'a pas encore de version.",
+    "flowNoVersion": "Ce flow n'a pas encore de version : l'enregistrement crée son premier brouillon.",
+    "flowActivated": "Les appels directs de ce flow exécutent désormais cette version.",
+    "flowCallsTitle": "Clés d'API qui appellent ce flow ({days} derniers jours)",
+    "flowNoCalls": "Aucune clé d'API n'a appelé ce flow récemment.",
+    "flowNoCallers": "Aucune clé d'API n'a appelé ce flow sans préciser de version récemment.",
+    "flowInUse": "Cette version est utilisée : active, ou appelée par une clé d'API.",
+    "flowOutdated": "Version de table dépassée",
+    "flowDraftCreated": "brouillon créé, à publier",
+    "open": "Ouvrir",
+    "openEditor": "Ouvrir l'éditeur",
+    "pinActive": "Version active de la table",
+    "pinOutdated": "Non active",
+    "pinOutdatedHint": "Un nœud exécute une autre version que la version active de sa table.",
+    "ranVersion": "Version exécutée : {version}",
+    "updateFlowsCount": "Mettre à jour {count} flow(s)"
   }
 }

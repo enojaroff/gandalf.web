@@ -431,6 +431,23 @@
     "testVersion": "Versión que probar",
     "testActive": "Versión activa",
     "testRunFlagged": "Las ejecuciones de prueba se marcan y quedan fuera de las analíticas.",
-    "importedIntoDraft": "Importado en el borrador «{name}»"
+    "importedIntoDraft": "Importado en el borrador «{name}»",
+    "flowIntro": "Edite borradores del flujo, publíquelos y active después la versión que ejecuta la API. Cada nodo ejecuta la versión de tabla en la que está fijado.",
+    "flowEmpty": "Este flujo todavía no tiene versiones.",
+    "flowNoVersion": "Este flujo todavía no tiene versión: al guardar se crea su primer borrador.",
+    "flowActivated": "Las llamadas directas a este flujo ejecutan ahora esta versión.",
+    "flowCallsTitle": "Claves de API que llaman a este flujo (últimos {days} días)",
+    "flowNoCalls": "Ninguna clave de API ha llamado a este flujo recientemente.",
+    "flowNoCallers": "Ninguna clave de API ha llamado a este flujo sin indicar versión recientemente.",
+    "flowInUse": "Esta versión está en uso: activa o llamada por una clave de API.",
+    "flowOutdated": "Versión de tabla atrasada",
+    "flowDraftCreated": "borrador creado, por publicar",
+    "open": "Abrir",
+    "openEditor": "Abrir el editor",
+    "pinActive": "Versión activa de la tabla",
+    "pinOutdated": "No activa",
+    "pinOutdatedHint": "Un nodo ejecuta otra versión que la versión activa de su tabla.",
+    "ranVersion": "Versión ejecutada: {version}",
+    "updateFlowsCount": "Actualizar {count} flujo(s)"
   }
 }

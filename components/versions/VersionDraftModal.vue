@@ -1,4 +1,5 @@
-<!-- Créer un brouillon à partir d'une version (par défaut la version active). -->
+<!-- Créer un brouillon de table ou de flow à partir d'une version (par défaut
+     la version active). -->
 <template>
   <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
@@ -27,17 +28,19 @@
 </template>
 
 <script setup lang="ts">
-import type { TableVersion } from '~/types/version'
+import type { VersionSummary } from '~/types/version'
 import { apiErrorCode, apiValidationMessages } from '~/utils/apiErrors'
 import { defaultDraftName } from '~/utils/versions'
 
-const props = defineProps<{
-  tableId: string
+const props = withDefaults(defineProps<{
+  // Table ou flow dont on crée un brouillon
+  kind?: 'table' | 'flow'
+  ownerId: string
   // Version d'origine ; absente : la version active
   fromVersionId?: string
   fromLabel?: string
-}>()
-const emit = defineEmits<{ close: []; created: [draft: TableVersion] }>()
+}>(), { kind: 'table', fromVersionId: undefined, fromLabel: undefined })
+const emit = defineEmits<{ close: []; created: [draft: VersionSummary] }>()
 
 const { t } = useI18n()
 const gandalf = useGandalf()
@@ -50,7 +53,8 @@ async function onSubmit() {
   loading.value = true
   error.value = null
   try {
-    const response = await gandalf.tables.versions.create(props.tableId, {
+    const versions = props.kind === 'flow' ? gandalf.flows.versions : gandalf.tables.versions
+    const response = await versions.create(props.ownerId, {
       from_version_id: props.fromVersionId,
       name: name.value.trim(),
     })

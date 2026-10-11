@@ -1,9 +1,11 @@
 <!--
   RunPanel — execute a flow and show its result + per-node trace.
-  Builds an input form from flow.inputs, POSTs to /flows/{id}/decisions, and
-  renders the assembled `answer` plus each node's decision. A 422 lists the
-  wiring/validation errors and the flow_run_id when the run was partially
-  recorded.
+  Builds an input form from flow.inputs and runs the draft or version being
+  edited through the test route (versionId; the run is flagged "test" and left
+  out of the run history), or the active version through /flows/{id}/decisions
+  without one. Renders the assembled `answer` plus each node's decision and the
+  table version it ran. A 422 lists the wiring/validation errors and the
+  flow_run_id when the run was partially recorded.
 -->
 <template>
   <USlideover v-model:open="isOpen" :title="$t('flows.runTitle')" :ui="{ content: 'max-w-xl' }">
@@ -54,6 +56,9 @@
 
         <!-- Result -->
         <template v-if="result">
+          <p v-if="result.flow?.version" class="text-xs text-muted">
+            {{ $t('versions.ranVersion', { version: result.flow.version.number ? `v${result.flow.version.number}` : $t('versions.draft') }) }}
+          </p>
           <div>
             <h3 class="text-sm font-semibold mb-2">{{ $t('flows.answer') }}</h3>
             <div class="space-y-2">
@@ -79,6 +84,7 @@
                   <span class="text-sm font-semibold">
                     {{ nodeName(node.node_id) }}
                     <span class="text-muted font-mono text-xs">{{ node.node_id }}</span>
+                    <span v-if="node.table_version" class="text-muted text-xs font-normal">· v{{ node.table_version.number }}</span>
                   </span>
                   <UBadge v-if="node.decision_id" variant="outline" size="sm">
                     {{ node.decision_id.slice(0, 8) }}…
@@ -113,6 +119,8 @@ const props = defineProps<{
   open: boolean
   // node_id → human-readable name (table title or label), for the run trace.
   nodeLabels?: Record<string, string>
+  // Draft or version to test-run; without it, the active version runs.
+  versionId?: string
 }>()
 
 // Fall back to the node's own label/id when no map entry exists.
@@ -191,7 +199,9 @@ async function run() {
   failedRunId.value = null
   result.value = null
   try {
-    const resp = await gandalf.flows.run(props.flow._id, buildPayload())
+    const resp = props.versionId
+      ? await gandalf.flows.versions.run(props.flow._id, props.versionId, buildPayload())
+      : await gandalf.flows.run(props.flow._id, buildPayload())
     result.value = resp.data
   }
   catch (e) {

@@ -116,7 +116,7 @@
 
     <VersionPublishModal
       v-if="showPublish && draft"
-      :table-id="tableId"
+      :owner-id="tableId"
       :draft="draft"
       @published="onPublished"
       @close="showPublish = false"
@@ -201,7 +201,7 @@ import { CONDITION_TYPES, isConditionValidForType } from '~/utils/transforms'
 import { apiValidationMessages } from '~/utils/apiErrors'
 import { fieldKeyError, normalizeFieldKey } from '~/utils/fieldKeys'
 import type { ImportResponse } from '~/composables/useGandalf'
-import type { TableVersion } from '~/types/version'
+import type { TableVersion, VersionSummary } from '~/types/version'
 import VersionPublishModal from '~/components/versions/VersionPublishModal.vue'
 import { defaultDraftName, versionNumberLabel } from '~/utils/versions'
 
@@ -455,7 +455,7 @@ function onImported(imported: ImportResponse) {
   }
 }
 
-function onPublished(version: TableVersion) {
+function onPublished(version: VersionSummary) {
   toast.add({ title: t('versions.publishedToast', { number: version.number }), color: 'success' })
   navigateTo(`/tables/${tableId}/versions`)
 }

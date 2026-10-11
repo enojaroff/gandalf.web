@@ -1,8 +1,8 @@
 // Règles des versions de table côté interface (gandalf.api, VERSIONS.md).
 // Pures et testées : la page Versions, l'éditeur et la page de test s'en servent.
-import type { SplitMode, TableVersionSummary } from '~/types/version'
+import type { SplitMode, VersionSummary } from '~/types/version'
 
-type VersionLink = Pick<TableVersionSummary, '_id' | 'origin_version_id'>
+type VersionLink = Pick<VersionSummary, '_id' | 'origin_version_id'>
 
 // Garde-fou contre une chaîne d'origines anormalement longue ou cyclique
 const MAX_ORIGIN_DEPTH = 100
@@ -29,19 +29,19 @@ export function descendsFrom(versionId: string, ancestorId: string, versions: Ve
  * `version` laisserait de côté les changements publiés depuis qu'elle en est
  * partie (ou c'est un retour en arrière). Null sinon.
  */
-export function divergence(version: VersionLink, versions: TableVersionSummary[]): TableVersionSummary | null {
+export function divergence<T extends VersionSummary>(version: VersionLink, versions: T[]): T | null {
   const active = versions.find(v => v.is_active)
   if (!active || active._id === version._id) return null
   return descendsFrom(version._id, active._id, versions) ? null : active
 }
 
 /** « v3 » pour une version publiée, null pour un brouillon. */
-export function versionNumberLabel(version: Pick<TableVersionSummary, 'number' | 'status'>): string | null {
+export function versionNumberLabel(version: Pick<VersionSummary, 'number' | 'status'>): string | null {
   return version.status === 'published' && version.number !== null ? `v${version.number}` : null
 }
 
 /** Brouillons d'abord (dernier modifié en premier), puis versions publiées (plus récente en premier). */
-export function sortVersions<T extends Pick<TableVersionSummary, 'status' | 'number' | 'updated_at'>>(versions: T[]): T[] {
+export function sortVersions<T extends Pick<VersionSummary, 'status' | 'number' | 'updated_at'>>(versions: T[]): T[] {
   return [...versions].sort((a, b) => {
     if (a.status !== b.status) return a.status === 'draft' ? -1 : 1
     if (a.status === 'published') return (b.number ?? 0) - (a.number ?? 0)

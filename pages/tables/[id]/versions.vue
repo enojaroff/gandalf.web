@@ -116,6 +116,48 @@
         </UTable>
       </UCard>
 
+      <!-- Flows qui utilisent la table : la version de table de chaque nœud,
+           et l'action groupée qui les amène à la version active -->
+      <UCard class="mb-6">
+        <template #header>
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-semibold">{{ $t('versions.flowsTitle') }}</h3>
+            <UButton
+              v-if="outdatedFlows.length && can('tables_update')"
+              size="sm"
+              icon="i-lucide-refresh-ccw"
+              :loading="updatingFlows"
+              @click="updateFlows"
+            >
+              {{ $t('versions.updateFlowsCount', { count: outdatedFlows.length }) }}
+            </UButton>
+          </div>
+        </template>
+        <div v-if="!flowUsages.length" class="text-center py-6 text-muted">{{ $t('versions.noFlows') }}</div>
+        <ul v-else class="divide-y divide-default">
+          <li v-for="usage in flowUsages" :key="usage._id" class="flex items-center justify-between gap-4 py-2 text-sm">
+            <NuxtLink :to="`/flows/${usage._id}/edit`" class="text-primary hover:underline">{{ usage.title }}</NuxtLink>
+            <span class="flex items-center gap-2 text-muted">
+              {{ usage.nodes.map(n => n.table_version?.number ? `v${n.table_version.number}` : '—').join(', ') }}
+              <UBadge v-if="usage.outdated" color="warning" variant="subtle" size="sm">{{ $t('versions.flowOutdated') }}</UBadge>
+              <UBadge v-else color="success" variant="subtle" size="sm">{{ $t('versions.flowStatus.up_to_date') }}</UBadge>
+            </span>
+          </li>
+        </ul>
+        <ul v-if="flowUpdateResults.length" class="mt-3 space-y-1 text-sm">
+          <li v-for="result in flowUpdateResults" :key="result._id" class="flex items-start gap-2">
+            <UBadge :color="result.status === 'incompatible' ? 'warning' : 'success'" variant="soft" size="sm">
+              {{ $t(`versions.flowStatus.${result.status}`) }}
+            </UBadge>
+            <span>
+              {{ result.title }}
+              <span v-if="result.version && result.version.status === 'draft'" class="text-muted"> · {{ $t('versions.flowDraftCreated') }}</span>
+              <span v-if="result.errors.length" class="block text-xs text-muted">{{ result.errors.join(' ') }}</span>
+            </span>
+          </li>
+        </ul>
+      </UCard>
+
       <!-- Clés d'API qui appellent la table, par version demandée -->
       <UCard>
         <template #header>
@@ -138,7 +180,7 @@
 
     <VersionDraftModal
       v-if="draftFrom"
-      :table-id="tableId"
+      :owner-id="tableId"
       :from-version-id="draftFrom.id"
       :from-label="draftFrom.label"
       @created="onDraftCreated"
@@ -146,7 +188,7 @@
     />
     <VersionPublishModal
       v-if="publishing"
-      :table-id="tableId"
+      :owner-id="tableId"
       :draft="publishing"
       :diverging="divergence(publishing, versions)"
       @published="onPublished"
@@ -154,7 +196,7 @@
     />
     <VersionActivateModal
       v-if="activating"
-      :table-id="tableId"
+      :owner-id="tableId"
       :version="activating"
       :diverging="divergence(activating, versions)"
       @activated="reload"
@@ -172,7 +214,7 @@
 
 <script setup lang="ts">
 import type { DecisionTable } from '~/types/decision-table'
-import type { TableVersion, TableVersionSummary, VersionCall } from '~/types/version'
+import type { FlowUpdateResult, TableFlowUsage, TableVersionSummary, VersionCall, VersionSummary } from '~/types/version'
 import VersionDraftModal from '~/components/versions/VersionDraftModal.vue'
 import VersionPublishModal from '~/components/versions/VersionPublishModal.vue'
 import VersionActivateModal from '~/components/versions/VersionActivateModal.vue'
@@ -195,6 +237,10 @@ const versions = ref<TableVersionSummary[]>([])
 const calls = ref<VersionCall[]>([])
 const windowDays = ref(30)
 const loading = ref(true)
+const flowUsages = ref<TableFlowUsage[]>([])
+const flowUpdateResults = ref<FlowUpdateResult[]>([])
+const updatingFlows = ref(false)
+const outdatedFlows = computed(() => flowUsages.value.filter(usage => usage.outdated))
 
 const draftFrom = ref<{ id?: string; label: string } | null>(null)
 const publishing = ref<TableVersionSummary | null>(null)
@@ -238,15 +284,38 @@ onMounted(async () => {
 })
 
 async function reload() {
-  const [tableResponse, versionsResponse, callsResponse] = await Promise.all([
+  const [tableResponse, versionsResponse, callsResponse, flowsResponse] = await Promise.all([
     gandalf.tables.getById(tableId),
     gandalf.tables.versions.list(tableId),
     gandalf.tables.versions.calls(tableId).catch(() => null),
+    gandalf.tables.versions.flows(tableId).catch(() => null),
   ])
   table.value = tableResponse.data
   versions.value = sortVersions(versionsResponse.data)
   calls.value = callsResponse?.data ?? []
   windowDays.value = callsResponse?.meta?.window_days ?? 30
+  flowUsages.value = flowsResponse?.data ?? []
+}
+
+// Amène les flows à la version active de la table. Avec les droits de
+// publication et d'activation, leurs nouvelles versions sont publiées et
+// activées ; sinon elles restent en brouillon, à publier par qui le peut.
+async function updateFlows() {
+  updatingFlows.value = true
+  try {
+    const activate = can('tables_publish') && can('tables_activate')
+    const response = await gandalf.tables.versions.updateFlows(tableId, {
+      flow_ids: outdatedFlows.value.map(usage => usage._id),
+      publish: activate,
+      activate,
+    })
+    flowUpdateResults.value = response.data
+    await reload()
+  }
+  catch (e) {
+    toast.add({ title: apiErrorCode(e).message || t('errors.failedToSave'), color: 'error' })
+  }
+  finally { updatingFlows.value = false }
 }
 
 function originLabel(version: TableVersionSummary): string {
@@ -257,7 +326,7 @@ function originLabel(version: TableVersionSummary): string {
 }
 
 // Le brouillon s'ouvre dans l'éditeur, sur sa première variante.
-function editLink(version: TableVersionSummary): string {
+function editLink(version: Pick<VersionSummary, '_id'>): string {
   const variant = table.value?.variants[0]?._id ?? 'first'
   return `/tables/${tableId}/${variant}/edit?version=${version._id}`
 }
@@ -278,12 +347,12 @@ function formatDate(iso: string | null): string {
   return isNaN(date.getTime()) ? iso : date.toLocaleString()
 }
 
-function onDraftCreated(draft: TableVersion) {
+function onDraftCreated(draft: VersionSummary) {
   toast.add({ title: t('versions.draftCreated'), color: 'success' })
   navigateTo(editLink(draft))
 }
 
-function onPublished(version: TableVersion) {
+function onPublished(version: VersionSummary) {
   toast.add({ title: t('versions.publishedToast', { number: version.number }), color: 'success' })
   reload()
 }

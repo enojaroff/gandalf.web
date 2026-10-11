@@ -1,4 +1,5 @@
-<!-- Publier un brouillon : il est figé et numéroté ; la version active ne change pas. -->
+<!-- Publier un brouillon de table ou de flow : il est figé et numéroté ; la
+     version active ne change pas. -->
 <template>
   <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
@@ -32,16 +33,17 @@
 </template>
 
 <script setup lang="ts">
-import type { TableVersion, TableVersionSummary } from '~/types/version'
+import type { VersionSummary } from '~/types/version'
 import { apiErrorCode, apiValidationMessages } from '~/utils/apiErrors'
 
-const props = defineProps<{
-  tableId: string
-  draft: TableVersionSummary
+const props = withDefaults(defineProps<{
+  kind?: 'table' | 'flow'
+  ownerId: string
+  draft: VersionSummary
   // Version active dont le brouillon ne descend pas (avertissement), le cas échéant
-  diverging?: TableVersionSummary | null
-}>()
-const emit = defineEmits<{ close: []; published: [version: TableVersion] }>()
+  diverging?: VersionSummary | null
+}>(), { kind: 'table', diverging: null })
+const emit = defineEmits<{ close: []; published: [version: VersionSummary] }>()
 
 const { t } = useI18n()
 const gandalf = useGandalf()
@@ -54,7 +56,8 @@ async function onSubmit() {
   loading.value = true
   error.value = null
   try {
-    const response = await gandalf.tables.versions.publish(props.tableId, props.draft._id, comment.value.trim())
+    const versions = props.kind === 'flow' ? gandalf.flows.versions : gandalf.tables.versions
+    const response = await versions.publish(props.ownerId, props.draft._id, comment.value.trim())
     emit('published', response.data)
     emit('close')
   }

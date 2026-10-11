@@ -431,6 +431,23 @@
     "testVersion": "Versione da provare",
     "testActive": "Versione attiva",
     "testRunFlagged": "Le esecuzioni di prova sono contrassegnate ed escluse dalle analisi.",
-    "importedIntoDraft": "Importato nella bozza «{name}»"
+    "importedIntoDraft": "Importato nella bozza «{name}»",
+    "flowIntro": "Modificate le bozze del flusso, pubblicatele, poi attivate la versione eseguita dall'API. Ogni nodo esegue la versione di tabella su cui è fissato.",
+    "flowEmpty": "Questo flusso non ha ancora versioni.",
+    "flowNoVersion": "Questo flusso non ha ancora una versione: il salvataggio crea la sua prima bozza.",
+    "flowActivated": "Le chiamate dirette di questo flusso eseguono ora questa versione.",
+    "flowCallsTitle": "Chiavi API che chiamano questo flusso (ultimi {days} giorni)",
+    "flowNoCalls": "Nessuna chiave API ha chiamato questo flusso di recente.",
+    "flowNoCallers": "Nessuna chiave API ha chiamato questo flusso senza indicare la versione di recente.",
+    "flowInUse": "Questa versione è in uso: attiva, o chiamata da una chiave API.",
+    "flowOutdated": "Versione di tabella superata",
+    "flowDraftCreated": "bozza creata, da pubblicare",
+    "open": "Apri",
+    "openEditor": "Apri l'editor",
+    "pinActive": "Versione attiva della tabella",
+    "pinOutdated": "Non attiva",
+    "pinOutdatedHint": "Un nodo esegue una versione diversa da quella attiva della sua tabella.",
+    "ranVersion": "Versione eseguita: {version}",
+    "updateFlowsCount": "Aggiorna {count} flusso/i"
   }
 }

@@ -7,6 +7,8 @@ import type { Category } from '~/types/category'
 import type {
   ActivationMeta,
   FlowUpdateResult,
+  FlowVersion,
+  FlowVersionSummary,
   SplitMode,
   TableFlowUsage,
   TableVersion,
@@ -547,6 +549,53 @@ export function useGandalf() {
       request<{ data: FlowRun[]; meta: unknown }>(`${apiBase}/v1/admin/flows/${id}/runs`, {
         params: { size, page },
       }),
+
+    // Versions (gandalf.api, VERSIONS.md) : comme pour les tables, sans répartition.
+    versions: {
+      list: (flowId: string) =>
+        request<{ data: FlowVersionSummary[] }>(`${apiBase}/v1/admin/flows/${flowId}/versions`),
+
+      get: (flowId: string, versionId: string) =>
+        request<{ data: FlowVersion }>(`${apiBase}/v1/admin/flows/${flowId}/versions/${versionId}`),
+
+      create: (flowId: string, body: { from_version_id?: string; name?: string } = {}) =>
+        request<{ data: FlowVersion }>(`${apiBase}/v1/admin/flows/${flowId}/versions`, {
+          method: 'POST',
+          body,
+        }),
+
+      // Les clés du graphe envoyées remplacent celles du brouillon
+      update: (flowId: string, versionId: string, graph: Partial<Pick<FlowVersion, 'name' | 'inputs' | 'outputs' | 'nodes' | 'edges'>>) =>
+        request<{ data: FlowVersion }>(`${apiBase}/v1/admin/flows/${flowId}/versions/${versionId}`, {
+          method: 'PUT',
+          body: graph,
+        }),
+
+      remove: (flowId: string, versionId: string) =>
+        request(`${apiBase}/v1/admin/flows/${flowId}/versions/${versionId}`, { method: 'DELETE' }),
+
+      publish: (flowId: string, versionId: string, comment = '') =>
+        request<{ data: FlowVersion; meta?: VersionDivergence }>(
+          `${apiBase}/v1/admin/flows/${flowId}/versions/${versionId}/publish`,
+          { method: 'POST', body: { comment } },
+        ),
+
+      activate: (flowId: string, versionId: string) =>
+        request<{ data: Flow; meta?: ActivationMeta }>(`${apiBase}/v1/admin/flows/${flowId}/activate`, {
+          method: 'POST',
+          body: { version_id: versionId },
+        }),
+
+      // Exécution de test d'un brouillon ou d'une version (marquée « test »)
+      run: (flowId: string, versionId: string, data: Record<string, unknown>) =>
+        request<{ data: FlowResult }>(`${apiBase}/v1/admin/flows/${flowId}/versions/${versionId}/decisions`, {
+          method: 'POST',
+          body: { data },
+        }),
+
+      calls: (flowId: string) =>
+        request<{ data: VersionCall[]; meta?: { window_days?: number } }>(`${apiBase}/v1/admin/flows/${flowId}/calls`),
+    },
 
     // Execute a flow. Like every endpoint, the DRG result comes wrapped in the
     // standard { meta, data } envelope; `data` is the FlowResult

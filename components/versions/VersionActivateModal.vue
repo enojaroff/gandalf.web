@@ -1,7 +1,8 @@
-<!-- Activer une version publiée (mise en production). Avant de confirmer :
-     l'avertissement de divergence, les clés d'API qui appellent la table sans
-     préciser de version (leur comportement change) et les flows, qui gardent
-     leur propre version de table. Après : proposer de mettre les flows à jour. -->
+<!-- Activer une version publiée de table ou de flow (mise en production).
+     Avant de confirmer : l'avertissement de divergence, les clés d'API qui
+     appellent sans préciser de version (leur comportement change) et, pour une
+     table, les flows, qui gardent leur propre version de table. Après : pour
+     une table, proposer de mettre les flows à jour. -->
 <template>
   <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
@@ -28,7 +29,7 @@
 
           <section>
             <h4 class="font-semibold mb-1">{{ $t('versions.callersTitle', { days: windowDays }) }}</h4>
-            <p v-if="!callers.length" class="text-muted">{{ $t('versions.noCallers') }}</p>
+            <p v-if="!callers.length" class="text-muted">{{ $t(kind === 'flow' ? 'versions.flowNoCallers' : 'versions.noCallers') }}</p>
             <ul v-else class="list-disc pl-5">
               <li v-for="call in callers" :key="call.consumer">
                 {{ call.description || call.consumer }}
@@ -37,7 +38,7 @@
             </ul>
           </section>
 
-          <section>
+          <section v-if="kind === 'table'">
             <h4 class="font-semibold mb-1">{{ $t('versions.flowsTitle') }}</h4>
             <p v-if="!flows.length" class="text-muted">{{ $t('versions.noFlows') }}</p>
             <template v-else>
@@ -50,7 +51,8 @@
         </template>
 
         <template v-else>
-          <p v-if="!outdated.length" class="text-muted">{{ $t('versions.flowsAllCurrent') }}</p>
+          <p v-if="kind === 'flow'" class="text-muted">{{ $t('versions.flowActivated') }}</p>
+          <p v-else-if="!outdated.length" class="text-muted">{{ $t('versions.flowsAllCurrent') }}</p>
           <template v-else>
             <template v-if="!updateResults.length">
               <p>{{ $t('versions.flowsOutdated', { count: outdated.length }) }}</p>
@@ -101,14 +103,15 @@
 </template>
 
 <script setup lang="ts">
-import type { FlowUpdateResult, TableFlowUsage, TableVersionSummary, VersionCall } from '~/types/version'
+import type { FlowUpdateResult, TableFlowUsage, VersionCall, VersionSummary } from '~/types/version'
 import { apiErrorCode, apiValidationMessages } from '~/utils/apiErrors'
 
-const props = defineProps<{
-  tableId: string
-  version: TableVersionSummary
-  diverging?: TableVersionSummary | null
-}>()
+const props = withDefaults(defineProps<{
+  kind?: 'table' | 'flow'
+  ownerId: string
+  version: VersionSummary
+  diverging?: VersionSummary | null
+}>(), { kind: 'table', diverging: null })
 const emit = defineEmits<{ close: []; activated: [] }>()
 
 const { t } = useI18n()
@@ -130,9 +133,10 @@ const canUpdateFlows = computed(() => projectsStore.can('tables_publish') && pro
 
 onMounted(async () => {
   try {
+    const versions = props.kind === 'flow' ? gandalf.flows.versions : gandalf.tables.versions
     const [callsResponse, flowsResponse] = await Promise.all([
-      gandalf.tables.versions.calls(props.tableId).catch(() => null),
-      gandalf.tables.versions.flows(props.tableId).catch(() => null),
+      versions.calls(props.ownerId).catch(() => null),
+      props.kind === 'table' ? gandalf.tables.versions.flows(props.ownerId).catch(() => null) : null,
     ])
     callers.value = (callsResponse?.data ?? []).filter(call => call.requested_version === null)
     windowDays.value = callsResponse?.meta?.window_days ?? 30
@@ -151,7 +155,8 @@ async function onActivate() {
   loading.value = true
   error.value = null
   try {
-    const response = await gandalf.tables.versions.activate(props.tableId, props.version._id)
+    const versions = props.kind === 'flow' ? gandalf.flows.versions : gandalf.tables.versions
+    const response = await versions.activate(props.ownerId, props.version._id)
     outdated.value = response.meta?.flows_outdated ?? []
     activated.value = true
     emit('activated')
@@ -167,7 +172,7 @@ async function onUpdateFlows() {
   loading.value = true
   error.value = null
   try {
-    const response = await gandalf.tables.versions.updateFlows(props.tableId, {
+    const response = await gandalf.tables.versions.updateFlows(props.ownerId, {
       flow_ids: outdated.value.map(flow => flow._id),
       publish: true,
       activate: true,

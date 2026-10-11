@@ -4,9 +4,23 @@ import type { DecisionField, DecisionVariant } from '~/types/decision-table'
 
 export type VersionStatus = 'draft' | 'published'
 
-// Version sans son contenu, telle que listée par GET …/versions
-export interface TableVersionSummary {
+// Ce qu'une version de table et une version de flow ont en commun
+export interface VersionSummary {
   _id: string
+  status: VersionStatus
+  number: number | null
+  name: string
+  comment: string
+  origin_version_id: string | null
+  autopublished: boolean
+  published_at: string | null
+  created_at: string
+  updated_at: string
+  is_active: boolean
+}
+
+// Version sans son contenu, telle que listée par GET …/versions
+export interface TableVersionSummary extends VersionSummary {
   table_id: string
   status: VersionStatus
   // Attribué à la publication ; null pour un brouillon
@@ -72,3 +86,16 @@ export interface FlowUpdateResult {
 }
 
 export type SplitMode = 'first' | 'random' | 'percent'
+
+// Version de flow sans son graphe (GET /admin/flows/{id}/versions)
+export interface FlowVersionSummary extends VersionSummary {
+  flow_id: string
+}
+
+// Version de flow avec son graphe ; chaque nœud figé sur une version de table
+export interface FlowVersion extends FlowVersionSummary {
+  inputs: import('~/types/flow').FlowInput[]
+  outputs: import('~/types/flow').FlowOutput[]
+  nodes: import('~/types/flow').FlowNode[]
+  edges: import('~/types/flow').FlowEdge[]
+}
