@@ -10,6 +10,12 @@ export const useUserStore = defineStore('user', {
     currentUser: null,
   }),
 
+  getters: {
+    // Superadmin Claims IA (gandalf.api, ADMIN.md) : seul à créer et supprimer
+    // des applications. L'API reste l'autorité (403).
+    isSuperadmin: (state): boolean => state.currentUser?.superadmin === true,
+  },
+
   actions: {
     async fetchCurrent() {
       const gandalf = useGandalf()

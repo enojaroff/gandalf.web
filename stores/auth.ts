@@ -47,9 +47,11 @@ export const useAuthStore = defineStore('auth', {
       this.tokenType = null
       this.expiresIn = null
 
-      // Vider également le store projets
+      // Vider également les stores projets et utilisateur (un indicateur
+      // superadmin ne doit pas survivre à un changement de compte)
       const projectsStore = useProjectsStore()
       projectsStore.reset()
+      useUserStore().reset()
     },
   },
 

@@ -13,7 +13,8 @@
           <!-- Sélecteur de projet -->
           <USelect v-if="projectsStore.projects.length > 0" :model-value="projectsStore.selectedProjectId ?? undefined"
             :items="projectItems" class="w-48" size="sm" @update:model-value="onProjectChange" />
-          <UButton to="/settings/project/create" variant="ghost" icon="i-lucide-plus" size="sm">
+          <!-- Seul un superadmin crée une application (gandalf.api, ADMIN.md) -->
+          <UButton v-if="userStore.isSuperadmin" to="/settings/project/create" variant="ghost" icon="i-lucide-plus" size="sm">
             {{ $t('settings.createApplication.title') }}
           </UButton>
 
@@ -108,6 +109,8 @@ const navItems = computed(() => [
   { label: t('nav.groups'), to: '/groups' },
   { label: t('nav.history'), to: '/history' },
   { label: t('nav.settings'), to: '/settings/project' },
+  // Applications et journal d'administration, pour les superadmins
+  ...(userStore.isSuperadmin ? [{ label: t('nav.admin'), to: '/admin' }] : []),
 ])
 
 const localePath = useLocalePath()

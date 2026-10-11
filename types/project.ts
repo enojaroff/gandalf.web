@@ -7,7 +7,6 @@ export type UserScope =
   | 'consumers_manage'
   | 'users_manage'
   | 'project_update'
-  | 'project_delete'
   | 'decisions_view'
   // Versions des tables : publier, mettre en production, exécuter une version
   // inactive (droit qu'un utilisateur doit avoir pour le donner à une clé)
@@ -22,6 +21,8 @@ export interface Project {
   title: string
   description?: string
   settings?: Record<string, unknown>
+  // Membres de l'application, renvoyés par GET /v1/projects
+  users?: ProjectUser[]
 }
 
 export interface ProjectUser {
@@ -31,6 +32,10 @@ export interface ProjectUser {
   scope: UserScope[]
   email?: string
   username?: string
+  // Entrée d'un superadmin (gandalf.api, ADMIN.md) : admin de toutes les
+  // applications ; `member` dit s'il en est aussi membre.
+  superadmin?: boolean
+  member?: boolean
 }
 
 export interface ProjectConsumer {
@@ -75,4 +80,7 @@ export interface User {
   is_active?: boolean
   avatar?: string
   settings?: UserSettings
+  // Présent et vrai pour un superadmin (Claims IA) : crée et supprime les
+  // applications, agit dans toutes (gandalf.api, ADMIN.md).
+  superadmin?: boolean
 }
