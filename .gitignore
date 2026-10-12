@@ -7,7 +7,7 @@ dist
 node_modules
 npm-debug.log*
 
-# Bower (legacy AngularJS deps, reinstallable — not versioned)
+# Bower: local folders left by the removed AngularJS app (not versioned)
 bower_components
 www/bower_components
 

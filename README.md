@@ -1,105 +1,83 @@
 # gandalf.web
 
-[![Build Status](https://travis-ci.org/Nebo15/gandalf.web.svg?branch=master)](https://travis-ci.org/Nebo15/gandalf.web)
-
-[![Gandalf Logo](https://raw.githubusercontent.com/Nebo15/gandalf.web/master/src/images/logo.png)](https://gndf.io)
-
-This is a Front-End project for our Open-Source Decision Engine for Big-Data. You can find Back-End here: [Nebo15/gandalf.api](https://github.com/Nebo15/gandalf.api).
-
-API docs is [here](http://docs.gandalf4.apiary.io/#).
+Web interface of Gandalf, a decision engine: decision tables, scoring tables,
+decision flows, versions, decision history and account administration. The
+back end is [gandalf.api](https://github.com/Claims-IA/gandalf.api).
 
 User manual: [docs/manual](docs/manual/README.md) ([français](docs/manual/README.fr.md)).
 
-## Installation Guide
+This project is a fork of [Nebo15/gandalf.web](https://github.com/Nebo15/gandalf.web),
+an AngularJS application, rewritten with Nuxt 3. The original application and
+its tooling have been removed.
 
-### Docker
+## Stack
 
-#### Deployment
+- [Nuxt 3](https://nuxt.com) in SPA mode (`ssr: false`), with a small Nitro
+  server that proxies `/api` to gandalf.api
+- [Nuxt UI 3](https://ui.nuxt.com) (Tailwind CSS 4), Pinia, Vue Flow (flow editor)
+- [@nuxtjs/i18n](https://i18n.nuxtjs.org): French, English, Italian, Spanish,
+  Ukrainian, Bulgarian (`locales/`)
+- [Vitest](https://vitest.dev) for unit tests (`utils/__tests__/`)
 
-UI can be deployed as a single container from [nebo15/gandalf.web](https://hub.docker.com/r/nebo15/gandalf.web/) Docker Hub.
+## Development
 
-#### Configurations
+Requirements: Node.js 20 and a running gandalf.api.
 
-Application supports these environment variables:
-
-| Environment Variable  | Default Value           | Description |
-| --------------------- | ----------------------- | ----------- |
-| `PORT`                | `8080`                  | Node.js server port.        |
-| `API_ENDPOINT`        | -                       | Gandalf API endpoint.       |
-| `API_CLIENTID`        | -                       | Gandalf API Client ID       |
-| `PROVIDERS_BUGSNAG_APIKEY`    | -               | Bugsnag API KEY   |
-| `PROVIDERS_BUGSNAG_STAGE`     | -               | Bugsnag stage name, eg. `development`   |
-
-### Vagrant
-
-Create `.env` file with configurations.
-Configure API access parameters and providers keys.
-
-### Vagrant
-
-You can use [Vagrant](https://www.vagrantup.com/) to intialize a development environment. Simply install it, ```cd``` into your project directory and run:
-
-```
-vagrant up
+```bash
+cp .env.example .env   # then set the API endpoint and the OAuth client
+npm install
+npm run dev            # serves the app on the port set by PORT
 ```
 
-Also you can notice that we use [Puppet](https://puppetlabs.com/puppet/puppet-open-source) as our configuration tool. Scripts located in [/puppet](https://github.com/Nebo15/gandalf.api/tree/master/puppet) directory of this repo. You can deploy code to your server and simply run:
+Other commands:
 
-```
-set -o nounset -o errexit -o pipefail -o errtrace
-trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
-echo 127.0.0.1 gandalf.yourdomain.com | sudo tee -a /etc/hosts
-sudo /bin/bash puppet/initial/init.sh -u "www-data"
-```
-
-And your server will be ready for production use!
-
-
-## Contribution
-
-### Technologies
-
-- Angular JS
-- GulpJS
-- Compass, Sass
-- Protractor JS
-
-### Requirements
-
-- Bower
-- Node JS
-- Compass
-- Gulp
-
-### Installation
-
-```
-npm i -g bower gulp
-bower install
-gem install compass
+```bash
+npm test               # unit tests (vitest)
+npx nuxi typecheck     # TypeScript check
+npm run build          # production build in .output/
+npm run preview        # serve the production build
 ```
 
-### Usage
+## Configuration
 
+The values below are read from `.env` when the app is built or started in
+development. In a built app, override them at runtime with the `NUXT_`
+variables.
+
+| Variable | Runtime override | Description |
+| -------- | ---------------- | ----------- |
+| `PORT` | `PORT` | Port of the Nuxt server (5177 in the Docker image). |
+| `API_ENDPOINT` | `NUXT_API_ENDPOINT` | Base URL of gandalf.api, used by the `/api` proxy. |
+| `API_CLIENTID` | `NUXT_PUBLIC_API_CLIENT_ID` | OAuth client id registered in gandalf.api. |
+| `API_CLIENTSECRET` | `NUXT_PUBLIC_API_CLIENT_SECRET` | OAuth client secret. |
+
+## Docker
+
+```bash
+docker build -t gandalf-web .
+docker run -p 5177:5177 \
+  -e NUXT_API_ENDPOINT=https://api.example.com/ \
+  -e NUXT_PUBLIC_API_CLIENT_ID=... \
+  -e NUXT_PUBLIC_API_CLIENT_SECRET=... \
+  gandalf-web
 ```
-gulp ## build and open Gandalf on http://localhost:8080 and watch file changes
 
-gulp build [--production] ## build project
-gulp production # or gulp build --production
-```
+The image runs the standalone Nitro build (`node .output/server/index.mjs`).
 
-## Sponsors
+## Project layout
 
-We want to thank our sponsors for supporting open source community.
-
-<a href="https://www.digitalocean.com/"><img src="https://www.digitalocean.com/assets/media/logos-badges/png/DO_Powered_by_Badge_blue-fe4c6688.png" width="150" /></a>
-
-<a href="https://www.browserstack.com/"><img src="https://cloud.githubusercontent.com/assets/7864462/12837037/452a17c6-cb73-11e5-9f39-fc96893bc9bf.png" width="150" /></a>
-
-<a href="https://blog.bugsnag.com/bugsnag-loves-open-source"><img src="https://www.bugsnag.com/images/logo-f11ffe87.svg" width="150" /></a>
-
-Their products are awesome, give them a try :)!
+| Folder | Content |
+| ------ | ------- |
+| `pages/`, `layouts/`, `components/` | Screens and UI components |
+| `composables/useGandalf.ts` | API client |
+| `stores/` | Pinia stores (session, current application, user) |
+| `utils/` | Pure helpers, tested in `utils/__tests__/` |
+| `server/` | Nitro: `/api` proxy and plugins |
+| `locales/` | Translations |
+| `docs/manual/` | User manual (English and French) |
+| `design/` | Source of the logo (Affinity Designer) |
 
 ## License
 
-See [LICENSE.md](LICENSE).
+GNU General Public License v3.0, see [LICENSE](LICENSE). Original work by
+Nebo15.
