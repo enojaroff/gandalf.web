@@ -18,10 +18,6 @@ import type {
   VersionDivergence,
 } from '~/types/version'
 
-function btoa64(str: string): string {
-  return btoa(str)
-}
-
 interface RequestOptions {
   method?: string
   headers?: Record<string, string>
@@ -64,13 +60,9 @@ export interface ImportResponse {
 export function useGandalf() {
   const config = useRuntimeConfig()
 
+  // Les routes du client OAuth (jetons, inscription, mot de passe…) reçoivent
+  // leurs identifiants du proxy /api, côté serveur (utils/clientCredentials.ts).
   const apiBase = config.public.apiProxyPath as string
-  const clientId = config.public.apiClientId as string
-  const clientSecret = config.public.apiClientSecret as string
-
-  function basicAuthHeader(): string {
-    return 'Basic ' + btoa64(`${clientId}:${clientSecret}`)
-  }
 
   function buildUrl(endpoint: string, params?: Record<string, string | number | undefined>): string {
     if (!params) return endpoint
@@ -148,7 +140,6 @@ export function useGandalf() {
     const response = await $fetch<OAuthToken>(`${apiBase}/v1/oauth`, {
       method: 'POST',
       headers: {
-        Authorization: basicAuthHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -167,7 +158,6 @@ export function useGandalf() {
     signIn: (username: string, password: string) =>
       request<OAuthToken>(`${apiBase}/v1/oauth`, {
         method: 'POST',
-        headers: { Authorization: basicAuthHeader() },
         body: { username, password, grant_type: 'password' },
         skipRefreshToken: true,
       }),
@@ -175,35 +165,30 @@ export function useGandalf() {
     signUp: (user: { username: string; password: string; email: string }) =>
       request(`${apiBase}/v1/users`, {
         method: 'POST',
-        headers: { Authorization: basicAuthHeader() },
         body: user,
       }),
 
     resetPassword: (email: string) =>
       request(`${apiBase}/v1/users/password/reset`, {
         method: 'POST',
-        headers: { Authorization: basicAuthHeader() },
         body: { email },
       }),
 
     resetPasswordConfirm: (token: string, password: string) =>
       request(`${apiBase}/v1/users/password/reset`, {
         method: 'PUT',
-        headers: { Authorization: basicAuthHeader() },
         body: { token, password },
       }),
 
     verifyEmail: (token: string) =>
       request(`${apiBase}/v1/users/verify/email`, {
         method: 'POST',
-        headers: { Authorization: basicAuthHeader() },
         body: { token },
       }),
 
     resendVerifyEmail: (email: string) =>
       request(`${apiBase}/v1/users/verify/email/resend`, {
         method: 'POST',
-        headers: { Authorization: basicAuthHeader() },
         body: { email },
       }),
   }

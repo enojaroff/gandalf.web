@@ -1,4 +1,5 @@
 import { defineEventHandler, getRouterParam, getHeaders, getQuery, proxyRequest } from 'h3'
+import { clientAuthorization, needsClientCredentials } from '../../../utils/clientCredentials'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -15,6 +16,12 @@ export default defineEventHandler(async (event) => {
     if (!skip.has(key.toLowerCase()) && value) {
       forwardHeaders[key] = value
     }
+  }
+
+  // Routes du client OAuth (connexion, inscription, mot de passe…) : le proxy
+  // ajoute les identifiants du client, connus du serveur seul.
+  if (needsClientCredentials(event.method, path)) {
+    forwardHeaders.authorization = clientAuthorization(config.apiClientId as string, config.apiClientSecret as string)
   }
 
   // Build target URL

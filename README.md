@@ -48,8 +48,14 @@ variables.
 | -------- | ---------------- | ----------- |
 | `PORT` | `PORT` | Port of the Nuxt server (5177 in the Docker image). |
 | `API_ENDPOINT` | `NUXT_API_ENDPOINT` | Base URL of gandalf.api, used by the `/api` proxy. |
-| `API_CLIENTID` | `NUXT_PUBLIC_API_CLIENT_ID` | OAuth client id registered in gandalf.api. |
-| `API_CLIENTSECRET` | `NUXT_PUBLIC_API_CLIENT_SECRET` | OAuth client secret. |
+| `API_CLIENTID` | `NUXT_API_CLIENT_ID` | OAuth client id registered in gandalf.api. |
+| `API_CLIENTSECRET` | `NUXT_API_CLIENT_SECRET` | OAuth client secret. |
+
+The OAuth client stays on the server: the `/api` proxy adds it to the routes
+that need it (tokens, sign-up, password reset, email verification, see
+`utils/clientCredentials.ts`). The browser never receives it. `.env` is kept
+out of the Docker build context: configure a container with the `NUXT_`
+variables.
 
 ## Docker
 
@@ -57,8 +63,8 @@ variables.
 docker build -t gandalf-web .
 docker run -p 5177:5177 \
   -e NUXT_API_ENDPOINT=https://api.example.com/ \
-  -e NUXT_PUBLIC_API_CLIENT_ID=... \
-  -e NUXT_PUBLIC_API_CLIENT_SECRET=... \
+  -e NUXT_API_CLIENT_ID=... \
+  -e NUXT_API_CLIENT_SECRET=... \
   gandalf-web
 ```
 

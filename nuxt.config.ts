@@ -50,14 +50,16 @@ export default defineNuxtConfig({
     storesDirs: ['./stores/**'],
   },
 
-  // Variables d'environnement exposées au client et au serveur
+  // Variables d'environnement. Au démarrage d'un build, NUXT_API_ENDPOINT,
+  // NUXT_API_CLIENT_ID et NUXT_API_CLIENT_SECRET les remplacent.
   runtimeConfig: {
-    // Variable privée (server-side only) : URL du backend API
+    // Serveur seulement : URL du backend API, et client OAuth que le proxy /api
+    // ajoute aux routes qui l'exigent (utils/clientCredentials.ts)
     apiEndpoint: process.env.API_ENDPOINT || 'https://api.gndf.io/',
-    // Variables exposées au client (SPA mode : tout s'exécute dans le navigateur)
+    apiClientId: process.env.API_CLIENTID || '',
+    apiClientSecret: process.env.API_CLIENTSECRET || '',
+    // Exposé au navigateur
     public: {
-      apiClientId: process.env.API_CLIENTID || '',
-      apiClientSecret: process.env.API_CLIENTSECRET || '',
       apiProxyPath: '/api',
     },
   },
