@@ -336,6 +336,10 @@ applications ("admin" where it is one) and its status: **Actif** (Active),
 email address; **Sans application** (Without an application) keeps the
 accounts that belong to no application, which no other screen reaches.
 
+The **Créer un compte** (Create an account) button opens the same window as
+in **Paramètres** (see [Creating an account directly](#creating-an-account-directly)),
+plus the choice of the application the account is created in.
+
 On every account except your own and superadmins':
 
 - **Donner un mot de passe temporaire** (Give a temporary password, key icon):
@@ -372,6 +376,7 @@ password.
 | Remove an admin from the application | Admin, with the "Gérer" collaborators right |
 | Delete an account | Admin, with the "Gérer" collaborators right |
 | Create or delete an application | Superadmin |
+| Create an account in any application | Superadmin (in the application, or **Administration**, "Comptes" tab) |
 | See every account, those without an application included | Superadmin |
 | Give an account a temporary password | Superadmin, never for their own nor a superadmin's |
 | Delete an account from all its applications at once | Superadmin, never their own nor a superadmin's |

@@ -54,7 +54,7 @@
       </UCard>
 
       <!-- Comptes -->
-      <AccountsTab v-else-if="tab === 'accounts'" @changed="loadApplications" />
+      <AccountsTab v-else-if="tab === 'accounts'" :applications="applications" @changed="reloadApplications" />
 
       <!-- Journal -->
       <UCard v-else>
@@ -215,12 +215,27 @@ function open(project: Project, path: string) {
   navigateTo(path)
 }
 
+// Après une création ou une suppression : un échec du rechargement se signale
+async function reloadApplications() {
+  try {
+    await loadApplications()
+  }
+  catch {
+    toast.add({ title: t('errors.failedToLoad'), color: 'error' })
+  }
+}
+
 async function onDeleted(projectId: string) {
   const title = deleting.value?.title ?? ''
   deleting.value = null
   toast.add({ title: t('admin.deleted', { title }), color: 'success' })
   if (projectsStore.selectedProjectId === projectId) projectsStore.selectedProjectId = null
-  await Promise.all([loadApplications(), projectsStore.fetchAll()])
+  try {
+    await Promise.all([loadApplications(), projectsStore.fetchAll()])
+  }
+  catch {
+    toast.add({ title: t('errors.failedToLoad'), color: 'error' })
+  }
 }
 
 function applicationTitle(applicationId: string | null | undefined): string {

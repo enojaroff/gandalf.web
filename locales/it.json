@@ -558,7 +558,9 @@
     "accountDeleted": "Account {account} eliminato.",
     "logAccountDeleted": "Account eliminato: {email}",
     "logPasswordReset": "Password temporanea assegnata: {email}",
-    "logAccountCreated": "Account creato: {email}"
+    "logAccountCreated": "Account creato: {email}",
+    "chooseApplication": "Scegliete un'applicazione",
+    "accountExists": "Un account usa già questo indirizzo: cercatelo nell'elenco degli account, poi aggiungetelo dalle Impostazioni dell'applicazione con «Aggiungi un account esistente»."
   },
   "scopes": {
     "groups": {

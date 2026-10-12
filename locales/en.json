@@ -590,7 +590,9 @@
     "accountDeleted": "Account {account} deleted.",
     "logAccountDeleted": "Account deleted: {email}",
     "logPasswordReset": "Temporary password given: {email}",
-    "logAccountCreated": "Account created: {email}"
+    "logAccountCreated": "Account created: {email}",
+    "chooseApplication": "Choose an application",
+    "accountExists": "An account already uses this address: find it in the account list, then add it from the application's Settings with \"Add an existing account\"."
   },
   "scopes": {
     "groups": {

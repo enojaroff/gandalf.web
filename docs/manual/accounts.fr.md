@@ -334,6 +334,10 @@ applications de chacun (« admin » quand il l'est) et son statut : **Actif**,
 e-mail ; **Sans application** ne garde que les comptes rattachés à aucune
 application, qu'aucun autre écran n'atteint.
 
+Le bouton **Créer un compte** ouvre la même fenêtre que dans **Paramètres**
+(voir [Créer un compte directement](#créer-un-compte-directement)), avec en
+plus le choix de l'application où le compte est créé.
+
 Sur chaque compte, sauf le sien et ceux des superadmins :
 
 - **Donner un mot de passe temporaire** (icône de clé) : pour une personne
@@ -370,6 +374,7 @@ contient jamais de mot de passe.
 | Retirer un admin de l'application | Admin, avec le droit « Gérer » des collaborateurs |
 | Supprimer un compte | Admin, avec le droit « Gérer » des collaborateurs |
 | Créer ou supprimer une application | Superadmin |
+| Créer un compte dans n'importe quelle application | Superadmin (dans l'application, ou **Administration**, onglet « Comptes ») |
 | Voir tous les comptes, y compris sans application | Superadmin |
 | Donner un mot de passe temporaire à un compte | Superadmin, jamais pour le sien ni pour un superadmin |
 | Supprimer un compte de toutes ses applications à la fois | Superadmin, jamais le sien ni un superadmin |
