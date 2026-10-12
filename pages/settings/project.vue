@@ -216,7 +216,7 @@
     <!-- Mot de passe temporaire : confirmation d'une invitation, création d'un compte -->
     <TemporaryPasswordModal
       v-if="tempAccount"
-      :title="tempAccount.title"
+      :title="$t(tempAccount.titleKey)"
       :username="tempAccount.username"
       :email="tempAccount.email"
       :password="tempAccount.password"
@@ -239,6 +239,8 @@ import EditCollaboratorModal from '~/components/modals/EditCollaboratorModal.vue
 import AddCollaboratorModal from '~/components/modals/AddCollaboratorModal.vue'
 import CreateAccountModal from '~/components/accounts/CreateAccountModal.vue'
 import TemporaryPasswordModal from '~/components/accounts/TemporaryPasswordModal.vue'
+import { temporaryPasswordOf } from '~/utils/temporaryPassword'
+import type { TemporaryPassword } from '~/utils/temporaryPassword'
 import CategoryManager from '~/components/categories/CategoryManager.vue'
 
 definePageMeta({ middleware: 'auth' })
@@ -288,7 +290,7 @@ const projectSettings = ref<Record<string, unknown>>({})
 let projectSnapshot = { title: '', description: '', showMeta: false }
 
 // Mot de passe temporaire à transmettre, montré une seule fois
-const tempAccount = ref<{ title: string; username: string; email: string; password: string; emailSent: boolean } | null>(null)
+const tempAccount = ref<TemporaryPassword | null>(null)
 // Key of the collaborator whose confirmation is in flight (for per-row loading)
 const confirmingKey = ref<string | null>(null)
 // Key of the invitation whose cancel/resend is in flight
@@ -373,13 +375,10 @@ async function confirmCollaborator(collaborator: Collaborator) {
 
     // An invitation confirmation returns a temporary password to show the admin.
     if (resp.data.temporary_password) {
-      tempAccount.value = {
-        title: t('settings.tempPasswordTitle'),
-        username: resp.data.username ?? resp.data.email,
-        email: resp.data.email,
-        password: resp.data.temporary_password,
-        emailSent: resp.data.email_sent === true,
-      }
+      tempAccount.value = temporaryPasswordOf('settings.tempPasswordTitle', {
+        ...resp.data,
+        temporary_password: resp.data.temporary_password,
+      })
     }
     else {
       toast.add({ title: t('settings.confirmUserSuccess'), color: 'success' })
@@ -441,13 +440,7 @@ onBeforeUnmount(() => {
 
 function onAccountCreated(account: CreatedAccount) {
   showCreateAccount.value = false
-  tempAccount.value = {
-    title: t('settings.accountCreated'),
-    username: account.username,
-    email: account.email,
-    password: account.temporary_password,
-    emailSent: account.email_sent,
-  }
+  tempAccount.value = temporaryPasswordOf('settings.accountCreated', account)
   loadUsers()
 }
 

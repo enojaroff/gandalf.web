@@ -2,7 +2,8 @@
      tout de suite, avec un mot de passe temporaire que la fenêtre parente
      affiche. Mêmes règles qu'une invitation pour le rôle et les droits.
      Avec `applications` (Administration, superadmin), l'application se choisit
-     dans la fenêtre ; sinon c'est l'application sélectionnée. -->
+     dans la fenêtre, sans valeur par défaut : on crée un compte là où on l'a
+     décidé. Sinon c'est l'application sélectionnée. -->
 <template>
   <UModal :open="true" @update:open="(open: boolean) => { if (!open) emit('close') }">
     <template #header>
@@ -75,7 +76,6 @@ import { REQUIRED_MEMBER_SCOPE, accountErrorText } from '~/utils/accountErrors'
 
 const props = defineProps<{
   applications?: { _id: string; title: string }[]
-  defaultApplicationId?: string | null
 }>()
 const emit = defineEmits<{ close: []; created: [account: CreatedAccount] }>()
 
@@ -83,17 +83,19 @@ const { t } = useI18n()
 const gandalf = useGandalf()
 
 const applicationItems = computed(() => (props.applications ?? []).map(a => ({ value: a._id, label: a.title })))
-const applicationId = ref<string | undefined>(
-  props.applications?.some(a => a._id === props.defaultApplicationId) ? props.defaultApplicationId ?? undefined : undefined,
-)
-watch(applicationId, () => { error.value = null })
+const applicationId = ref<string | undefined>()
 
 // « View » des tables coché d'emblée : sans lui, le membre ne voit rien
 const form = reactive({ email: '', username: '', role: 'member', scope: [REQUIRED_MEMBER_SCOPE] as string[] })
 const loading = ref(false)
 const error = ref<string | null>(null)
 // Le message ne survit pas à une correction
-watch(form, () => { error.value = null }, { deep: true })
+watch([form, applicationId], () => { error.value = null }, { deep: true })
+
+// Adresse déjà prise : hors de l'application (Administration), le bouton
+// « Ajouter un compte existant » n'est pas à l'écran ; le message le dit.
+const translate = (key: string, params?: Record<string, unknown>) =>
+  t(props.applications && key === 'settings.accountExists' ? 'admin.accountExists' : key, params ?? {})
 
 // Seul un admin crée un compte : le rôle Admin lui est toujours proposé
 const roleItems = [
@@ -125,7 +127,7 @@ async function onCreate() {
     emit('created', response.data)
   }
   catch (err: unknown) {
-    error.value = accountErrorText(err, t, 'settings.createAccountFailed')
+    error.value = accountErrorText(err, translate, 'settings.createAccountFailed')
   }
   finally { loading.value = false }
 }

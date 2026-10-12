@@ -559,7 +559,8 @@
     "logAccountDeleted": "Изтрит акаунт: {email}",
     "logPasswordReset": "Зададена временна парола: {email}",
     "logAccountCreated": "Създаден акаунт: {email}",
-    "chooseApplication": "Изберете приложение"
+    "chooseApplication": "Изберете приложение",
+    "accountExists": "Вече има акаунт с този адрес: намерете го в списъка с акаунти и го добавете от Настройките на приложението с „Добавяне на съществуващ акаунт“."
   },
   "scopes": {
     "groups": {

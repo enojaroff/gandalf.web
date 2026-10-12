@@ -591,7 +591,8 @@
     "logAccountDeleted": "Compte supprimé : {email}",
     "logPasswordReset": "Mot de passe temporaire donné : {email}",
     "logAccountCreated": "Compte créé : {email}",
-    "chooseApplication": "Choisissez une application"
+    "chooseApplication": "Choisissez une application",
+    "accountExists": "Un compte utilise déjà cette adresse : retrouvez-le dans la liste des comptes, puis ajoutez-le depuis les Paramètres de l'application avec « Ajouter un compte existant »."
   },
   "scopes": {
     "groups": {

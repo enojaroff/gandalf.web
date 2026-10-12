@@ -374,6 +374,7 @@ contient jamais de mot de passe.
 | Retirer un admin de l'application | Admin, avec le droit « Gérer » des collaborateurs |
 | Supprimer un compte | Admin, avec le droit « Gérer » des collaborateurs |
 | Créer ou supprimer une application | Superadmin |
+| Créer un compte dans n'importe quelle application | Superadmin (dans l'application, ou **Administration**, onglet « Comptes ») |
 | Voir tous les comptes, y compris sans application | Superadmin |
 | Donner un mot de passe temporaire à un compte | Superadmin, jamais pour le sien ni pour un superadmin |
 | Supprimer un compte de toutes ses applications à la fois | Superadmin, jamais le sien ni un superadmin |

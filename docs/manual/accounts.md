@@ -376,6 +376,7 @@ password.
 | Remove an admin from the application | Admin, with the "Gérer" collaborators right |
 | Delete an account | Admin, with the "Gérer" collaborators right |
 | Create or delete an application | Superadmin |
+| Create an account in any application | Superadmin (in the application, or **Administration**, "Comptes" tab) |
 | See every account, those without an application included | Superadmin |
 | Give an account a temporary password | Superadmin, never for their own nor a superadmin's |
 | Delete an account from all its applications at once | Superadmin, never their own nor a superadmin's |
