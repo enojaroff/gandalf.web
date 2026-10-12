@@ -558,7 +558,8 @@
     "accountDeleted": "Account {account} eliminato.",
     "logAccountDeleted": "Account eliminato: {email}",
     "logPasswordReset": "Password temporanea assegnata: {email}",
-    "logAccountCreated": "Account creato: {email}"
+    "logAccountCreated": "Account creato: {email}",
+    "chooseApplication": "Scegliete un'applicazione"
   },
   "scopes": {
     "groups": {

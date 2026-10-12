@@ -54,7 +54,7 @@
       </UCard>
 
       <!-- Comptes -->
-      <AccountsTab v-else-if="tab === 'accounts'" @changed="loadApplications" />
+      <AccountsTab v-else-if="tab === 'accounts'" :applications="applications" @changed="loadApplications" />
 
       <!-- Journal -->
       <UCard v-else>

@@ -558,7 +558,8 @@
     "accountDeleted": "Обліковий запис {account} видалено.",
     "logAccountDeleted": "Обліковий запис видалено: {email}",
     "logPasswordReset": "Надано тимчасовий пароль: {email}",
-    "logAccountCreated": "Обліковий запис створено: {email}"
+    "logAccountCreated": "Обліковий запис створено: {email}",
+    "chooseApplication": "Оберіть застосунок"
   },
   "scopes": {
     "groups": {

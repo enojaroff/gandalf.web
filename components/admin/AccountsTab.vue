@@ -7,10 +7,15 @@
     <template #header>
       <div class="flex flex-wrap items-center justify-between gap-3">
         <UInput v-model="search" icon="i-lucide-search" :placeholder="$t('admin.accountsSearch')" size="sm" class="w-72" />
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <USwitch v-model="withoutApplication" size="sm" />
-          {{ $t('admin.accountsWithoutApplication') }}
-        </label>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <USwitch v-model="withoutApplication" size="sm" />
+            {{ $t('admin.accountsWithoutApplication') }}
+          </label>
+          <UButton size="sm" icon="i-lucide-user-round-plus" :disabled="!applications.length" @click="() => { creating = true }">
+            {{ $t('settings.createAccount') }}
+          </UButton>
+        </div>
       </div>
     </template>
 
@@ -70,31 +75,43 @@
   </UCard>
 
   <DeleteAccountModal v-if="deleting" :account="deleting" @close="deleting = null" @deleted="onDeleted" />
+  <CreateAccountModal
+    v-if="creating"
+    :applications="applications"
+    :default-application-id="projectsStore.selectedProjectId"
+    @close="creating = false"
+    @created="onCreated"
+  />
   <TemporaryPasswordModal
-    v-if="reset"
-    :title="$t('admin.resetPasswordDone')"
-    :username="reset.username"
-    :email="reset.email"
-    :password="reset.temporary_password"
-    :email-sent="reset.email_sent"
-    @close="reset = null"
+    v-if="temporary"
+    :title="temporary.title"
+    :username="temporary.username"
+    :email="temporary.email"
+    :password="temporary.password"
+    :email-sent="temporary.emailSent"
+    @close="temporary = null"
   />
 </template>
 
 <script setup lang="ts">
-import type { AdminAccount, PasswordResetResult } from '~/types/admin'
+import type { AdminAccount } from '~/types/admin'
+import type { CreatedAccount } from '~/types/project'
 import DeleteAccountModal from '~/components/admin/DeleteAccountModal.vue'
 import TemporaryPasswordModal from '~/components/accounts/TemporaryPasswordModal.vue'
+import CreateAccountModal from '~/components/accounts/CreateAccountModal.vue'
 import { accountLocked } from '~/utils/superadmin'
 import { apiErrorCode } from '~/utils/apiErrors'
 
-// Une suppression change les membres des applications listées par la page
+// Les applications où créer un compte (celles de la page)
+defineProps<{ applications: { _id: string; title: string }[] }>()
+// Une création ou une suppression change les membres des applications listées par la page
 const emit = defineEmits<{ changed: [] }>()
 
 const { t } = useI18n()
 const toast = useToast()
 const gandalf = useGandalf()
 const userStore = useUserStore()
+const projectsStore = useProjectsStore()
 
 const accounts = ref<AdminAccount[]>([])
 const loading = ref(false)
@@ -105,7 +122,9 @@ const size = 50
 const total = ref(0)
 const deleting = ref<AdminAccount | null>(null)
 const resettingId = ref<string | null>(null)
-const reset = ref<PasswordResetResult | null>(null)
+const creating = ref(false)
+// Mot de passe temporaire à transmettre : compte créé ou réinitialisé
+const temporary = ref<{ title: string; username: string; email: string; password: string; emailSent: boolean } | null>(null)
 
 const selfId = computed(() => userStore.currentUser?._id)
 
@@ -162,7 +181,13 @@ async function resetPassword(account: AdminAccount) {
   resettingId.value = account._id
   try {
     const response = await gandalf.superadmin.resetPassword(account._id)
-    reset.value = response.data
+    temporary.value = {
+      title: t('admin.resetPasswordDone'),
+      username: response.data.username,
+      email: response.data.email,
+      password: response.data.temporary_password,
+      emailSent: response.data.email_sent,
+    }
     await load()
   }
   catch (err: unknown) {
@@ -171,6 +196,19 @@ async function resetPassword(account: AdminAccount) {
   finally {
     resettingId.value = null
   }
+}
+
+async function onCreated(account: CreatedAccount) {
+  creating.value = false
+  temporary.value = {
+    title: t('settings.accountCreated'),
+    username: account.username,
+    email: account.email,
+    password: account.temporary_password,
+    emailSent: account.email_sent,
+  }
+  emit('changed')
+  await load()
 }
 
 async function onDeleted(account: AdminAccount) {

@@ -334,6 +334,10 @@ applications de chacun (« admin » quand il l'est) et son statut : **Actif**,
 e-mail ; **Sans application** ne garde que les comptes rattachés à aucune
 application, qu'aucun autre écran n'atteint.
 
+Le bouton **Créer un compte** ouvre la même fenêtre que dans **Paramètres**
+(voir [Créer un compte directement](#créer-un-compte-directement)), avec en
+plus le choix de l'application où le compte est créé.
+
 Sur chaque compte, sauf le sien et ceux des superadmins :
 
 - **Donner un mot de passe temporaire** (icône de clé) : pour une personne

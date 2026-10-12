@@ -590,7 +590,8 @@
     "accountDeleted": "Compte {account} supprimé.",
     "logAccountDeleted": "Compte supprimé : {email}",
     "logPasswordReset": "Mot de passe temporaire donné : {email}",
-    "logAccountCreated": "Compte créé : {email}"
+    "logAccountCreated": "Compte créé : {email}",
+    "chooseApplication": "Choisissez une application"
   },
   "scopes": {
     "groups": {

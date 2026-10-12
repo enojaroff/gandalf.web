@@ -558,7 +558,8 @@
     "accountDeleted": "Акаунтът {account} е изтрит.",
     "logAccountDeleted": "Изтрит акаунт: {email}",
     "logPasswordReset": "Зададена временна парола: {email}",
-    "logAccountCreated": "Създаден акаунт: {email}"
+    "logAccountCreated": "Създаден акаунт: {email}",
+    "chooseApplication": "Изберете приложение"
   },
   "scopes": {
     "groups": {

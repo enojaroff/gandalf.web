@@ -336,6 +336,10 @@ applications ("admin" where it is one) and its status: **Actif** (Active),
 email address; **Sans application** (Without an application) keeps the
 accounts that belong to no application, which no other screen reaches.
 
+The **Créer un compte** (Create an account) button opens the same window as
+in **Paramètres** (see [Creating an account directly](#creating-an-account-directly)),
+plus the choice of the application the account is created in.
+
 On every account except your own and superadmins':
 
 - **Donner un mot de passe temporaire** (Give a temporary password, key icon):

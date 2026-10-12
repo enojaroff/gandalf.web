@@ -309,8 +309,13 @@ export function useGandalf() {
 
     // Admin seulement : crée un compte actif dans l'application, avec un mot de
     // passe temporaire rendu une seule fois (à changer à la première connexion).
-    createAccount: (account: { email: string; username?: string; role: string; scope: string[] }) =>
-      request<{ data: CreatedAccount }>(`${apiBase}/v1/projects/collaborators/account`, { method: 'POST', body: account }),
+    // `applicationId` : une autre application que celle sélectionnée (superadmin)
+    createAccount: (account: { email: string; username?: string; role: string; scope: string[] }, applicationId?: string) =>
+      request<{ data: CreatedAccount }>(`${apiBase}/v1/projects/collaborators/account`, {
+        method: 'POST',
+        body: account,
+        headers: applicationId ? { 'X-Application': applicationId } : {},
+      }),
 
     // Admin-only: permanently delete a user account (blocked by the API if the
     // account still belongs to other projects — 409 with the blocking projects).
